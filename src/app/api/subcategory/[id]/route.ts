@@ -12,9 +12,17 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
       return NextResponse.json({ error: "SubCategory ID is required" }, { status: 400 });
     }
 
-    // 2️⃣ Find subcategory
+    // 2️⃣ Find subcategory with category relation
     const subcategory = await prisma.subCategory.findUnique({
       where: { id },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     if (!subcategory) {
@@ -41,6 +49,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       data: {
         name: body.name,
         categoryId: body.categoryId,
+      },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
