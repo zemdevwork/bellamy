@@ -1,20 +1,43 @@
 'use client';
 
 import { FC, useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose, DialogTrigger } from "@/components/ui/dialog";
+import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAction } from "next-safe-action/hooks";
-import { createCategoryAction, updateCategoryAction } from "@/server/actions/category-actions";
+import {
+  createCategoryAction,
+  updateCategoryAction,
+} from "@/server/actions/category-actions";
 import { Category } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
-const categorySchema = z.object({ name: z.string().min(1) });
+const categorySchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  image: z.instanceof(File).optional(),
+});
 
 interface CategoryDialogFormProps {
   open?: boolean;
@@ -22,8 +45,13 @@ interface CategoryDialogFormProps {
   category?: Category;
 }
 
-export const CategoryDialogForm: FC<CategoryDialogFormProps> = ({ open: isOpen = false, onOpenChange, category }) => {
+export const CategoryDialogForm: FC<CategoryDialogFormProps> = ({
+  open: isOpen = false,
+  onOpenChange,
+  category,
+}) => {
   const [open, setOpen] = useState(isOpen);
+  const [preview, setPreview] = useState<string | null>(category?.image || null);
   const router = useRouter();
 
   const { execute: create, isExecuting: isCreating } = useAction(createCategoryAction);
@@ -33,15 +61,28 @@ export const CategoryDialogForm: FC<CategoryDialogFormProps> = ({ open: isOpen =
 
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: category?.name || "" },
+    defaultValues: {
+      name: category?.name || "",
+    },
   });
 
   const onSubmit = async (values: z.infer<typeof categorySchema>) => {
     try {
-      if (!category) await create(values);
-      if (category) await updateCategory({ id: category.id, ...values });
-      toast.success(`Category ${category ? "updated" : "added"} successfully`);
+      const formData = new FormData();
+      formData.append("name", values.name);
+      if (values.image) formData.append("image", values.image);
+
+      if (!category) {
+        await create(formData);
+        toast.success("Category added successfully");
+      } else {
+        formData.append("id", category.id);
+        await updateCategory(formData);
+        toast.success("Category updated successfully");
+      }
+
       form.reset();
+      setPreview(null);
       router.refresh();
       setOpen(false);
     } catch {
@@ -73,6 +114,43 @@ export const CategoryDialogForm: FC<CategoryDialogFormProps> = ({ open: isOpen =
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field: { onChange, ...rest } }) => (
+                <FormItem>
+                  <FormLabel>Image</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      {...rest}
+                      value={undefined} // file input cannot have value
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          onChange(file);
+                          setPreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </FormControl>
+
+                  {preview && (
+                    <div className="mt-2 relative h-24 w-24 rounded-md border overflow-hidden">
+                      <Image
+                        src={preview}
+                        alt="Preview"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

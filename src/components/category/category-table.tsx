@@ -14,15 +14,32 @@ import {
 import { Category } from "@prisma/client";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableHead, TableRow, TableBody, TableCell } from "@/components/ui/table";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableRow,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 interface CategoryTableProps<TValue> {
   columns: ColumnDef<Category, TValue>[];
   data: Category[];
 }
 
-export default function CategoryTable<TValue>({ columns, data }: CategoryTableProps<TValue>) {
+export default function CategoryTable<TValue>({
+  columns,
+  data,
+}: CategoryTableProps<TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -36,8 +53,13 @@ export default function CategoryTable<TValue>({ columns, data }: CategoryTablePr
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    globalFilterFn: (row, _columnId, filterValue) =>
-      row.original.name.toLowerCase().includes(String(filterValue).toLowerCase()),
+    globalFilterFn: (row, _columnId, filterValue) => {
+      const search = String(filterValue).toLowerCase();
+      return (
+        row.original.name.toLowerCase().includes(search) ||
+        row.original.image?.toLowerCase().includes(search)
+      );
+    },
   });
 
   return (
@@ -46,13 +68,13 @@ export default function CategoryTable<TValue>({ columns, data }: CategoryTablePr
       <Card>
         <CardHeader>
           <CardTitle>Filter</CardTitle>
-          <CardDescription>Search categories by name</CardDescription>
+          <CardDescription>Search categories by name or image</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name"
+              placeholder="Search..."
               className="pl-8"
               onChange={(e) => setGlobalFilter(e.target.value)}
             />
@@ -75,7 +97,10 @@ export default function CategoryTable<TValue>({ columns, data }: CategoryTablePr
                     <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -95,7 +120,8 @@ export default function CategoryTable<TValue>({ columns, data }: CategoryTablePr
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                    No results found.{" "}
+                    <Button variant="link">Add Category</Button>
                   </TableCell>
                 </TableRow>
               )}

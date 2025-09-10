@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useState } from "react";
 import { Category } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
+import Image from "next/image";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,7 +67,29 @@ function ActionCell({ row }: { row: Row<Category> }) {
   );
 }
 
+
 export const categoryColumns: ColumnDef<Category>[] = [
+  {
+    accessorKey: "image",
+    header: "Image",
+    cell: ({ row }) => {
+      const imageUrl = row.getValue("image") as string | null;
+      return imageUrl ? (
+        <div className="relative h-12 w-12 rounded-md overflow-hidden border">
+          <Image
+            src={imageUrl}
+            alt={row.getValue("name")}
+            fill
+            className="object-cover"
+          />
+        </div>
+      ) : (
+        <div className="h-12 w-12 flex items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground">
+          N/A
+        </div>
+      );
+    },
+  },
   {
     accessorKey: "name",
     header: ({ column }) => {

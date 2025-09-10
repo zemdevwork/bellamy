@@ -15,39 +15,44 @@ model Brand {
 
     products Product[]
 }
+
 model Category {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  name      String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String   @unique
+    image     String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
-  products  Product[]
-  subcategories SubCategory[]
+    products      Product[]
+    subcategories SubCategory[]
 }
-model SubCategory {
-    id          String    @id @default(auto()) @map("_id") @db.ObjectId
-    name        String
-    categoryId  String    @db.ObjectId
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
 
-    category    Category  @relation(fields: [categoryId], references: [id])
-    products    Product[]
+model SubCategory {
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    name       String
+    categoryId String   @db.ObjectId
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    category Category  @relation(fields: [categoryId], references: [id])
+    products Product[]
 }
 
 model Product {
-    id          String   @id @default(auto()) @map("_id") @db.ObjectId
-    name        String
-    description String?
-    price       Float
-    image       String?
-    brandId     String?  @db.ObjectId
-    categoryId  String?   @db.ObjectId
-    subCategoryId  String?     @db.ObjectId
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId
+    name          String
+    description   String?
+    price         Float
+    qty           Int
+    image         String
+    brandId       String?  @db.ObjectId
+    categoryId    String?  @db.ObjectId
+    subCategoryId String?  @db.ObjectId
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+    attributes    Json
 
-    brand Brand? @relation(fields: [brandId], references: [id])
-    category    Category? @relation(fields: [categoryId], references: [id])
-    subCategory    SubCategory? @relation(fields: [subCategoryId], references: [id])
+    brand       Brand?       @relation(fields: [brandId], references: [id])
+    category    Category?    @relation(fields: [categoryId], references: [id])
+    subCategory SubCategory? @relation(fields: [subCategoryId], references: [id])
 }

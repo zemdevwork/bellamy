@@ -1,27 +1,54 @@
-'use server';
+"use server";
 
+import { revalidatePath } from "next/cache";
 import { actionClient } from "@/lib/safe-action";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { 
-  createCategorySchema, 
-  updateCategorySchema, 
-  deleteCategorySchema 
-} from "@/schema/category-schema";
+import uploadPhoto from "@/lib/upload";
+import cloudinary from "@/lib/cloudinary";
+import { zfd } from "zod-form-data";
+import { z } from "zod";
+
+
+
+// ✅ Schemas
+const createCategorySchema = zfd.formData({
+  name: zfd.text(),
+  image: zfd.file(z.instanceof(File)), // must upload
+});
+
+const updateCategorySchema = zfd.formData({
+  id: zfd.text(),
+  name: zfd.text().optional(),
+  image: zfd.file(z.instanceof(File)).optional(), // optional on update
+});
+
+const deleteCategorySchema = zfd.formData({
+  id: zfd.text(),
+});
 
 // ✅ CREATE Category
 export const createCategoryAction = actionClient
   .inputSchema(createCategorySchema)
   .action(async ({ parsedInput }) => {
     try {
+      let photoUrl: string = "";
+      if (parsedInput.image && parsedInput.image.size > 0) {
+        photoUrl = await uploadPhoto(parsedInput.image);
+      }
+      if (!photoUrl) throw new Error("Image is required");
+
       const category = await prisma.category.create({
-        data: { name: parsedInput.name },
+        data: {
+          name: parsedInput.name,
+          image: photoUrl,
+        },
       });
-      revalidatePath('/categories'); // adjust path to your UI
-      return { success: true, data: category, message: 'Category added successfully' };
+
+      revalidatePath("/category");
+      return { success: true, data: category, message: "Category created successfully" };
     } catch (error) {
-      console.error(error);
-      throw new Error("Failed to add category");
+      console.error("Create category error:", error);
+      throw new Error(error instanceof Error ? error.message : "Failed to create category");
     }
   });
 
@@ -29,17 +56,25 @@ export const createCategoryAction = actionClient
 export const updateCategoryAction = actionClient
   .inputSchema(updateCategorySchema)
   .action(async ({ parsedInput }) => {
-    const { id, ...data } = parsedInput;
     try {
+      let photoUrl: string | undefined;
+      if (parsedInput.image && parsedInput.image.size > 0) {
+        photoUrl = await uploadPhoto(parsedInput.image);
+      }
+
       const updated = await prisma.category.update({
-        where: { id },
-        data: { name: data.name },
+        where: { id: parsedInput.id },
+        data: {
+          ...(parsedInput.name && { name: parsedInput.name }),
+          ...(photoUrl && { image: photoUrl }),
+        },
       });
-      revalidatePath('/categories');
-      return { success: true, data: updated, message: 'Category updated successfully' };
+
+      revalidatePath("/category");
+      return { success: true, data: updated, message: "Category updated successfully" };
     } catch (error) {
-      console.error(error);
-      throw new Error("Failed to update category");
+      console.error("Update category error:", error);
+      throw new Error(error instanceof Error ? error.message : "Failed to update category");
     }
   });
 
@@ -48,23 +83,25 @@ export const deleteCategoryAction = actionClient
   .inputSchema(deleteCategorySchema)
   .action(async ({ parsedInput }) => {
     try {
-      // Optional: check if any product is using this category
-      const productUsingCategory = await prisma.product.findFirst({
-        where: { categoryId: parsedInput.id },
-      });
-
-      if (productUsingCategory) {
-        throw new Error("Cannot delete: Category is used in one or more products.");
-      }
-
-      await prisma.category.delete({
+      const category = await prisma.category.findUnique({
         where: { id: parsedInput.id },
       });
+      if (!category) throw new Error("Category not found");
 
-      revalidatePath('/categories');
-      return { success: true, message: 'Category deleted successfully' };
+      // Optional: also delete from Cloudinary
+      if (category.image) {
+        const publicId = category.image.split("/").pop()?.split(".")[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(`BELLAMY/${publicId}`);
+        }
+      }
+
+      await prisma.category.delete({ where: { id: parsedInput.id } });
+
+      revalidatePath("/category");
+      return { success: true, message: "Category deleted successfully" };
     } catch (error) {
-      console.error("Delete Category Error:", error);
-      throw new Error("Failed to delete category");
+      console.error("Delete category error:", error);
+      throw new Error(error instanceof Error ? error.message : "Failed to delete category");
     }
   });
