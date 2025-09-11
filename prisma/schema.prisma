@@ -45,6 +45,7 @@ model Product {
     price         Float
     qty           Int
     image         String
+    subimage      String[]
     brandId       String?  @db.ObjectId
     categoryId    String?  @db.ObjectId
     subCategoryId String?  @db.ObjectId

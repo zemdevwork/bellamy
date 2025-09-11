@@ -3,19 +3,22 @@ import prisma from "@/lib/prisma";
 import { updateProductAction, deleteProductAction } from "@/server/actions/product-action";
 
 // GET product by ID
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await params; // await the params Promise
-    
+    const { id } = await params;
+
     const product = await prisma.product.findUnique({
       where: { id },
       include: { category: true, brand: true, subCategory: true },
     });
-    
+
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
-    
+
     return NextResponse.json(product);
   } catch (error) {
     console.error(error);
@@ -24,14 +27,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 // UPDATE product
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = await params; // await the params Promise
+    const { id } = await params;
+
     const formData = await req.formData();
-    
-    // Attach the ID from the URL to FormData
-    formData.append("id", id);
-    
+    formData.append("id", id); // attach ID from URL
+
     const result = await updateProductAction(formData);
     return NextResponse.json(result);
   } catch (error) {
@@ -49,10 +54,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params; // await the params Promise
-    const data = { id }; // plain object matches deleteProductSchema
-    
-    const result = await deleteProductAction(data);
+    const { id } = await params;
+
+    // Pass plain object to delete action
+    const result = await deleteProductAction({ id });
     return NextResponse.json(result);
   } catch (error) {
     console.error(error);
