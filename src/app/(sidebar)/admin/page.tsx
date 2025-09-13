@@ -61,10 +61,9 @@ export default function AdminDashboard() {
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          {/* Header */}
+          {/* Welcome Message */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
               <p className="text-muted-foreground">
                 Welcome back! Here's what's happening with your store.
               </p>
