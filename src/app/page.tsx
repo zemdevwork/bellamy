@@ -1,10 +1,13 @@
-import Image from "next/image";
-import Homepage from "./pages/Homepage/page";
+import Header from "../components/Header";
+import Banner from "../components/Banner";
+import ProductList from "../components/ProductList";
 
-export default function Home() {
+export default function Homepage() {
   return (
-  <div>
-    <Homepage/>
-  </div>
+    <div className="bg-white min-h-screen">
+      <Header />
+      <Banner />
+      <ProductList />
+    </div>
   );
 }

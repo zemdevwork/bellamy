@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Header() {
   return (
     <header className="w-full bg-white shadow-sm sticky top-0 z-50">
@@ -12,10 +14,10 @@ export default function Header() {
       <div className="flex justify-between items-center px-12 py-6">
         {/* Left: Menu */}
         <nav className="space-x-6 text-gray-700 font-medium flex-1">
-          <a href="#" className="hover:text-blue-900">HOME</a>
+          <Link href="/" className="hover:text-blue-900">HOME</Link>
           <a href="#" className="hover:text-blue-900">SHOP</a>
           <a href="#" className="hover:text-blue-900">OUR STORY</a>
-          <a href="#" className="hover:text-blue-900">CONTACT</a>
+          <Link href="/contact" className="hover:text-blue-900">CONTACT</Link>
         </nav>
 
         {/* Center: Logo */}
