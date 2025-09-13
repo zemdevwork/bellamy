@@ -16,7 +16,7 @@ export default function Header() {
         <nav className="space-x-6 text-gray-700 font-medium flex-1">
           <Link href="/" className="hover:text-blue-900">HOME</Link>
           <a href="#" className="hover:text-blue-900">SHOP</a>
-          <a href="#" className="hover:text-blue-900">OUR STORY</a>
+          <Link href="/our-story" className="hover:text-blue-900">OUR STORY</Link>
           <Link href="/contact" className="hover:text-blue-900">CONTACT</Link>
         </nav>
 
