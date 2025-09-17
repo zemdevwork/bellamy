@@ -66,12 +66,14 @@ export default function BrandTable<TValue>({
   const handleSearch = (val: string) => setGlobalFilter(val);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-5">
       {/* Filter */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
-          <CardDescription>Filter brands by name</CardDescription>
+          <div className="space-y-2">
+            <CardTitle>Filters</CardTitle>
+            <CardDescription>Filter brands by name</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="relative flex-1">

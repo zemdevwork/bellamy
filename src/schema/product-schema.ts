@@ -8,7 +8,22 @@ const attributeSchema = z.object({
   value: z.string().min(1, "Attribute value is required")
 });
 
-export const createProductSchema = zfd.formData({
+// Regular Zod schema for form validation
+export const createProductSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  description: z.string().optional(),
+  price: z.coerce.number().min(0, "Price must be a positive number"),
+  qty: z.coerce.number().min(0, "Quantity must be a non-negative integer"),
+  brandId: z.string().optional(),
+  categoryId: z.string().optional(),
+  subcategoryId: z.string().optional(),
+  image: z.instanceof(File),
+  subimage: z.array(z.instanceof(File)).max(3, "You can only upload up to 3 sub-images."),
+  attributes: z.array(attributeSchema)
+});
+
+// FormData schema for server actions
+export const createProductFormDataSchema = zfd.formData({
   name: zfd.text(z.string().min(1, "Product name is required")),
   description: zfd.text(z.string().optional()),
   price: zfd.text(
@@ -96,3 +111,6 @@ export const updateProductSchema = zfd.formData({
 export const deleteProductSchema = z.object({
   id: z.string().min(1, "ID is required")
 });
+
+export type CreateProductValues = z.infer<typeof createProductSchema>;
+export type UpdateProductValues = z.infer<typeof updateProductSchema>;

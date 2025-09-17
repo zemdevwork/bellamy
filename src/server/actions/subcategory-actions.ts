@@ -1,7 +1,7 @@
 'use server';
 
 import { actionClient } from "@/lib/safe-action";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { 
   createSubCategorySchema, 
@@ -27,6 +27,12 @@ export const createSubCategoryAction = actionClient
       throw new Error("Failed to add SubCategory");
     }
   });
+
+export const getSubCategorylistForDropdown = async () => {
+  return await prisma.subCategory.findMany({
+    select: { id: true, name: true },
+  });
+};
 
 // ✅ UPDATE SubCategory
 export const updateSubCategoryAction = actionClient

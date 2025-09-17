@@ -22,7 +22,7 @@ export default async function CategoriesPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
-              <p className="text-muted-foreground">Manage all categories</p>
+              <p className="text-muted-foreground">Manage Categories</p>
             </div>
             <CategoryDialogForm />
           </div>

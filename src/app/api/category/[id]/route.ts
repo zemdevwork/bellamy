@@ -77,7 +77,7 @@
 //     return NextResponse.json({ error: "Category delete failed" }, { status: 500 });
 //   }
 // }
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import cloudinary from "@/lib/cloudinary";

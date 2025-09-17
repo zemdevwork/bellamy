@@ -1,5 +1,5 @@
 // /app/api/subcategory/[id]/route.ts
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 

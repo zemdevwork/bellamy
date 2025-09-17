@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { actionClient } from "@/lib/safe-action";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import uploadPhoto from "@/lib/upload";
 import cloudinary from "@/lib/cloudinary";
 import { zfd } from "zod-form-data";
@@ -51,6 +51,12 @@ export const createCategoryAction = actionClient
       throw new Error(error instanceof Error ? error.message : "Failed to create category");
     }
   });
+
+export const getCategorylistForDropdown = async () => {
+  return await prisma.category.findMany({
+    select: { id: true, name: true },
+  });
+};
 
 // ✅ UPDATE Category
 export const updateCategoryAction = actionClient

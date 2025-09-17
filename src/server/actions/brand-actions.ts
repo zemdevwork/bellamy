@@ -1,7 +1,7 @@
 'use server';
 
 import { actionClient } from "@/lib/safe-action";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { 
   createBrandSchema, 
@@ -26,6 +26,12 @@ export const createBrandAction = actionClient
       throw new Error("Failed to add brand");
     }
   });
+
+export const getBrandlistForDropdown = async () => {
+  return await prisma.brand.findMany({
+    select: { id: true, name: true },
+  });
+};
 
 // ✅ UPDATE Brand
 export const updateBrandAction = actionClient

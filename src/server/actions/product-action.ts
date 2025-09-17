@@ -3,7 +3,7 @@
 
 import { revalidatePath } from "next/cache";
 import { actionClient } from "@/lib/safe-action";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import uploadPhoto from "@/lib/upload";
 import cloudinary from "@/lib/cloudinary";
 

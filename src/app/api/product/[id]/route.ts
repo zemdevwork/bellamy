@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import {prisma} from "@/lib/prisma";
 import { updateProductAction, deleteProductAction } from "@/server/actions/product-action";
 
 // GET product by ID
