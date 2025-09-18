@@ -16,6 +16,7 @@ import {
   LogOut,
   Menu,
   X,
+  Boxes 
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,11 @@ const navigation: NavItem[] = [
     title: "Customers",
     href: "/admin/customers",
     icon: Users,
+  },
+  {
+    title: "Inventory",
+    href: "/admin/inventory",
+    icon: Boxes,
   },
   {
     title: "Analytics",
