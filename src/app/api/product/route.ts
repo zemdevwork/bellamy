@@ -18,13 +18,24 @@ export async function GET() {
 // CREATE product
 export async function POST(req: Request) {
   try {
-    // Parse FormData from request
     const formData = await req.formData();
 
-    // Pass FormData directly to server action
-    const result = await createProductAction(formData);
+    // Convert FormData to the expected shape
+    const productData = {
+      name: formData.get("name") as string,
+      price: parseFloat(formData.get("price") as string),
+      qty: parseInt(formData.get("qty") as string, 10),
+      image: formData.get("image") as File,
+      subimage: formData.getAll("subimage") as File[],
+      attributes: JSON.parse(formData.get("attributes") as string || "[]"),
+      description: formData.get("description") as string | undefined,
+      brandId: formData.get("brandId") as string | undefined,
+      categoryId: formData.get("categoryId") as string | undefined,
+      subcategoryId: formData.get("subcategoryId") as string | undefined,
+    };
 
-    // server action already returns { success, data, message } or throws error
+    const result = await createProductAction(productData);
+
     return NextResponse.json(result);
   } catch (error) {
     console.error(error);
