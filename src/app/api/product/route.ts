@@ -2,18 +2,54 @@ import { NextResponse } from "next/server";
 import {prisma} from "@/lib/prisma";
 import { createProductAction } from "@/server/actions/product-action";
 
-// GET all products
-export async function GET() {
+// // GET all products
+// export async function GET() {
+//   try {
+//     const products = await prisma.product.findMany({
+//       include: { category: true, brand: true, subCategory: true },
+//     });
+//     return NextResponse.json(products);
+//   } catch (error) {
+//     console.error(error);
+//     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+//   }
+// }
+
+// GET all products and filter by categoryId
+
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const categoryId = searchParams.get("categoryId");
+    const brandId = searchParams.get("brandId");
+    const subCategoryId = searchParams.get("subCategoryId");
+
+    // Build the where clause dynamically
+    const whereClause: any = {};
+    if (categoryId) whereClause.categoryId = categoryId;
+    if (brandId) whereClause.brandId = brandId;
+    if (subCategoryId) whereClause.subCategoryId = subCategoryId;
+
     const products = await prisma.product.findMany({
-      include: { category: true, brand: true, subCategory: true },
+      where: whereClause, // empty object {} means no filter → all products
+      include: {
+        category: true,
+        brand: true,
+        subCategory: true,
+      },
+      orderBy: { createdAt: "desc" },
     });
+
     return NextResponse.json(products);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
+    console.error("Error fetching products:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 }
+    );
   }
 }
+
 
 // CREATE product
 export async function POST(req: Request) {

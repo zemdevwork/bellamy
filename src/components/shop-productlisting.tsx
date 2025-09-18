@@ -1,129 +1,107 @@
-// "use client";
+"use client";
 
-// import { useEffect, useState } from "react";
-// import ProductCard from "@/components/ProductCard";
+import { useEffect, useState } from "react";
+import ProductCard from "@/components/ProductCard";
+import Link from "next/link";
 
-// // Type should match your Prisma model structure
-// type Product = {
-//   id: string;
-//   name: string;
-//   price: number;
-//   oldPrice?: number | null;
-//   image: string;
-//   rating?: number | null;
-//   description?: string | null;
-//   qty: number;
-//   attributes?: any[];
-//   // Include related data from your Prisma query
-//   category?: {
-//     id: string;
-//     name: string;
-//   } | null;
-//   brand?: {
-//     id: string;
-//     name: string;
-//   } | null;
-//   subCategory?: {
-//     id: string;
-//     name: string;
-//   } | null;
-// };
+type ProductAttribute = {
+  name: string;
+  value: string;
+};
 
-// export default function ProductList() {
-//   const [products, setProducts] = useState<Product[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
+type Product = {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  qty: number;
+  image: string;
+  subimage: string[];
+  brandId?: string;
+  categoryId?: string;
+  subCategoryId?: string;
+  createdAt: string;
+  updatedAt: string;
+  attributes: ProductAttribute[] | Record<string, unknown>;
+};
 
-//   useEffect(() => {
-//     async function fetchProducts() {
-//       try {
-//         console.log("Fetching products from /api/product...");
+export default function ShopProductListing({ categoryId }: { categoryId: string }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        setLoading(true);
+        setError(null);
         
-//         const res = await fetch("/api/product", {
-//           method: "GET",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//         });
+        console.log("Fetching products for categoryId:", categoryId); // Debug log
         
-//         console.log("Response status:", res.status);
-//         console.log("Response URL:", res.url);
+        const res = await fetch(`/api/product?categoryId=${categoryId}`, {
+          cache: "no-store",
+        });
         
-//         if (!res.ok) {
-//           const errorText = await res.text();
-//           console.error("Error response:", errorText);
-//           throw new Error(`HTTP ${res.status}: ${errorText}`);
-//         }
+        if (!res.ok) {
+          throw new Error(`Failed to fetch products: ${res.status} ${res.statusText}`);
+        }
         
-//         const data = await res.json();
-//         console.log("Fetched products:", data);
-        
-//         if (data.error) {
-//           throw new Error(data.error);
-//         }
-        
-//         setProducts(data);
-//         setError(null);
-//       } catch (error) {
-//         console.error("Failed to load products:", error);
-//         setError(error instanceof Error ? error.message : 'Failed to load products');
-//       } finally {
-//         setLoading(false);
-//       }
-//     }
-    
-//     fetchProducts();
-//   }, []);
+        const data = await res.json();
+        console.log("Fetched products:", data); // Debug log
+        setProducts(data);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch products");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-//   if (loading) {
-//     return (
-//       <div className="text-center py-8">
-//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-//         <p className="mt-4 text-gray-600">Loading products...</p>
-//       </div>
-//     );
-//   }
+    if (categoryId) {
+      fetchProducts();
+    }
+  }, [categoryId]);
 
-//   if (error) {
-//     return (
-//       <div className="text-center py-8">
-//         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-//           <p className="text-red-800 mb-4">Error: {error}</p>
-//           <button 
-//             onClick={() => {
-//               setError(null);
-//               setLoading(true);
-//               window.location.reload();
-//             }}
-//             className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-//           >
-//             Try Again
-//           </button>
-//         </div>
-//       </div>
-//     );
-//   }
+  if (loading) {
+    return <p className="text-center py-10">Loading products...</p>;
+  }
 
-//   if (products.length === 0) {
-//     return (
-//       <div className="text-center py-8">
-//         <p className="text-gray-600">No products found.</p>
-//       </div>
-//     );
-//   }
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-red-600">Error: {error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
-//   return (
-//     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-//       {products.map((product) => (
-//         <ProductCard
-//           key={product.id}
-//           name={product.name}
-//           price={`₹${product.price.toFixed(2)}`}
-//           oldPrice={product.oldPrice ? `₹${product.oldPrice.toFixed(2)}` : undefined}
-//           image={product.image}
-//           rating={product.rating || 0}
-//         />
-//       ))}
-//     </div>
-//   );
-// }
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <p>No products found for this category.</p>
+        <Link href="/shop" className="mt-4 inline-block text-blue-500 hover:underline">
+          Browse all categories
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {products.map((p) => (
+        <Link key={p.id} href={`/product/${p.id}`}>
+          <ProductCard
+            name={p.name}
+            price={`₹${p.price.toFixed(2)}`}
+            image={p.image}
+          />
+        </Link>
+      ))}
+    </div>
+  );
+}
