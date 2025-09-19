@@ -12,6 +12,7 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
 // Validation schemas
 const updateProfileSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters').optional(),
@@ -25,6 +26,21 @@ const updateProfileSchema = z.object({
     .or(z.string().startsWith('/uploads/'))
     .optional(),
 });
+
+// Types for Cloudinary upload result
+interface CloudinaryUploadResult {
+  secure_url: string;
+  public_id: string;
+  [key: string]: unknown;
+}
+
+// Type for update data
+interface UserUpdateData {
+  name?: string;
+  email?: string;
+  phone?: string;
+  image?: string;
+}
 
 // GET /api/user-profile
 export async function GET(request: NextRequest) {
@@ -72,14 +88,23 @@ export async function PATCH(request: NextRequest) {
 
     if (phone?.trim() === "") phone = undefined;
 
+    // Validate the data using the schema
+    const validationData: Record<string, unknown> = {};
+    if (name) validationData.name = name;
+    if (email) validationData.email = email;
+    if (phone) validationData.phone = phone;
+
+    const validatedData = updateProfileSchema.parse(validationData);
+
     // Upload to Cloudinary if photoFile exists
     let image: string | undefined = undefined;
     if (photoFile) {
       const buffer = Buffer.from(await photoFile.arrayBuffer());
-      const uploadResult = await new Promise<any>((resolve, reject) => {
+      const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream({ folder: 'users' }, (err, res) => {
           if (err) reject(err);
-          else resolve(res);
+          else if (res) resolve(res);
+          else reject(new Error('Upload failed'));
         });
         stream.end(buffer);
       });
@@ -87,10 +112,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Prepare update data
-    const updateData: any = {};
-    if (name) updateData.name = name;
-    if (email) updateData.email = email;
-    if (phone) updateData.phone = phone;
+    const updateData: UserUpdateData = {};
+    if (validatedData.name) updateData.name = validatedData.name;
+    if (validatedData.email) updateData.email = validatedData.email;
+    if (validatedData.phone) updateData.phone = validatedData.phone;
     if (image) updateData.image = image;
 
     // Update user
@@ -102,6 +127,15 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: true, data: updatedUser });
   } catch (error) {
     console.error('Error updating profile:', error);
+    
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.issues },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
