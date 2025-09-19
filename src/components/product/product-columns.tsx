@@ -165,7 +165,7 @@ export const ProductDropdownMenu = ({ product }: { product: Product }) => {
 
         <DropdownMenuContent align="end">
           <DropdownMenuItem
-            onSelect={() => router.push(`/products/${product.id}`)}
+            onSelect={() => router.push(`/admin/products/${product.id}`)}
           >
             <Eye className="size-4 mr-2" />
             View

@@ -65,7 +65,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-muted-foreground">
-                Welcome back! Here's what's happening with your store.
+                Welcome back! Here&apos;s what&apos;s happening with your store.
               </p>
             </div>
           </div>
