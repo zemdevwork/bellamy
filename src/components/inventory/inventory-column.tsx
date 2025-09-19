@@ -119,8 +119,6 @@ export const inventoryColumns: ColumnDef<ProductWithRelations>[] = [
         header: "Category",
         cell: ({ row }) => {
             const category = row.original.category;
-            const subCategory = row.original.subCategory;
-            
             return (
                 <div className="space-y-1">
                     {category && (

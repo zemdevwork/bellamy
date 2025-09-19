@@ -20,9 +20,9 @@ import { z } from "zod";
 import { Package, Plus, Minus, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-// Schema for inventory update
+
 const inventoryUpdateSchema = z.object({
-  qty: z.coerce.number().min(0, "Quantity must be 0 or greater"),
+  qty: z.number().min(0, "Quantity must be 0 or greater"),
 });
 
 interface InventoryDialogFormProps {

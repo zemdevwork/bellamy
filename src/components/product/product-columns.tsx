@@ -143,8 +143,15 @@ export const productColumns: ColumnDef<Product>[] = [
   },
   {
     id: "action",
-    cell: ({ row }) =>
-      row.original && <ProductDropdownMenu product={row.original} />,
+    cell: ({ row }) => {
+      // 🔍 DEBUG: Add logging to see what product is being passed
+      console.log("Row index:", row.index);
+      console.log("Row original product:", row.original);
+      console.log("Product ID:", row.original?.id);
+      console.log("Product Name:", row.original?.name);
+      
+      return row.original && <ProductDropdownMenu product={row.original} />;
+    },
   },
 ];
 
@@ -152,6 +159,40 @@ export const ProductDropdownMenu = ({ product }: { product: Product }) => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const router = useRouter();
+
+  // 🔍 DEBUG: Log the product when dropdown is rendered
+  console.log("ProductDropdownMenu - Product received:", {
+    id: product.id,
+    name: product.name,
+    // Add other key fields you want to verify
+  });
+
+  const handleEditClick = () => {
+    // 🔍 DEBUG: Log when edit is clicked
+    console.log("Edit clicked for product:", {
+      id: product.id,
+      name: product.name,
+    });
+    setOpenEdit(true);
+  };
+
+  const handleDeleteClick = () => {
+    // 🔍 DEBUG: Log when delete is clicked
+    console.log("Delete clicked for product:", {
+      id: product.id,
+      name: product.name,
+    });
+    setOpenDelete(true);
+  };
+
+  const handleViewClick = () => {
+    // 🔍 DEBUG: Log when view is clicked
+    console.log("View clicked for product:", {
+      id: product.id,
+      name: product.name,
+    });
+    router.push(`/admin/products/${product.id}`);
+  };
 
   return (
     <div className="text-right">
@@ -164,21 +205,19 @@ export const ProductDropdownMenu = ({ product }: { product: Product }) => {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onSelect={() => router.push(`/admin/products/${product.id}`)}
-          >
+          <DropdownMenuItem onSelect={handleViewClick}>
             <Eye className="size-4 mr-2" />
             View
           </DropdownMenuItem>
 
-          <DropdownMenuItem onSelect={() => setOpenEdit(true)}>
+          <DropdownMenuItem onSelect={handleEditClick}>
             <Edit2 className="size-4 mr-2" />
             Edit Product
           </DropdownMenuItem>
 
           <DropdownMenuItem
             className="text-destructive"
-            onSelect={() => setOpenDelete(true)}
+            onSelect={handleDeleteClick}
           >
             <Trash2 className="size-4 mr-2" />
             Delete Product

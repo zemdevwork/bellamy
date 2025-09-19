@@ -96,6 +96,7 @@ export const createProductAction = actionClient
       });
 
       revalidatePath("/product");
+      revalidatePath("/admin/products");
       return { success: true, data: product, message: "Product created successfully" };
     } catch (error) {
       console.error("Create product error:", error);

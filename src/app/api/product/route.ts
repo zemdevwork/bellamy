@@ -74,12 +74,6 @@ import { NextResponse } from "next/server";
 import {prisma} from "@/lib/prisma";
 import { createProductAction } from "@/server/actions/product-action";
 
-// Define the where clause type
-type ProductWhereClause = {
-  categoryId?: string;
-  brandId?: string;
-  subCategoryId?: string;
-};
 
 // GET all products and filter by categoryId
 export async function GET(request: Request) {
@@ -123,8 +117,8 @@ export async function POST(req: Request) {
     // Convert FormData to the expected shape
     const productData = {
       name: formData.get("name") as string,
-      price: parseFloat(formData.get("price") as string),
-      qty: parseInt(formData.get("qty") as string, 10),
+      price: formData.get("price") as string,
+      qty: formData.get("qty") as string,
       image: formData.get("image") as File,
       subimage: formData.getAll("subimage") as File[],
       attributes: JSON.parse(formData.get("attributes") as string || "[]"),
