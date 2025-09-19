@@ -78,7 +78,6 @@ function ActionCell({ row }: { row: Row<ProductWithRelations> }) {
     </div>
   );
 }
-
 // Sortable header component
 import { Column } from "@tanstack/react-table";
 
@@ -110,11 +109,6 @@ export const inventoryColumns: ColumnDef<ProductWithRelations>[] = [
                     <Package className="h-4 w-4 text-muted-foreground" />
                     <div>
                         <div className="font-medium">{product.name}</div>
-                        {product.description && (
-                            <div className="text-sm text-muted-foreground line-clamp-1">
-                                {product.description}
-                            </div>
-                        )}
                     </div>
                 </div>
             );
@@ -131,11 +125,6 @@ export const inventoryColumns: ColumnDef<ProductWithRelations>[] = [
                 <div className="space-y-1">
                     {category && (
                         <Badge variant="secondary">{category.name}</Badge>
-                    )}
-                    {subCategory && (
-                        <div className="text-xs text-muted-foreground">
-                            {subCategory.name}
-                        </div>
                     )}
                 </div>
             );
