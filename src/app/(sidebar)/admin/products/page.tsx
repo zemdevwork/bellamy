@@ -20,6 +20,7 @@ export default async function ProductPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Products</h1>
+              
               <p className="text-muted-foreground">Manage Products</p>
             </div>
             <ProductFormDialog />
