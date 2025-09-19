@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
   DialogClose,
@@ -27,8 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProductSchema } from "@/schema/product-schema";
-import { z } from "zod";
+import { createProductFormSchema, CreateProductFormValues } from "@/schema/product-schema";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -38,8 +37,6 @@ import { getBrandlistForDropdown } from "@/server/actions/brand-actions";
 import { getCategorylistForDropdown } from "@/server/actions/category-actions";
 import { getSubCategorylistForDropdown } from "@/server/actions/subcategory-actions";
 import { Product } from "@/types/product";
-
-type ProductFormValues = z.infer<typeof createProductSchema>;
 
 export const ProductFormDialog = ({
   product,
@@ -57,21 +54,50 @@ export const ProductFormDialog = ({
   const [subPreviews, setSubPreviews] = useState<string[]>([]);
   const router = useRouter();
 
-  const { execute: createProduct, isExecuting: isCreating } = useAction(createProductAction);
-  const { execute: updateProduct, isExecuting: isUpdating } = useAction(updateProductAction);
+  // ✅ UPDATED: Added result handlers to close modal after completion
+  const { execute: createProduct, isExecuting: isCreating } = useAction(createProductAction, {
+    onSuccess: () => {
+      toast.success("Product created successfully!");
+      form.reset();
+      setPreview(null);
+      setSubPreviews([]);
+      router.refresh();
+      openChange?.(false); // Close modal on success
+    },
+    onError: (error) => {
+      console.error("Create product error:", error);
+      toast.error("Failed to create product");
+    },
+  });
 
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(createProductSchema),
+  const { execute: updateProduct, isExecuting: isUpdating } = useAction(updateProductAction, {
+    onSuccess: () => {
+      toast.success("Product updated successfully!");
+      form.reset();
+      setPreview(null);
+      setSubPreviews([]);
+      router.refresh();
+      openChange?.(false); // Close modal on success
+    },
+    onError: (error) => {
+      console.error("Update product error:", error);
+      toast.error("Failed to update product");
+    },
+  });
+
+  // ✅ FIXED: Use the form schema for the form, not the processed schema
+  const form = useForm<CreateProductFormValues>({
+    resolver: zodResolver(createProductFormSchema),
     defaultValues: {
       name: product?.name || "",
       description: product?.description || "",
-      price: product?.price || undefined,
-      qty: product?.qty || undefined,
+      price: product?.price?.toString() || "", // Convert to string
+      qty: product?.qty?.toString() || "", // Convert to string
       brandId: product?.brandId || "",
       categoryId: product?.categoryId || "",
       subcategoryId: product?.subCategoryId || "",
-      image: undefined as any, // only used for new upload
-      subimage: [] as any,     // only used for new upload
+      image: undefined,
+      subimage: undefined,
       attributes: (product?.attributes as { key?: string; value?: string }[] | undefined) || [],
     },
   });
@@ -100,25 +126,66 @@ export const ProductFormDialog = ({
     fetchOptions();
   }, []);
 
-  const onSubmit = async (values: ProductFormValues) => {
-    try {
-      if (product) {
-        await updateProduct({ id: product.id, ...values });
-        toast.success("Product updated successfully");
-      } else {
-        await createProduct(values);
-        toast.success("Product added successfully");
+  // ✅ UPDATED: Simplified onSubmit - let the action handlers deal with success/error
+  const onSubmit = async (formValues: CreateProductFormValues) => {
+    if (product) {
+      // For updates, only validate required fields if image/subimage are provided
+      const updateData = {
+        id: product.id,
+        name: formValues.name,
+        description: formValues.description,
+        price: formValues.price,
+        qty: formValues.qty,
+        brandId: formValues.brandId,
+        categoryId: formValues.categoryId,
+        subcategoryId: formValues.subcategoryId,
+        attributes: formValues.attributes,
+        // Only include image/subimage if new files are uploaded
+        ...(formValues.image && { image: formValues.image }),
+        ...(formValues.subimage && formValues.subimage.length > 0 && { subimage: formValues.subimage }),
+      };
+      
+      updateProduct(updateData);
+    } else {
+      // For create, image is required
+      if (!formValues.image) {
+        toast.error("Product image is required");
+        return;
       }
-      form.reset();
-      setPreview(null);
-      setSubPreviews([]);
-      router.refresh();
-    } catch (error) {
-      console.error(error);
-      toast.error("Error submitting form");
-    } finally {
-      openChange?.(false);
+      
+      const createData = {
+        name: formValues.name,
+        description: formValues.description || "",
+        price: formValues.price,
+        qty: formValues.qty,
+        brandId: formValues.brandId,
+        categoryId: formValues.categoryId,
+        subcategoryId: formValues.subcategoryId,
+        image: formValues.image,
+        subimage: formValues.subimage || [],
+        attributes: formValues.attributes || [],
+      };
+      
+      createProduct(createData);
     }
+  };
+
+  // Helper functions for attributes
+  const addAttribute = () => {
+    const currentAttributes = form.getValues("attributes") || [];
+    form.setValue("attributes", [...currentAttributes, { key: "", value: "" }]);
+  };
+
+  const removeAttribute = (index: number) => {
+    const currentAttributes = form.getValues("attributes") || [];
+    form.setValue("attributes", currentAttributes.filter((_, i) => i !== index));
+  };
+
+  const updateAttribute = (index: number, field: "key" | "value", value: string) => {
+    const currentAttributes = form.getValues("attributes") || [];
+    const updatedAttributes = [...currentAttributes];
+    updatedAttributes[index] = { ...updatedAttributes[index], [field]: value };
+    form.setValue("attributes", updatedAttributes);
   };
 
   return (
@@ -141,7 +208,7 @@ export const ProductFormDialog = ({
           <FormDialogDescription>
             {product
               ? "Update the product details"
-              : "Fill out the product details. Click save when you’re done."}
+              : "Fill out the product details. Click save when you're done."}
           </FormDialogDescription>
         </FormDialogHeader>
 
@@ -184,9 +251,11 @@ export const ProductFormDialog = ({
               <FormItem>
                 <FormLabel>Price</FormLabel>
                 <FormControl>
-                  <Input type="number" 
-                  {...field}
-                  value={field.value ?? ""} 
+                  <Input 
+                    type="number" 
+                    step="0.01"
+                    {...field}
+                    placeholder="0.00"
                   />
                 </FormControl>
                 <FormMessage />
@@ -200,9 +269,10 @@ export const ProductFormDialog = ({
               <FormItem>
                 <FormLabel>Stock Qty</FormLabel>
                 <FormControl>
-                  <Input type="number" 
-                  {...field}
-                  value={field.value ?? ""} 
+                  <Input 
+                    type="number" 
+                    {...field}
+                    placeholder="0"
                   />
                 </FormControl>
                 <FormMessage />
@@ -289,13 +359,73 @@ export const ProductFormDialog = ({
           )}
         />
 
+        {/* Attributes */}
+        <FormField
+          control={form.control}
+          name="attributes"
+          render={() => (
+            <FormItem>
+              <div className="flex items-center justify-between">
+                <FormLabel>Product Attributes</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addAttribute}
+                >
+                  <Plus className="size-4 mr-1" />
+                  Add Attribute
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {form.watch("attributes")?.map((attr, index) => (
+                  <div key={index} className="flex gap-2 items-start">
+                    <div className="flex-1">
+                      <Input
+                        placeholder="Attribute name (e.g., Color, Size)"
+                        value={attr.key || ""}
+                        onChange={(e) => updateAttribute(index, "key", e.target.value)}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        placeholder="Attribute value (e.g., Red, Large)"
+                        value={attr.value || ""}
+                        onChange={(e) => updateAttribute(index, "value", e.target.value)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeAttribute(index)}
+                    >
+                      <X className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+                {(!form.watch("attributes") || form.watch("attributes")?.length === 0) && (
+                  <p className="text-sm text-muted-foreground">
+                    No attributes added. Click &quot;Add Attribute&quot; to add product specifications.
+                  </p>
+                )}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         {/* Image */}
         <FormField
           control={form.control}
           name="image"
           render={({ field: { onChange, ...rest } }) => (
             <FormItem>
-              <FormLabel>Product Image</FormLabel>
+              <FormLabel>
+                Product Image
+                {!product && <span className="text-red-500 ml-1">*</span>}
+                {product && <span className="text-sm text-muted-foreground ml-2">(Leave empty to keep current)</span>}
+              </FormLabel>
               <FormControl>
                 <Input
                   type="file"
@@ -327,7 +457,10 @@ export const ProductFormDialog = ({
           name="subimage"
           render={({ field: { onChange } }) => (
             <FormItem>
-              <FormLabel>Sub Images (max 3)</FormLabel>
+              <FormLabel>
+                Sub Images (max 3)
+                {product && <span className="text-sm text-muted-foreground ml-2">(Leave empty to keep current)</span>}
+              </FormLabel>
               <FormControl>
                 <Input
                   type="file"

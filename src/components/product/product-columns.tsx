@@ -117,9 +117,9 @@ export const productColumns: ColumnDef<Product>[] = [
     cell: ({ row }) => row.original.category?.name || "-",
   },
   {
-    accessorKey: "subcategoryId",
+    accessorKey: "subcategory",
     header: "Subcategory",
-    cell: ({ row }) => row.original.subcategory?.name || "-",
+    cell: ({ row }) => row.original.subCategory?.name || "-",
   },
   {
     accessorKey: "attributes",

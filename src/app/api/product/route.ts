@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const subCategoryId = searchParams.get("subCategoryId");
 
     // Build the where clause dynamically
-    const whereClause: any = {};
+    const whereClause: Record<string, unknown> = {};
     if (categoryId) whereClause.categoryId = categoryId;
     if (brandId) whereClause.brandId = brandId;
     if (subCategoryId) whereClause.subCategoryId = subCategoryId;

@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   FileText,
   ChevronRight,
+  Boxes,
 } from "lucide-react";
 
 interface AdminHeaderProps {
@@ -60,6 +61,11 @@ const pageMap: Record<string, PageInfo> = {
     title: "Customers",
     description: "Manage customer information",
     icon: Users,
+  },
+  "/admin/inventory": {
+    title: "Inventory",
+    description: "View and manage product inventory",
+    icon: Boxes,
   },
   "/admin/analytics": {
     title: "Analytics",
