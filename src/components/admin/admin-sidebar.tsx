@@ -16,10 +16,11 @@ import {
   LogOut,
   Menu,
   X,
-  Boxes 
+  Boxes,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { LogoutDialog } from "@/components/auth/logout-modal";
 
 interface SidebarProps {
   className?: string;
@@ -33,61 +34,22 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
-  {
-    title: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Products",
-    href: "/admin/products",
-    icon: Package,
-  },
-  {
-    title: "Brands",
-    href: "/admin/brand",
-    icon: Tag,
-  },
-  {
-    title: "Categories",
-    href: "/admin/category",
-    icon: Layers,
-  },
-  {
-    title: "Subcategories",
-    href: "/admin/subcategory",
-    icon: FileText,
-  },
-  {
-    title: "Orders",
-    href: "/admin/orders",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Customers",
-    href: "/admin/customers",
-    icon: Users,
-  },
-  {
-    title: "Inventory",
-    href: "/admin/inventory",
-    icon: Boxes,
-  },
-  {
-    title: "Analytics",
-    href: "/admin/analytics",
-    icon: BarChart3,
-  },
-  {
-    title: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-  },
+  { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { title: "Products", href: "/admin/products", icon: Package },
+  { title: "Brands", href: "/admin/brand", icon: Tag },
+  { title: "Categories", href: "/admin/category", icon: Layers },
+  { title: "Subcategories", href: "/admin/subcategory", icon: FileText },
+  { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { title: "Customers", href: "/admin/customers", icon: Users },
+  { title: "Inventory", href: "/admin/inventory", icon: Boxes },
+  { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { title: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openLogout, setOpenLogout] = useState(false); // ⬅️ state for logout dialog
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -188,11 +150,12 @@ export function AdminSidebar({ className }: SidebarProps) {
                 </div>
               </div>
 
-              {/* Logout button */}
+              {/* Logout button with dialog */}
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                onClick={() => setOpenLogout(true)} // ⬅️ open modal
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
@@ -201,6 +164,9 @@ export function AdminSidebar({ className }: SidebarProps) {
           </div>
         </div>
       </div>
+
+      {/* Logout modal */}
+      <LogoutDialog open={openLogout} setOpen={setOpenLogout} />
     </>
   );
 }

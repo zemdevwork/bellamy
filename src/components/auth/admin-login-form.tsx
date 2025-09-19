@@ -27,7 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginData } from "@/types/auth";
 import { IconLogout } from "@tabler/icons-react";
 
-export function LoginForm({
+export function AdminLoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -61,7 +61,7 @@ export function LoginForm({
       if (!res.ok) {
         setErrorMessage(result.error || "Login failed");
       } else {
-        router.replace("/");
+        router.replace(result.redirectTo || "/");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -78,7 +78,7 @@ export function LoginForm({
           <div className="flex justify-center">
             <IconLogout  />
           </div>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Login to your admin Dashboard</CardTitle>
           <CardDescription>
             Enter your email and password to login
           </CardDescription>

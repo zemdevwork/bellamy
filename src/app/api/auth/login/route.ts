@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: true, message: "Login successful", redirectTo: "/admin/dashboard" },
+      { success: true, message: "Login successful", redirectTo: "/admin" },
       { status: 200 }
     );
   } catch (error) {

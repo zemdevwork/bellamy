@@ -30,7 +30,7 @@ const { data: session } = await betterFetch<SessionResponse>(
   // Check if user is trying to access admin routes
   if (pathname.startsWith("/admin")) {
     // Only allow admin users to access admin routes
-    if (session?.user.role !== "admin") {
+    if (user.role !== "admin") {
       return NextResponse.redirect(new URL("/", request.url));
     }
   }
