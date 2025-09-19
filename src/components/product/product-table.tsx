@@ -1,6 +1,5 @@
 'use client';
 
-import { Brand } from "@prisma/client";
 import {
   ColumnDef,
   useReactTable,
@@ -43,6 +42,8 @@ export default function ProductTable<TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+
+  console.log(data);
 
   const table = useReactTable({
     data,

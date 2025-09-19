@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table";
 export interface Product extends PrismaProduct {
   brand: { id: string; name: string };
   category: { id: string; name: string };
-  subcategory?: { id: string; name: string };
+  subCategory?: { id: string; name: string };
 }
 
 // Props for product table component
