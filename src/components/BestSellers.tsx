@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState } from "react";
 
 const bestSellers = [
@@ -212,10 +213,12 @@ export default function BestSellers() {
               <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
                 {/* Product Image */}
                 <div className="relative">
-                  <img
+                  <Image
                     src={product.image}
                     alt={product.title}
                     className="w-full h-64 object-cover"
+                    width={400}
+                    height={300}
                   />
                   {product.isOnSale && (
                     <div className="absolute bottom-2 left-2">

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Banner() {
     return (
       <section className="relative bg-[#f0f7ff] flex flex-col md:flex-row items-center justify-between px-10 py-20">
@@ -16,7 +18,9 @@ export default function Banner() {
   
         {/* Image */}
         <div className="flex space-x-6 mt-10 md:mt-0">
-          <img
+          <Image
+            width={400}
+            height={300}
             src="/Images/Banner.jpg"
             alt="Kidswear Product"
             className="w-180 h-100 object-contain rounded-lg"

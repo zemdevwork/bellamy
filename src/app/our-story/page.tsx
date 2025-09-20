@@ -27,7 +27,7 @@ export default function OurStoryPage() {
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
                   Founded in 2015, Bellamy started as a small family business with a simple mission: 
-                  to provide high-quality products that make a difference in people's lives. What began 
+                  to provide high-quality products that make a difference in people&apos;s lives. What began 
                   as a passion project in a garage has grown into a trusted brand serving customers worldwide.
                 </p>
                 <p>
@@ -36,7 +36,7 @@ export default function OurStoryPage() {
                   deserved access to premium products without compromise.
                 </p>
                 <p>
-                  Starting with just three products and a handful of customers, we've built our 
+                  Starting with just three products and a handful of customers, we&apos;ve built our 
                   reputation one satisfied customer at a time. Our commitment to quality and 
                   customer service has been the foundation of our success.
                 </p>
@@ -84,7 +84,7 @@ export default function OurStoryPage() {
               </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">Customer Care</h3>
               <p className="text-gray-600">
-                Our customers are at the heart of everything we do. We're committed to 
+                Our customers are at the heart of everything we do. We&apos;re committed to 
                 providing exceptional service and support.
               </p>
             </div>
@@ -172,7 +172,7 @@ export default function OurStoryPage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Meet Our Team</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              The passionate individuals behind Bellamy's success, dedicated to bringing you the best products and service.
+              The passionate individuals behind Bellamy&apos;s success, dedicated to bringing you the best products and service.
             </p>
           </div>
           

@@ -9,6 +9,7 @@ import {
   DollarSign,
   Activity
 } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminDashboard() {
   // Mock data - replace with real data from your API
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <a 
+                  <Link 
                     href="/admin/products" 
                     className="block p-3 rounded-lg border hover:bg-accent transition-colors"
                   >
@@ -150,8 +151,8 @@ export default function AdminDashboard() {
                       <Package className="h-4 w-4" />
                       <span className="text-sm font-medium">Manage Products</span>
                     </div>
-                  </a>
-                  <a 
+                  </Link>
+                  <Link 
                     href="/admin/orders" 
                     className="block p-3 rounded-lg border hover:bg-accent transition-colors"
                   >
@@ -159,8 +160,8 @@ export default function AdminDashboard() {
                       <ShoppingCart className="h-4 w-4" />
                       <span className="text-sm font-medium">View Orders</span>
                     </div>
-                  </a>
-                  <a 
+                  </Link>
+                  <Link 
                     href="/admin/customers" 
                     className="block p-3 rounded-lg border hover:bg-accent transition-colors"
                   >
@@ -168,7 +169,7 @@ export default function AdminDashboard() {
                       <Users className="h-4 w-4" />
                       <span className="text-sm font-medium">Customer Management</span>
                     </div>
-                  </a>
+                  </Link>
                 </div>
               </CardContent>
             </Card>

@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type ProductProps = {
     name: string;
     price: string;
@@ -9,7 +11,7 @@ type ProductProps = {
   export default function ProductCard({ name, price, oldPrice, image, rating }: ProductProps) {
     return (
       <div className="bg-white shadow-sm p-4 rounded-md text-center">
-        <img src={image} alt={name} className="w-full h-64 object-contain mb-4" />
+        <Image src={image} alt={name} className="w-full h-64 object-contain mb-4" width={400} height={300} />
         
         <h3 className="text-lg font-medium">{name}</h3>
         

@@ -38,6 +38,7 @@ export const DeleteSubcategoryDialog: FC<DeleteSubcategoryDialogProps> = ({
       toast.success("Subcategory deleted successfully");
       router.refresh();
     } catch (error) {
+      console.error("Error deleting subcategory:", error);
       toast.error("Failed to delete subcategory");
     } finally {
       setOpen(false);
