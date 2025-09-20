@@ -14,6 +14,12 @@ type Product = {
   sizes?: string[];
 };
 
+type CartItem = {
+  id: string;
+  quantity: number;
+  size?: string | null;
+};
+
 export default function ProductDetails({ productId }: { productId: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -37,12 +43,16 @@ export default function ProductDetails({ productId }: { productId: string }) {
         setProduct(data);
         setSelectedImage(data.subimage?.[0] || null);
 
-        // ✅ Check if already in cart (dummy check using localStorage for demo)
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-        const exists = cart.some((item: any) => item.id === data.id);
+        // ✅ Check if already in cart
+        const cart: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
+        const exists = cart.some((item) => item.id === data.id);
         setIsInCart(exists);
-      } catch (err: any) {
-        setError(err.message || "Something went wrong");
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Something went wrong");
+        }
       } finally {
         setLoading(false);
       }
@@ -58,8 +68,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
   // Handlers
   const handleAddToCart = () => {
     if (!product) return;
-    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-    if (!cart.some((item: any) => item.id === product.id)) {
+    const cart: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
+    if (!cart.some((item) => item.id === product.id)) {
       cart.push({ id: product.id, quantity, size: selectedSize });
       localStorage.setItem("cart", JSON.stringify(cart));
       setIsInCart(true);

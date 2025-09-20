@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Star, Heart, ShoppingCart } from "lucide-react";
+import { Star, Heart } from "lucide-react";
 import { addToCart } from "@/server/actions/cart-action";
 import { toast } from "sonner";
 import Image from "next/image";
