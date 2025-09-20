@@ -1,3 +1,4 @@
+import { BannerImage } from "@/constants/values";
 import Image from "next/image";
 
 export default function Banner() {
@@ -21,7 +22,7 @@ export default function Banner() {
           <Image
             width={400}
             height={300}
-            src="/Images/Banner.jpg"
+            src={BannerImage}
             alt="Kidswear Product"
             className="w-180 h-100 object-contain rounded-lg"
           />
