@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 type Product = {
   id: string;
@@ -87,6 +88,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
   return (
     <div className="min-h-screen bg-white px-6 md:px-16 py-10">
+      <button
+        onClick={() => router.back()}
+        className="flex items-center text-gray-600 hover:text-black mb-6"
+      >
+        <ArrowLeft size={18} className="mr-2" />
+        Back
+      </button>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* LEFT SIDE - IMAGE GALLERY */}
         <div>
