@@ -6,6 +6,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getUserCart } from "@/server/actions/cart-action"; // 👈 added
+
 import { useState, useEffect } from "react";
 import {
   DropdownMenu,
@@ -22,6 +24,9 @@ export default function Header() {
 
   // ✅ categories state
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  // ✅ cart count state
+  const [cartCount, setCartCount] = useState(0);
+
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -43,6 +48,20 @@ export default function Header() {
     }
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+  async function fetchCartCount() {
+    try {
+      const cart = await getUserCart();
+      const totalItems = cart?.items?.length || 0; // 👈 only unique products
+      setCartCount(totalItems);
+    } catch (error) {
+      console.error("Failed to load cart", error);
+    }
+  }
+  fetchCartCount();
+}, []);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -92,9 +111,8 @@ export default function Header() {
 
   return (
     <header
-      className={`w-full bg-white shadow-sm sticky top-0 z-50 transition-transform duration-300 ease-in-out ${
-        isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-      }`}
+      className={`w-full bg-white shadow-sm sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
     >
       {/* Free Shipping Bar */}
       <div className="bg-blue-900 text-white text-center text-sm py-2">
@@ -181,12 +199,14 @@ export default function Header() {
         </Link>
 
         {/* Right: Icons */}
-        
 
-          <div className="flex space-x-4 flex-1 justify-end">
+
+        <div className="flex space-x-4 flex-1 justify-end">
           <Link
             href="/cart"
-            className={`p-2 rounded-md text-gray-700 hover:text-blue-900 transition-colors ${isActive("/cart")}`}
+            className={`relative p-2 rounded-md text-gray-700 hover:text-blue-900 transition-colors ${isActive(
+              "/cart"
+            )}`}
             aria-label="Cart"
           >
             <svg
@@ -202,7 +222,15 @@ export default function Header() {
                 d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9m-6-4a2 2 0 100-4 2 2 0 000 4z"
               />
             </svg>
+
+            {/* ✅ Count Badge */}
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-900 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                {cartCount}
+              </span>
+            )}
           </Link>
+
           <Link
             href="/user-profile"
             className={`p-2 rounded-md text-gray-700 hover:text-blue-900 transition-colors ${isActive("/user-profile")}`}
@@ -227,9 +255,8 @@ export default function Header() {
 
       {/* Mobile Menu (unchanged, still has plain SHOP link) */}
       <div
-        className={`md:hidden bg-white border-t border-gray-200 shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${
-          isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-        }`}
+        className={`md:hidden bg-white border-t border-gray-200 shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          }`}
       >
         <nav className="px-4 py-4 space-y-3">
           <Link
@@ -276,7 +303,7 @@ export default function Header() {
             PROFILE
           </Link>
         </nav>
-        
+
       </div>
     </header>
   );
