@@ -1,4 +1,3 @@
-
 datasource db {
   provider = "mongodb"
   url      = env("CLUSTER_URL")
@@ -54,20 +53,22 @@ model Product {
   updatedAt     DateTime @updatedAt
   attributes    Json
 
-  brand       Brand?       @relation(fields: [brandId], references: [id])
-  category    Category?    @relation(fields: [categoryId], references: [id])
-  subCategory SubCategory? @relation(fields: [subCategoryId], references: [id])
-  notifications Notification []
+  brand         Brand?         @relation(fields: [brandId], references: [id])
+  category      Category?      @relation(fields: [categoryId], references: [id])
+  subCategory   SubCategory?   @relation(fields: [subCategoryId], references: [id])
+  notifications Notification[]
   cartItems     CartItem[]
+  orderItems    OrderItem[]
 }
-model Cart {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
+model Cart {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
 }
 
 model CartItem {
@@ -78,8 +79,8 @@ model CartItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cart     Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product  Product @relation(fields: [productId], references: [id])
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }
 
 model User {
@@ -99,9 +100,48 @@ model User {
   sessions      Session[]
   accounts      Account[]
   carts         Cart[]
+  orders        Order[]
 
   @@unique([email])
   @@map("user")
+}
+
+model Order {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String
+  totalAmount       Float
+  status            String   @default("PENDING") // PENDING, PAID, FAILED, SHIPPED, DELIVERED, CANCELLED
+  paymentMethod     String // "COD" | "ONLINE"
+  razorpayOrderId   String? // from Razorpay
+  razorpayPaymentId String? // from Razorpay
+  razorpaySignature String? // verification signature
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+// ✅ address snapshot (taken at time of placing order)
+  street     String
+  city       String
+  state      String
+  pincode    String
+  
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items OrderItem[]
+
+  @@map("order")
+}
+
+model OrderItem {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String   @db.ObjectId
+  productId String   @db.ObjectId
+  quantity  Int
+  price     Float // snapshot of product price at the time of order
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_item")
 }
 
 model Notification {
@@ -111,7 +151,7 @@ model Notification {
   seen      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  product   Product  @relation(fields: [productId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 }
 
 model Session {

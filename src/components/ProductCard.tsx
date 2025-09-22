@@ -38,11 +38,11 @@ export default function ProductCard({
 
   const discountPercentage = oldPrice
     ? Math.round(
-        ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
-          parseFloat(price.replace(/[₹$]/g, ""))) /
-          parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
-          100
-      )
+      ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
+        parseFloat(price.replace(/[₹$]/g, ""))) /
+        parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
+      100
+    )
     : 0;
 
   // Add to cart toggle
@@ -88,9 +88,8 @@ export default function ProductCard({
         >
           <Heart
             size={16}
-            className={`transition-colors ${
-              isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"
-            }`}
+            className={`transition-colors ${isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"
+              }`}
           />
         </button>
 
@@ -128,11 +127,10 @@ export default function ProductCard({
                   <Star
                     key={i}
                     size={14}
-                    className={`${
-                      i < rating
+                    className={`${i < rating
                         ? "fill-yellow-400 text-yellow-400"
                         : "fill-gray-200 text-gray-200"
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
