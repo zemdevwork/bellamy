@@ -4,6 +4,7 @@ import "./globals.css";
 import { APP_CONFIG } from "@/config/app";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import Header from "@/components/Header";
 
 const fontSans = DM_Sans({
   variable: "--font-sans",
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${fontSans.variable} font-sans antialiased`}>
+        <Header/>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

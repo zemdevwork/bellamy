@@ -1,8 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { addToCart } from "@/server/actions/cart-action";
 
 type Product = {
   id: string;
@@ -13,12 +15,11 @@ type Product = {
   image: string;
   description: string;
   sizes?: string[];
-};
-
-type CartItem = {
-  id: string;
-  quantity: number;
-  size?: string | null;
+  brand?: {
+    id: string;
+    name: string;
+  };
+  color?: string;
 };
 
 export default function ProductDetails({ productId }: { productId: string }) {
@@ -29,10 +30,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInCart, setIsInCart] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
-
-  // Fetch Product
+  type CartItem = {
+    productId: string;
+    quantity: number;
+  };
+  
   useEffect(() => {
     async function fetchProduct() {
       try {
@@ -42,18 +47,17 @@ export default function ProductDetails({ productId }: { productId: string }) {
         const data: Product = await res.json();
 
         setProduct(data);
-        setSelectedImage(data.subimage?.[0] || null);
+        setSelectedImage(data.image || data.subimage?.[0] || null);
 
-        // ✅ Check if already in cart
-        const cart: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
-        const exists = cart.some((item) => item.id === data.id);
-        setIsInCart(exists);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Something went wrong");
+        const cartRes = await fetch("/api/cart");
+        if (cartRes.ok) {
+          const cartData = await cartRes.json();
+          const exists = cartData.items?.some((item: CartItem) => item.productId === data.id);
+
+          setIsInCart(exists);
         }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setLoading(false);
       }
@@ -61,33 +65,38 @@ export default function ProductDetails({ productId }: { productId: string }) {
     fetchProduct();
   }, [productId]);
 
-  // Loading & Error States
   if (loading) return <p className="p-6">Loading product...</p>;
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!product) return <p className="p-6">Product not found.</p>;
 
-  // Handlers
   const handleAddToCart = () => {
     if (!product) return;
-    const cart: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
-    if (!cart.some((item) => item.id === product.id)) {
-      cart.push({ id: product.id, quantity, size: selectedSize });
-      localStorage.setItem("cart", JSON.stringify(cart));
-      setIsInCart(true);
-    }
+
+    startTransition(async () => {
+      try {
+        await addToCart({
+          productId: product.id,
+          quantity,
+          size: selectedSize || undefined,
+        });
+        toast.success(`Added "${product.name}" to cart!`);
+        setIsInCart(true);
+      } catch (error) {
+        console.error("Failed to add to cart:", error);
+        toast.error("Failed to add to cart. Please try again.");
+      }
+    });
   };
 
-  const handleGoToCart = () => {
-    router.push("/cart");
-  };
-
+  const handleGoToCart = () => router.push("/cart");
   const handleBuyNow = () => {
-    console.log("Buying now:", { productId, quantity, selectedSize });
-    alert("Proceeding to checkout!");
+    toast.info("Proceeding to checkout!");
+    router.push("/checkout");
   };
 
   return (
-    <div className="min-h-screen bg-white px-6 md:px-16 py-10">
+    <div className="min-h-screen  ">
+      {/* Back button */}
       <button
         onClick={() => router.back()}
         className="flex items-center text-gray-600 hover:text-black mb-6"
@@ -95,13 +104,15 @@ export default function ProductDetails({ productId }: { productId: string }) {
         <ArrowLeft size={18} className="mr-2" />
         Back
       </button>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* LEFT SIDE - IMAGE GALLERY */}
         <div>
-          <div className="w-full h-[500px] relative border rounded-lg overflow-hidden">
+          {/* 🔹 Reduced height */}
+          <div className="w-full h-[380px] relative border rounded-2xl overflow-hidden shadow-md bg-white">
             {selectedImage && (
               <Image
-                src={product.image}
+                src={selectedImage}
                 alt={product.name}
                 fill
                 className="object-contain p-6"
@@ -109,13 +120,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
             )}
           </div>
 
-          {/* Thumbnail Gallery */}
           <div className="flex space-x-4 mt-4 overflow-x-auto">
-            {product.subimage.map((img, idx) => (
+            {[product.image, ...product.subimage].map((img, idx) => (
               <div
                 key={idx}
-                className={`w-24 h-24 relative cursor-pointer border rounded-md ${
-                  selectedImage === img ? "border-black" : "border-gray-300"
+                className={`w-20 h-20 relative cursor-pointer border rounded-lg transition-transform hover:scale-105 ${
+                  selectedImage === img ? "border-black shadow" : "border-gray-300"
                 }`}
                 onClick={() => setSelectedImage(img)}
               >
@@ -131,42 +141,66 @@ export default function ProductDetails({ productId }: { productId: string }) {
         </div>
 
         {/* RIGHT SIDE - PRODUCT DETAILS */}
-        <div className="flex flex-col space-y-4">
-          <h1 className="text-3xl font-semibold text-gray-900">{product.name}</h1>
+        {/* 🔹 Reduced height with padding tweaks */}
+        <div className="flex flex-col space-y-6 bg-white p-5 rounded-2xl shadow-lg border max-h-[600px] overflow-y-auto">
+          {/* Product Name */}
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+            {product.name}
+          </h1>
+
+          {/* Brand */}
+          {product.brand && (
+            <p className="text-base text-gray-600">
+              <span className="font-semibold text-gray-800">Brand:</span>{" "}
+              {product.brand.name}
+            </p>
+          )}
+
+          {/* Color */}
+          {product.color && (
+            <p className="text-base text-gray-600">
+              <span className="font-semibold text-gray-800">Color:</span>{" "}
+              {product.color}
+            </p>
+          )}
 
           {/* Price */}
-          <div>
+          <div className="space-y-1">
             {product.oldPrice && (
-              <p className="line-through text-gray-500">Rs. {product.oldPrice}</p>
+              <p className="line-through text-gray-400">₹{product.oldPrice}</p>
             )}
-            <p className="text-2xl font-bold text-gray-900">Rs. {product.price}</p>
+            <p className="text-2xl font-bold text-violet-600">₹{product.price}</p>
             <p className="text-sm text-gray-500">Inclusive of taxes</p>
           </div>
 
-          {/* Size Options */}
+          {/* Sizes */}
           {product.sizes && product.sizes.length > 0 && (
-            <div className="mt-2 flex items-center space-x-3">
-              <span className="text-sm text-gray-700">Select Size:</span>
-              {product.sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`px-4 py-1.5 border rounded-full text-sm transition ${
-                    selectedSize === size
-                      ? "bg-black text-white border-black"
-                      : "hover:bg-black hover:text-white"
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
+            <div className="mt-2">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Select Size:
+              </p>
+              <div className="flex gap-3">
+                {product.sizes.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-4 py-2 border rounded-full text-sm font-medium transition ${
+                      selectedSize === size
+                        ? "bg-black text-white border-black"
+                        : "hover:bg-gray-100 border-gray-300"
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
           {/* Quantity */}
-          <div className="flex items-center space-x-4 mt-4">
+          <div className="flex items-center gap-4 mt-2">
             <span className="text-gray-700 font-medium">Quantity</span>
-            <div className="flex items-center border rounded-md">
+            <div className="flex items-center border rounded-lg shadow-sm bg-gray-50">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 disabled={quantity <= 1}
@@ -174,7 +208,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
               >
                 -
               </button>
-              <span className="px-4">{quantity}</span>
+              <span className="px-4 font-semibold">{quantity}</span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
                 className="px-3 py-2 text-lg"
@@ -184,37 +218,42 @@ export default function ProductDetails({ productId }: { productId: string }) {
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="flex flex-col space-y-3 mt-6">
+          {/* Buttons - 🔹 Side by side */}
+          <div className="flex gap-3 mt-4">
             {isInCart ? (
               <button
                 onClick={handleGoToCart}
-                className="w-full border border-gray-700 py-3 rounded-md hover:bg-gray-100"
+                className="flex-1 border border-gray-800 py-3 rounded-lg hover:bg-gray-100 font-medium"
               >
                 Go to Cart
               </button>
             ) : (
               <button
                 onClick={handleAddToCart}
-                className="w-full border border-gray-700 py-3 rounded-md hover:bg-gray-100"
+                disabled={isPending}
+                className="flex-1 border border-gray-800 py-3 rounded-lg hover:bg-gray-100 disabled:opacity-50 font-medium"
               >
-                Add to Cart
+                {isPending ? "Adding..." : "Add to Cart"}
               </button>
             )}
             <button
               onClick={handleBuyNow}
-              className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-900"
+              className="flex-1 bg-blue-900 text-white py-3 rounded-lg hover:bg-blue-600 font-medium shadow"
             >
               Buy Now
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* DESCRIPTION SECTION */}
-      <div className="mt-16">
-        <h2 className="text-2xl font-semibold mb-4">Description</h2>
-        <p className="text-gray-600 leading-relaxed">{product.description}</p>
+          {/* Description */}
+          <div className="pt-4 border-t">
+            <h2 className="text-lg font-semibold mb-2 text-gray-900">
+              Product Description
+            </h2>
+            <p className="text-gray-600 leading-relaxed text-sm">
+              {product.description}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

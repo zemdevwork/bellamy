@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 type Product = {
   id: string;
+  name: string;  // ✅ Added
   title: string;
   price: string;
   originalPrice?: string | null;
@@ -16,9 +17,9 @@ type Product = {
   saleTag?: string;
 };
 
-// Backend product type (matches API response)
 type ProductResponse = {
   id: string;
+  name: string;  // ✅ Added
   title: string;
   price: string;
   originalPrice?: string | null;
@@ -28,6 +29,7 @@ type ProductResponse = {
   isOnSale?: boolean;
   saleTag?: string;
 };
+
 
 export default function BestSellers() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,6 +52,7 @@ export default function BestSellers() {
         // Map backend data to Product type if needed
         const mappedProducts: Product[] = data.map((p) => ({
           id: p.id,
+          name: p.name,   // ✅ Added
           title: p.title,
           price: p.price,
           originalPrice: p.originalPrice,
@@ -59,6 +62,7 @@ export default function BestSellers() {
           isOnSale: p.isOnSale,
           saleTag: p.saleTag,
         }));
+        
 
         setProducts(mappedProducts);
       } catch (error) {
@@ -115,11 +119,51 @@ export default function BestSellers() {
   };
 
   const handleTouchEnd = () => setIsDragging(false);
-
-  // Cart functions
-  const handleAddToCart = (productId: string) => {
-    if (!cartItems.includes(productId)) setCartItems([...cartItems, productId]);
+  
+  type CartItem = {
+    product: {
+      id: string;
+    };
+    quantity: number;
   };
+  
+  // Cart functions
+// Inside BestSellers.tsx
+
+const handleAddToCart = async (productId: string) => {
+  try {
+    const res = await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId, quantity: 1 }),
+    });
+
+    if (!res.ok) throw new Error("Failed to add to cart");
+
+    // Update UI
+    setCartItems([...cartItems, productId]);
+  } catch (error) {
+    console.error("Add to cart failed:", error);
+  }
+};
+
+// Load existing cart when page loads
+useEffect(() => {
+  const fetchCart = async () => {
+    try {
+      const res = await fetch("/api/cart", { cache: "no-store" });
+      if (!res.ok) return;
+      const cart = await res.json();
+      if (cart?.items) {
+        setCartItems(cart.items.map((item: CartItem) => item.product.id));
+      }
+    } catch (error) {
+      console.error("Error loading cart:", error);
+    }
+  };
+  fetchCart();
+}, []);
+
 
   const handleGoToCart = () => router.push("/cart");
 
@@ -214,18 +258,22 @@ export default function BestSellers() {
                     </div>
                   )}
                 </div>
-
                 <div className="p-4">
-                  <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">{product.title}</h3>
-                  <div className="flex items-center mb-2">
-                    <div className="flex items-center">{renderStars(product.rating ?? 0)}</div>
-                    {product.reviewCount && <span className="text-xs text-gray-500 ml-1">({product.reviewCount})</span>}
-                  </div>
+  <h4 className="text-xs text-gray-500 font-semibold">{product.name}</h4> {/* ✅ Brand/Name */}
+  <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">{product.title}</h3>
+  
+  <div className="flex items-center mb-2">
+    <div className="flex items-center">{renderStars(product.rating ?? 0)}</div>
+    {product.reviewCount && <span className="text-xs text-gray-500 ml-1">({product.reviewCount})</span>}
+  </div>
 
-                  <div className="mb-3">
-                    {product.originalPrice && <span className="text-sm text-gray-400 line-through mr-2">{product.originalPrice}</span>}
-                    <span className="text-lg font-semibold text-gray-800">{product.price}</span>
-                  </div>
+  <div className="mb-3">
+    {product.originalPrice && (
+      <span className="text-sm text-gray-400 line-through mr-2">{product.originalPrice}</span>
+    )}
+    <span className="text-lg font-semibold text-gray-800">{product.price}</span>
+  </div>
+
 
                   <div className="flex flex-col space-y-2">
                     {cartItems.includes(product.id) ? (

@@ -236,7 +236,8 @@ import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import {
   getUserCart,
@@ -266,7 +267,7 @@ export default function CartComponent() {
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [showCheckout, setShowCheckout] = useState(false); // ✅ toggle checkout
-
+  const router = useRouter();
   const fetchCart = async () => {
     setLoading(true);
     const userCart = await getUserCart();
@@ -315,17 +316,29 @@ export default function CartComponent() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-        <p className="text-lg font-medium">Your cart is empty</p>
-        <p className="text-sm text-muted-foreground">
-          Add some products to continue shopping.
-        </p>
-      </div>
+      <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+      <p className="text-lg font-medium">Your cart is empty</p>
+      <p className="text-sm text-muted-foreground">
+        Add some products to continue shopping.
+      </p>
+      <Button className="mt-6" onClick={() => router.push("/")}>
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Home
+      </Button>
+    </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto ">
+      <Button
+        variant="ghost"
+        className="mb-6 flex items-center"
+        onClick={() => router.push("/")}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Home
+      </Button>
       {/* Title */}
       <h1 className="text-3xl font-bold mb-8">Your cart</h1>
 

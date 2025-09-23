@@ -1,51 +1,85 @@
-//app/api/cart/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+// app/api/cart/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🔍 Cart API called");
-    
-    // Get session from request
-    const session = await auth.api.getSession({
-      headers: request.headers
-    });
+    const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user) {
-      console.log("❌ No session in API route");
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("✅ Session found in API:", session.user.id);
-
-    // Get user cart with items and products
     const cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
       include: {
         items: {
           include: {
             product: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                image: true,
-              },
+              select: { id: true, name: true, price: true, image: true },
             },
           },
         },
       },
     });
 
-    console.log("✅ Cart API result:", cart ? `${cart.items.length} items` : 'null');
-    
     return NextResponse.json(cart);
   } catch (error) {
-    console.error('❌ Cart API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch cart' },
-      { status: 500 }
-    );
+    console.error("❌ Cart API error:", error);
+    return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
+  }
+}
+
+// ✅ ADD TO CART
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth.api.getSession({ headers: request.headers });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { productId, quantity } = body;
+
+    if (!productId) {
+      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
+    }
+
+    // ✅ Ensure cart exists
+    let cart = await prisma.cart.findUnique({
+      where: { userId: session.user.id },
+    });
+
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: { userId: session.user.id },
+      });
+    }
+
+    // ✅ Check if product already exists in cart
+    const existingItem = await prisma.cartItem.findFirst({
+      where: { cartId: cart.id, productId },
+    });
+
+    if (existingItem) {
+      await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: { quantity: existingItem.quantity + (quantity || 1) },
+      });
+    } else {
+      await prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          quantity: quantity || 1,
+        },
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("❌ Add to Cart error:", error);
+    return NextResponse.json({ error: "Failed to add to cart" }, { status: 500 });
   }
 }

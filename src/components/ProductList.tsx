@@ -43,14 +43,14 @@ export default function ProductList() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProductsAndCart = async () => {
       try {
         setLoading(true);
         const response = await fetch("/api/product");
         if (!response.ok) throw new Error("Failed to fetch products");
-
+  
         const data: ProductResponse[] = await response.json();
-
+  
         const transformedProducts: Product[] = data.map((product) => ({
           id: product.id,
           name: product.name,
@@ -62,17 +62,33 @@ export default function ProductList() {
           reviews: product.reviews ?? 0,
           badge: product.badge,
         }));
-
+  
         setProducts(transformedProducts);
+        type CartItem = {
+          product: {
+            id: string;
+          };
+          quantity: number;
+        };
+        
+        // ✅ Fetch cart after products
+        const cartRes = await fetch("/api/cart", { cache: "no-store" });
+        if (cartRes.ok) {
+          const cartData = await cartRes.json();
+          if (cartData?.items) {
+            setCart(cartData.items.map((item: CartItem) => item.product.id));
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProducts();
+  
+    fetchProductsAndCart();
   }, []);
+  
 
   const visibleProducts = showAll ? products : products.slice(0, 8);
 
