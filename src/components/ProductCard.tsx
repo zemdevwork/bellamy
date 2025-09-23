@@ -45,7 +45,6 @@ export default function ProductCard({
     )
     : 0;
 
-  // Add to cart toggle
   const handleAddToCart = async () => {
     if (!id) {
       toast.error("Product ID is missing");
