@@ -579,7 +579,7 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
                 ? "Price: Low to High"
                 : sortOrder === "price_desc"
                 ? "Price: High to Low"
-                : "Newest"}
+                : "Price"}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
