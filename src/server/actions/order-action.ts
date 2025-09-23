@@ -261,18 +261,27 @@ export async function cancelOrder(orderId: string) {
       throw new Error("Unauthorized");
     }
 
+    // 🚫 Block cancellation for shipped/delivered/cancelled
     if (["SHIPPED", "DELIVERED", "CANCELLED"].includes(order.status)) {
       throw new Error("Order cannot be cancelled");
     }
 
-    return await prisma.order.update({
+    // ✅ Update status
+    const cancelledOrder = await prisma.order.update({
       where: { id: orderId },
       data: { status: "CANCELLED" },
     });
+
+    return {
+      success: true,
+      order: cancelledOrder,
+      message: "Order cancelled successfully",
+    };
   } catch (error: unknown) {
     console.error("Cancel order error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to cancel order";
-    throw new Error(errorMessage);
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to cancel order";
+    return { success: false, message: errorMessage };
   }
 }
 

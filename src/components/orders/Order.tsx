@@ -235,6 +235,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
+
 
 type Order = {
   id: string;
@@ -315,7 +317,7 @@ const ProductImage = ({
 export default function OrderList() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -474,25 +476,50 @@ export default function OrderList() {
               {/* Order Actions */}
               <div className="px-6 py-4 bg-gray-50 rounded-b-xl">
                 <div className="flex items-center justify-between">
-                  <button className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
-                    View Details
-                  </button>
+                  
                   <div className="flex gap-2">
                     {order.status.toUpperCase() === "DELIVERED" && (
                       <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
                         Reorder
                       </button>
                     )}
-                    {["PENDING", "PROCESSING"].includes(
-                      order.status.toUpperCase()
-                    ) && (
-                      <button className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
+                    {["PENDING", "PROCESSING"].includes(order.status.toUpperCase()) && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`/api/orders/${order.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ status: "CANCELLED" }),
+                            });
+
+                            if (!res.ok) {
+                              const err = await res.json();
+                              toast.error(err.error || "Failed to cancel order");
+                              return;
+                            }
+
+                            toast.success("✅ Order cancelled successfully");
+                            // ✅ Refresh UI
+                            setOrders((prev) =>
+                              prev.map((o) =>
+                                o.id === order.id ? { ...o, status: "CANCELLED" } : o
+                              )
+                            );
+                          } catch (err) {
+                            console.error("Cancel order failed:", err);
+                            toast.error("Something went wrong");
+                          }
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                      >
                         Cancel Order
                       </button>
                     )}
                   </div>
                 </div>
               </div>
+
             </div>
           ))}
         </div>
