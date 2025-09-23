@@ -117,12 +117,13 @@ model Order {
   razorpaySignature String? // verification signature
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-// ✅ address snapshot (taken at time of placing order)
-  street     String
-  city       String
-  state      String
-  pincode    String
-  
+  // ✅ address snapshot (taken at time of placing order)
+  phoneNumber       String
+  street            String
+  city              String
+  state             String
+  pincode           String
+
   user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   items OrderItem[]
 

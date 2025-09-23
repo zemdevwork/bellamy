@@ -5,6 +5,7 @@ import {
   IconDashboard,
   IconFileText,
   IconIcons,
+  IconShoppingBag,
   IconTruck,
   IconUserPlus
 } from '@tabler/icons-react';
@@ -38,6 +39,11 @@ export const SIDEBAR_DATA: SidebarData = {
       title: 'Sub-category',
       url: '/admin/subcategory',
       icon: IconCategory2,
+    },
+    {
+      title: 'Orders',
+      url: '/admin/order',
+      icon: IconShoppingBag,
     },
   ],
 

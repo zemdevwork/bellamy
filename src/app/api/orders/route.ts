@@ -14,9 +14,9 @@ export async function POST(req: NextRequest) {
     const user = session.user;
 
     // ✅ Expect address + paymentMethod from client
-    const { paymentMethod, street, city, state, pincode } = await req.json();
+    const { paymentMethod,phoneNumber, street, city, state, pincode } = await req.json();
 
-    if (!paymentMethod || !street || !city || !state || !pincode) {
+    if (!paymentMethod || !phoneNumber || !street || !city || !state || !pincode) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         paymentMethod,
         totalAmount,
         status: "PENDING",
+        phoneNumber,
         street,
         city,
         state,

@@ -1,5 +1,4 @@
 
-
 // "use client";
 
 // import { useState } from "react";
@@ -24,18 +23,17 @@
 //   products: Product[];
 //   total: number;
 //   onClose: () => void;
-//   userPhone?: string; // from logged-in user
 // };
 
 // export default function CheckoutModal({
 //   products,
 //   total,
 //   onClose,
-//   userPhone,
 // }: CheckoutModalProps) {
 //   const router = useRouter();
 //   const [paymentMethod, setPaymentMethod] = useState("COD");
-//   const [phone, setPhone] = useState(userPhone || "");
+
+//   const [phoneNumber, setPhoneNumber] = useState(""); // ✅ new state
 //   const [street, setStreet] = useState("");
 //   const [city, setCity] = useState("");
 //   const [state, setState] = useState("");
@@ -44,7 +42,7 @@
 //   const [isOrderSummaryOpen, setIsOrderSummaryOpen] = useState(false);
 
 //   const handleSubmit = async () => {
-//     if (!street || !city || !state || !pincode || !phone) {
+//     if (!phoneNumber || !street || !city || !state || !pincode) {
 //       toast.error("Please fill in all required fields");
 //       return;
 //     }
@@ -56,7 +54,7 @@
 //         headers: { "Content-Type": "application/json" },
 //         body: JSON.stringify({
 //           paymentMethod,
-//           phone,
+//           phoneNumber, // ✅ include phone number
 //           street,
 //           city,
 //           state,
@@ -70,11 +68,16 @@
 //         }),
 //       });
 
-//       if (!res.ok) throw new Error("Failed to place order");
+//       const data = await res.json();
+
+//       if (!res.ok) {
+//         toast.error(data.error || "Failed to place order");
+//         throw new Error(data.error || "Failed to place order");
+//       }
 
 //       toast.success("Order placed successfully!");
 //       onClose();
-//       router.push("/order");
+//       router.push("/");
 //     } catch (err) {
 //       toast.error("Something went wrong");
 //     } finally {
@@ -85,7 +88,7 @@
 //   return (
 //     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
 //       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-//         {/* Header with close button */}
+//         {/* Header */}
 //         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl">
 //           <div className="flex items-center justify-between">
 //             <h2 className="text-2xl font-semibold text-gray-900">Checkout</h2>
@@ -99,93 +102,72 @@
 //         </div>
 
 //         <div className="p-6 space-y-6">
-//           {/* Promotional Banner */}
-//           <div className="bg-black text-white text-center py-3 px-4 rounded-lg">
-//             <p className="font-medium">Get 5% off on Prepaid Order</p>
-//           </div>
-
-//           {/* Collapsible Order Summary */}
-//           <div className="border border-gray-200 rounded-xl overflow-hidden">
-//             <button
+//           {/* Order summary (collapsible) */}
+//           <div className="space-y-3">
+//             <div
+//               className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
 //               onClick={() => setIsOrderSummaryOpen(!isOrderSummaryOpen)}
-//               className="w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
 //             >
 //               <div className="flex items-center gap-3">
-//                 <h3 className="text-lg font-semibold text-gray-900">
-//                   Order summary
-//                 </h3>
-//                 <span className="text-sm text-gray-600">
-//                   ({products.length} Items)
-//                 </span>
+//                 <Label className="text-lg font-semibold text-gray-900 cursor-pointer">
+//                   Order summary ({products.length} Items)
+//                 </Label>
 //               </div>
-//               <div className="flex items-center gap-4">
-//                 <span className="text-lg font-bold text-gray-900">
+//               <div className="flex items-center gap-3">
+//                 <span className="text-lg font-semibold text-gray-900">
 //                   ₹{total.toFixed(2)}
 //                 </span>
 //                 {isOrderSummaryOpen ? (
-//                   <ChevronUp className="w-5 h-5 text-gray-600" />
+//                   <ChevronUp className="w-5 h-5 text-gray-500" />
 //                 ) : (
-//                   <ChevronDown className="w-5 h-5 text-gray-600" />
+//                   <ChevronDown className="w-5 h-5 text-gray-500" />
 //                 )}
 //               </div>
-//             </button>
+//             </div>
 
-//             {/* Expandable Product List */}
+//             {/* Collapsible content */}
 //             {isOrderSummaryOpen && (
-//               <div className="px-6 py-4 space-y-4 border-t border-gray-100">
-//                 {products.map((product) => (
-//                   <div key={product.id} className="flex items-center gap-4">
-//                     {/* Product Image */}
-//                     <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-//                       {product.image ? (
-//                         <Image
-//                           src={product.image}
-//                           alt={product.name}
-//                           fill
-//                           className="object-cover"
-//                         />
-//                       ) : (
-//                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-//                           <span className="text-xs text-gray-500 font-medium">
-//                             {product.name.substring(0, 2).toUpperCase()}
-//                           </span>
+//               <div className="border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
+//                 <div className="space-y-3 max-h-60 overflow-y-auto">
+//                   {products.map((product) => (
+//                     <div
+//                       key={product.id}
+//                       className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg"
+//                     >
+//                       {product.image && (
+//                         <div className="relative w-12 h-12 flex-shrink-0">
+//                           <Image
+//                             src={product.image}
+//                             alt={product.name}
+//                             fill
+//                             className="object-cover rounded-md"
+//                           />
 //                         </div>
 //                       )}
+//                       <div className="flex-1 min-w-0">
+//                         <h3 className="text-sm font-medium text-gray-900 truncate">
+//                           {product.name}
+//                         </h3>
+//                         <p className="text-sm text-gray-500">
+//                           Quantity: {product.quantity}
+//                         </p>
+//                       </div>
+//                       <div className="text-right">
+//                         <p className="text-sm font-semibold text-gray-900">
+//                           ₹{(product.price * product.quantity).toFixed(2)}
+//                         </p>
+//                       </div>
 //                     </div>
-
-//                     {/* Product Details */}
-//                     <div className="flex-1 min-w-0">
-//                       <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
-//                         {product.name}
-//                       </h4>
-//                       <p className="text-sm font-semibold text-gray-900 mt-1">
-//                         ₹{product.price.toFixed(2)}
-//                       </p>
-//                     </div>
-
-//                     {/* Quantity Controls */}
-//                     <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
-//                       <button className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800">
-//                         -
-//                       </button>
-//                       <span className="font-medium text-gray-900 min-w-[20px] text-center">
-//                         {product.quantity}
-//                       </span>
-//                       <button className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800">
-//                         +
-//                       </button>
-//                     </div>
-//                   </div>
-//                 ))}
+//                   ))}
+//                 </div>
 
 //                 {/* Bill Summary */}
-//                 <div className="border-t border-gray-200 pt-4 space-y-2">
-//                   <h4 className="font-semibold text-gray-900 mb-3">Bill summary</h4>
+//                 <div className="border-t pt-4 space-y-2">
 //                   <div className="flex justify-between text-sm text-gray-600">
 //                     <span>Sub total</span>
 //                     <span>₹{total.toFixed(2)}</span>
 //                   </div>
-//                   <div className="flex justify-between text-base font-semibold text-gray-900 pt-2 border-t border-gray-200">
+//                   <div className="flex justify-between text-lg font-semibold text-gray-900 pt-2 border-t">
 //                     <span>Total amount</span>
 //                     <span>₹{total.toFixed(2)}</span>
 //                   </div>
@@ -194,42 +176,46 @@
 //             )}
 //           </div>
 
-//           {/* Mobile Number */}
-//           <div className="space-y-2">
-//             <Label htmlFor="phone" className="text-lg font-semibold text-gray-900">Mobile Number</Label>
-//             <Input
-//               id="phone"
-//               type="tel"
-//               placeholder="Enter 10-digit mobile number"
-//               value={phone}
-//               onChange={(e) => setPhone(e.target.value)}
-//               className="h-12"
-//             />
-//           </div>
-
 //           {/* Payment Method */}
 //           <div className="space-y-3">
-//             <Label className="text-lg font-semibold text-gray-900">Payment Method</Label>
+//             <Label className="text-lg font-semibold text-gray-900">
+//               Payment Method
+//             </Label>
 //             <RadioGroup
 //               value={paymentMethod}
 //               onValueChange={setPaymentMethod}
 //               className="space-y-3"
 //             >
 //               <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-//                 <RadioGroupItem value="COD" id="cod" className="text-blue-600" />
-//                 <Label htmlFor="cod" className="flex-1 cursor-pointer">Cash on Delivery</Label>
+//                 <RadioGroupItem value="COD" id="cod" />
+//                 <Label htmlFor="cod" className="flex-1 cursor-pointer">
+//                   Cash on Delivery
+//                 </Label>
 //               </div>
 //               <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-//                 <RadioGroupItem value="ONLINE" id="online" className="text-blue-600" />
-//                 <Label htmlFor="online" className="flex-1 cursor-pointer">Online Payment</Label>
+//                 <RadioGroupItem value="ONLINE" id="online" />
+//                 <Label htmlFor="online" className="flex-1 cursor-pointer">
+//                   Online Payment
+//                 </Label>
 //               </div>
 //             </RadioGroup>
 //           </div>
 
 //           {/* Delivery Address */}
 //           <div className="space-y-3">
-//             <Label className="text-lg font-semibold text-gray-900">Delivery Address</Label>
+//             <Label className="text-lg font-semibold text-gray-900">
+//               Delivery Address
+//             </Label>
 //             <div className="space-y-3">
+//               {/* ✅ Phone Number */}
+//               <Input
+//                 placeholder="Phone Number"
+//                 type="tel"
+//                 maxLength={10}
+//                 value={phoneNumber}
+//                 onChange={(e) => setPhoneNumber(e.target.value)}
+//                 className="h-12"
+//               />
 //               <Input
 //                 placeholder="Street Address"
 //                 value={street}
@@ -253,31 +239,10 @@
 //               <Input
 //                 placeholder="Pincode"
 //                 value={pincode}
+//                 maxLength={7}
 //                 onChange={(e) => setPincode(e.target.value)}
 //                 className="h-12"
 //               />
-//             </div>
-//           </div>
-
-//           {/* Trust Badges */}
-//           <div className="flex items-center justify-center gap-8 py-4 text-xs text-gray-500">
-//             <div className="flex flex-col items-center gap-2">
-//               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-//                 <div className="w-4 h-4 bg-gray-400 rounded"></div>
-//               </div>
-//               <span>Secure payments</span>
-//             </div>
-//             <div className="flex flex-col items-center gap-2">
-//               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-//                 <div className="w-4 h-4 bg-gray-400 rounded"></div>
-//               </div>
-//               <span>Assured delivery</span>
-//             </div>
-//             <div className="flex flex-col items-center gap-2">
-//               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-//                 <div className="w-4 h-4 bg-gray-400 rounded"></div>
-//               </div>
-//               <span>Verified seller</span>
 //             </div>
 //           </div>
 
@@ -289,12 +254,6 @@
 //           >
 //             {loading ? "Placing Order..." : "Buy it now"}
 //           </Button>
-
-//           {/* Footer */}
-//           <div className="text-center text-xs text-gray-500">
-//             <p>T&C | Privacy Policy | b902f6ee</p>
-//             <p className="mt-1">Powered By Shiprocket</p>
-//           </div>
 //         </div>
 //       </div>
 //     </div>
@@ -324,18 +283,17 @@ type CheckoutModalProps = {
   products: Product[];
   total: number;
   onClose: () => void;
-  userPhone?: string; // from logged-in user
 };
 
 export default function CheckoutModal({
   products,
   total,
   onClose,
-  userPhone,
 }: CheckoutModalProps) {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState("COD");
-  const [phone, setPhone] = useState(userPhone || "");
+
+  const [phoneNumber, setPhoneNumber] = useState(""); // ✅ new state
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -344,7 +302,7 @@ export default function CheckoutModal({
   const [isOrderSummaryOpen, setIsOrderSummaryOpen] = useState(false);
 
   const handleSubmit = async () => {
-    if (!street || !city || !state || !pincode || !phone) {
+    if (!phoneNumber || !street || !city || !state || !pincode) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -356,7 +314,7 @@ export default function CheckoutModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           paymentMethod,
-          phone,
+          phoneNumber, // ✅ include phone number
           street,
           city,
           state,
@@ -370,11 +328,16 @@ export default function CheckoutModal({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to place order");
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || "Failed to place order");
+        throw new Error(data.error || "Failed to place order");
+      }
 
       toast.success("Order placed successfully!");
       onClose();
-      router.push("/order");
+      router.push("/");
     } catch {
       toast.error("Something went wrong");
     } finally {
@@ -385,7 +348,7 @@ export default function CheckoutModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header with close button */}
+        {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-gray-900">Checkout</h2>
@@ -399,93 +362,72 @@ export default function CheckoutModal({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Promotional Banner */}
-          <div className="bg-black text-white text-center py-3 px-4 rounded-lg">
-            <p className="font-medium">Get 5% off on Prepaid Order</p>
-          </div>
-
-          {/* Collapsible Order Summary */}
-          <div className="border border-gray-200 rounded-xl overflow-hidden">
-            <button
+          {/* Order summary (collapsible) */}
+          <div className="space-y-3">
+            <div
+              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
               onClick={() => setIsOrderSummaryOpen(!isOrderSummaryOpen)}
-              className="w-full px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Order summary
-                </h3>
-                <span className="text-sm text-gray-600">
-                  ({products.length} Items)
-                </span>
+                <Label className="text-lg font-semibold text-gray-900 cursor-pointer">
+                  Order summary ({products.length} Items)
+                </Label>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="text-lg font-bold text-gray-900">
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-semibold text-gray-900">
                   ₹{total.toFixed(2)}
                 </span>
                 {isOrderSummaryOpen ? (
-                  <ChevronUp className="w-5 h-5 text-gray-600" />
+                  <ChevronUp className="w-5 h-5 text-gray-500" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-600" />
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
                 )}
               </div>
-            </button>
+            </div>
 
-            {/* Expandable Product List */}
+            {/* Collapsible content */}
             {isOrderSummaryOpen && (
-              <div className="px-6 py-4 space-y-4 border-t border-gray-100">
-                {products.map((product) => (
-                  <div key={product.id} className="flex items-center gap-4">
-                    {/* Product Image */}
-                    <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                      {product.image ? (
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-xs text-gray-500 font-medium">
-                            {product.name.substring(0, 2).toUpperCase()}
-                          </span>
+              <div className="border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  {products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg"
+                    >
+                      {product.image && (
+                        <div className="relative w-12 h-12 flex-shrink-0">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded-md"
+                          />
                         </div>
                       )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-medium text-gray-900 truncate">
+                          {product.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          Quantity: {product.quantity}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-gray-900">
+                          ₹{(product.price * product.quantity).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
-
-                    {/* Product Details */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 text-sm line-clamp-2">
-                        {product.name}
-                      </h4>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">
-                        ₹{product.price.toFixed(2)}
-                      </p>
-                    </div>
-
-                    {/* Quantity Controls */}
-                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2">
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800">
-                        -
-                      </button>
-                      <span className="font-medium text-gray-900 min-w-[20px] text-center">
-                        {product.quantity}
-                      </span>
-                      <button className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-gray-800">
-                        +
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
 
                 {/* Bill Summary */}
-                <div className="border-t border-gray-200 pt-4 space-y-2">
-                  <h4 className="font-semibold text-gray-900 mb-3">Bill summary</h4>
+                <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Sub total</span>
                     <span>₹{total.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-base font-semibold text-gray-900 pt-2 border-t border-gray-200">
+                  <div className="flex justify-between text-lg font-semibold text-gray-900 pt-2 border-t">
                     <span>Total amount</span>
                     <span>₹{total.toFixed(2)}</span>
                   </div>
@@ -494,42 +436,46 @@ export default function CheckoutModal({
             )}
           </div>
 
-          {/* Mobile Number */}
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-lg font-semibold text-gray-900">Mobile Number</Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="Enter 10-digit mobile number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="h-12"
-            />
-          </div>
-
           {/* Payment Method */}
           <div className="space-y-3">
-            <Label className="text-lg font-semibold text-gray-900">Payment Method</Label>
+            <Label className="text-lg font-semibold text-gray-900">
+              Payment Method
+            </Label>
             <RadioGroup
               value={paymentMethod}
               onValueChange={setPaymentMethod}
               className="space-y-3"
             >
               <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="COD" id="cod" className="text-blue-600" />
-                <Label htmlFor="cod" className="flex-1 cursor-pointer">Cash on Delivery</Label>
+                <RadioGroupItem value="COD" id="cod" />
+                <Label htmlFor="cod" className="flex-1 cursor-pointer">
+                  Cash on Delivery
+                </Label>
               </div>
               <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="ONLINE" id="online" className="text-blue-600" />
-                <Label htmlFor="online" className="flex-1 cursor-pointer">Online Payment</Label>
+                <RadioGroupItem value="ONLINE" id="online" />
+                <Label htmlFor="online" className="flex-1 cursor-pointer">
+                  Online Payment
+                </Label>
               </div>
             </RadioGroup>
           </div>
 
           {/* Delivery Address */}
           <div className="space-y-3">
-            <Label className="text-lg font-semibold text-gray-900">Delivery Address</Label>
+            <Label className="text-lg font-semibold text-gray-900">
+              Delivery Address
+            </Label>
             <div className="space-y-3">
+              {/* ✅ Phone Number */}
+              <Input
+                placeholder="Phone Number"
+                type="tel"
+                maxLength={10}
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="h-12"
+              />
               <Input
                 placeholder="Street Address"
                 value={street}
@@ -553,31 +499,10 @@ export default function CheckoutModal({
               <Input
                 placeholder="Pincode"
                 value={pincode}
+                maxLength={7}
                 onChange={(e) => setPincode(e.target.value)}
                 className="h-12"
               />
-            </div>
-          </div>
-
-          {/* Trust Badges */}
-          <div className="flex items-center justify-center gap-8 py-4 text-xs text-gray-500">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-gray-400 rounded"></div>
-              </div>
-              <span>Secure payments</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-gray-400 rounded"></div>
-              </div>
-              <span>Assured delivery</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                <div className="w-4 h-4 bg-gray-400 rounded"></div>
-              </div>
-              <span>Verified seller</span>
             </div>
           </div>
 
@@ -589,12 +514,6 @@ export default function CheckoutModal({
           >
             {loading ? "Placing Order..." : "Buy it now"}
           </Button>
-
-          {/* Footer */}
-          <div className="text-center text-xs text-gray-500">
-            <p>T&C | Privacy Policy | b902f6ee</p>
-            <p className="mt-1">Powered By Shiprocket</p>
-          </div>
         </div>
       </div>
     </div>

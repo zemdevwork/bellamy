@@ -75,28 +75,45 @@ import {prisma} from "@/lib/prisma";
 import { createProductAction } from "@/server/actions/product-action";
 
 
-// GET all products and filter by categoryId
+// GET all products and filter by categoryId + brandId + subCategoryId + sort by price
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get("categoryId");
-    const brandId = searchParams.get("brandId");
     const subCategoryId = searchParams.get("subCategoryId");
 
-    // Build the where clause dynamically
+    // ✅ Support multiple brands: ?brandId=1,2,3
+    const brandIds = searchParams.get("brandId");
+
+    // ✅ Support sorting: ?sort=price_asc or ?sort=price_desc
+    const sort = searchParams.get("sort");
+
+    // Build where clause dynamically
     const whereClause: Record<string, unknown> = {};
     if (categoryId) whereClause.categoryId = categoryId;
-    if (brandId) whereClause.brandId = brandId;
     if (subCategoryId) whereClause.subCategoryId = subCategoryId;
+    if (brandIds) {
+      const brandIdArray = brandIds.split(",");
+      whereClause.brandId = { in: brandIdArray };
+    }
+
+    // Default order → latest products
+    let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
+
+    if (sort === "price_asc") {
+      orderBy = { price: "asc" };
+    } else if (sort === "price_desc") {
+      orderBy = { price: "desc" };
+    }
 
     const products = await prisma.product.findMany({
-      where: whereClause, // empty object {} means no filter → all products
+      where: whereClause,
       include: {
         category: true,
         brand: true,
         subCategory: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy,
     });
 
     return NextResponse.json(products);
