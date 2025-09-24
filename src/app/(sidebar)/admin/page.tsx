@@ -20,6 +20,7 @@ import {
 import { Suspense } from "react";
 import { getProductInventory } from "@/server/actions/admin-report-actions";
 
+// $
 // Loading component for individual stat cards
 function StatCardSkeleton() {
   return (
@@ -39,13 +40,11 @@ function StatCardSkeleton() {
 // Component for displaying dashboard stats
 async function DashboardStats() {
   try {
-    // Get current date and last month for comparison
     const now = new Date();
     const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    // Fetch current month and last month metrics
     const [currentMetrics, lastMonthMetrics, filterOptions, lowStockProducts] = await Promise.all([
       getSalesMetrics({ startDate: currentMonth, endDate: now }),
       getSalesMetrics({ startDate: lastMonth, endDate: lastMonthEnd }),
@@ -53,7 +52,6 @@ async function DashboardStats() {
       getLowStockProducts(10)
     ]);
 
-    // Calculate percentage changes
     const calculatePercentageChange = (current: number, previous: number) => {
       if (previous === 0) return current > 0 ? 100 : 0;
       return ((current - previous) / previous) * 100;
@@ -62,7 +60,6 @@ async function DashboardStats() {
     const revenueChange = calculatePercentageChange(currentMetrics.totalRevenue, lastMonthMetrics.totalRevenue);
     const ordersChange = calculatePercentageChange(currentMetrics.totalOrders, lastMonthMetrics.totalOrders);
     
-    // Get total products count (approximate from inventory)
     const totalProducts = await getProductInventory({});
     const totalProductsCount = totalProducts.length;
     
@@ -98,14 +95,14 @@ async function DashboardStats() {
       },
       {
         title: "Revenue",
-        value: `$${currentMetrics.totalRevenue.toLocaleString()}`,
+        value: `₹${currentMetrics.totalRevenue.toLocaleString()}`,
         description: `${revenueChange >= 0 ? '+' : ''}${revenueChange.toFixed(1)}% from last month`,
         icon: DollarSign,
         trend: revenueChange >= 0 ? "up" : "down" as const
       },
       {
         title: "Average Order",
-        value: `$${currentMetrics.averageOrderValue.toFixed(2)}`,
+        value: `₹${currentMetrics.averageOrderValue.toFixed(2)}`,
         description: "Average order value",
         icon: TrendingUp,
         trend: "neutral" as const
@@ -165,7 +162,7 @@ async function DashboardStats() {
 async function RecentOrders() {
   try {
     const recentOrders = await getOrdersWithPaymentStatus({});
-    const latestOrders = recentOrders.slice(0, 5); // Show only 5 most recent
+    const latestOrders = recentOrders.slice(0, 5);
 
     return (
       <Card>
@@ -189,7 +186,7 @@ async function RecentOrders() {
                     <p className="text-xs text-muted-foreground">{order.userName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">${order.totalAmount.toFixed(2)}</p>
+                    <p className="text-sm font-medium">₹{order.totalAmount.toFixed(2)}</p>
                     <p className={`text-xs ${
                       order.status === 'DELIVERED' ? 'text-green-600' :
                       order.status === 'CANCELLED' ? 'text-red-600' :
@@ -310,7 +307,6 @@ export default function AdminDashboard() {
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          {/* Welcome Message */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -320,7 +316,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Stats Grid */}
           <Suspense 
             fallback={
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -331,7 +326,6 @@ export default function AdminDashboard() {
             <DashboardStats />
           </Suspense>
 
-          {/* Recent Activity */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Suspense 
               fallback={
@@ -377,7 +371,6 @@ export default function AdminDashboard() {
               <LowStockAlert />
             </Suspense>
 
-            {/* Quick Actions - keeping the original static content */}
             <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
