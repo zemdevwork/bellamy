@@ -8,7 +8,7 @@ import {
   Tag,
   Layers,
   Package,
-  // Users,
+  Users,
   Settings,
   BarChart3,
   ShoppingCart,
@@ -49,7 +49,7 @@ const navigation: NavItem[] = [
   { title: "Categories", href: "/admin/category", icon: Layers },
   { title: "Subcategories", href: "/admin/subcategory", icon: FileText },
   { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
-  // { title: "Customers", href: "/admin/customers", icon: Users },
+  { title: "Customers", href: "/admin/customers", icon: Users },
   { title: "Inventory", href: "/admin/inventory", icon: Boxes },
   { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { title: "Settings", href: "/admin/settings", icon: Settings },
@@ -131,7 +131,7 @@ export function AdminSidebar({ className }: SidebarProps) {
                     asChild
                     className={cn(
                       "h-auto p-0 hover:bg-transparent",
-                      isActive && "bg-transparent"
+                      isActive && "bg-gray-200 hover:bg-sidebar-accent/30"
                     )}
                   >
                     <Link
@@ -140,7 +140,7 @@ export function AdminSidebar({ className }: SidebarProps) {
                       className={cn(
                         "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         isActive
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                          ? "bg-gray-200 text-sidebar-foreground" 
                           : "text-sidebar-foreground"
                       )}
                     >
@@ -204,3 +204,5 @@ export function AdminSidebar({ className }: SidebarProps) {
     </>
   );
 }
+
+// isActive
