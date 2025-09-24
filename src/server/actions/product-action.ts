@@ -8,6 +8,7 @@ import uploadPhoto from "@/lib/upload";
 import cloudinary from "@/lib/cloudinary";
 
 import { createProductSchema, updateProductSchema, deleteProductSchema } from "@/schema/product-schema";
+import { Product } from "@/types/product";
 
 // Define the attribute structure for type safety
 type ProductAttribute = {
@@ -280,3 +281,47 @@ export const deleteProductAction = actionClient
       throw new Error(error instanceof Error ? error.message : "Failed to delete product");
     }
   });
+
+
+  export async function getProductById(id: string) {
+  try {
+    const product = await prisma.product.findUnique({
+      where: {
+        id,
+      },
+      // Use the 'include' option to fetch the related models
+      include: {
+        brand: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        subCategory: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      data: product as Product,
+      message: "Product fetched successfully",
+    };
+  } catch (error) {
+    console.error('Failed to fetch product:', error);
+    return {
+      success: false,
+      message: "Failed to fetch product",
+    }
+  }
+}

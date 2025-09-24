@@ -1,3 +1,4 @@
+import ProductDetails from '@/components/product/product-detail'
 import React from 'react'
 
 interface ProductDetailPageProps {
@@ -7,13 +8,9 @@ interface ProductDetailPageProps {
 async function ProductDetailPage({ params }: ProductDetailPageProps) {
   // Await the params promise to get the id
   const { id } = await params
-  
-  return (
-    <div>
-      <h1>Product Detail Page</h1>
-      <p>Product ID: {id}</p>
-    </div>
-  )
+
+  return <ProductDetails id={id} />
+
 }
 
 export default ProductDetailPage

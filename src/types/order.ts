@@ -1,7 +1,8 @@
 import { JsonValue } from "@prisma/client/runtime/library";
 
 export interface ProductAttributes {
-  [key: string]: string | number | boolean | null;
+  key: string;
+  value: string;
 }
 
 export interface OrderItem {
