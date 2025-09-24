@@ -6,6 +6,11 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
 
+type Attribute = {
+  key: string;
+  value: string;
+};
+
 type Product = {
   id: string;
   name: string;
@@ -14,18 +19,18 @@ type Product = {
   subimage: string[];
   image: string;
   description: string;
-  sizes?: string[];
-  brand?: {
+  brand: {
     id: string;
     name: string;
   };
-  color?: string;
+  attributes: Attribute[];
 };
 
 export default function ProductDetails({ productId }: { productId: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +38,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
+
   type CartItem = {
     productId: string;
     quantity: number;
   };
-  
+
   useEffect(() => {
     async function fetchProduct() {
       try {
@@ -52,8 +58,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
         const cartRes = await fetch("/api/cart");
         if (cartRes.ok) {
           const cartData = await cartRes.json();
-          const exists = cartData.items?.some((item: CartItem) => item.productId === data.id);
-
+          const exists = cartData.items?.some(
+            (item: CartItem) => item.productId === data.id
+          );
           setIsInCart(exists);
         }
       } catch (err) {
@@ -69,6 +76,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!product) return <p className="p-6">Product not found.</p>;
 
+  // 🔹 Extract attributes
+  const colorAttrs = product.attributes
+    ?.filter((a) => a.key.toLowerCase() === "color")
+    .map((a) => a.value);
+  const sizeAttrs = product.attributes
+    ?.filter((a) => a.key.toLowerCase() === "size")
+    .map((a) => a.value);
+
   const handleAddToCart = () => {
     if (!product) return;
 
@@ -78,6 +93,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
           productId: product.id,
           quantity,
           size: selectedSize || undefined,
+          color: selectedColor || undefined,
         });
         toast.success(`Added "${product.name}" to cart!`);
         setIsInCart(true);
@@ -95,7 +111,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   };
 
   return (
-    <div className="min-h-screen  ">
+    <div className="min-h-screen">
       {/* Back button */}
       <button
         onClick={() => router.back()}
@@ -108,7 +124,6 @@ export default function ProductDetails({ productId }: { productId: string }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         {/* LEFT SIDE - IMAGE GALLERY */}
         <div>
-          {/* 🔹 Reduced height */}
           <div className="w-full h-[380px] relative border rounded-2xl overflow-hidden shadow-md bg-white">
             {selectedImage && (
               <Image
@@ -125,7 +140,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
               <div
                 key={idx}
                 className={`w-20 h-20 relative cursor-pointer border rounded-lg transition-transform hover:scale-105 ${
-                  selectedImage === img ? "border-black shadow" : "border-gray-300"
+                  selectedImage === img
+                    ? "border-black shadow"
+                    : "border-gray-300"
                 }`}
                 onClick={() => setSelectedImage(img)}
               >
@@ -141,7 +158,6 @@ export default function ProductDetails({ productId }: { productId: string }) {
         </div>
 
         {/* RIGHT SIDE - PRODUCT DETAILS */}
-        {/* 🔹 Reduced height with padding tweaks */}
         <div className="flex flex-col space-y-6 bg-white p-5 rounded-2xl shadow-lg border max-h-[600px] overflow-y-auto">
           {/* Product Name */}
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
@@ -155,17 +171,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
               {product.brand.name}
             </p>
           )}
-
-          {/* Color */}
-          {product.color && (
-            <p className="text-base text-gray-600">
-              <span className="font-semibold text-gray-800">Color:</span>{" "}
-              {product.color}
-            </p>
-          )}
-
-          {/* Price */}
-          <div className="space-y-1">
+            {/* Price */}
+            <div className="space-y-1">
             {product.oldPrice && (
               <p className="line-through text-gray-400">₹{product.oldPrice}</p>
             )}
@@ -173,14 +180,38 @@ export default function ProductDetails({ productId }: { productId: string }) {
             <p className="text-sm text-gray-500">Inclusive of taxes</p>
           </div>
 
-          {/* Sizes */}
-          {product.sizes && product.sizes.length > 0 && (
+          {/* Colors */}
+          {colorAttrs && colorAttrs.length > 0 && (
             <div className="mt-2">
               <p className="text-sm font-medium text-gray-700 mb-2">
-                Select Size:
+                Color:
+              </p>
+              <div className="flex gap-3 flex-wrap">
+                {colorAttrs.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
+                    className={`px-4 py-2 border rounded-full text-sm font-medium transition ${
+                      selectedColor === color
+                        ? "bg-black text-white border-black"
+                        : "hover:bg-gray-100 border-gray-300"
+                    }`}
+                  >
+                    {color}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sizes */}
+          {sizeAttrs && sizeAttrs.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+               Size:
               </p>
               <div className="flex gap-3">
-                {product.sizes.map((size) => (
+                {sizeAttrs.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
@@ -218,7 +249,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             </div>
           </div>
 
-          {/* Buttons - 🔹 Side by side */}
+          {/* Buttons */}
           <div className="flex gap-3 mt-4">
             {isInCart ? (
               <button
@@ -246,9 +277,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
           {/* Description */}
           <div className="pt-4 border-t">
-            <h2 className="text-lg font-semibold mb-2 text-gray-900">
+            {/* <h2 className="text-lg font-semibold mb-2 text-gray-900">
               Product Description
-            </h2>
+            </h2> */}
             <p className="text-gray-600 leading-relaxed text-sm">
               {product.description}
             </p>
