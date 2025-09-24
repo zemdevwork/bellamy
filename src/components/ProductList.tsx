@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, Heart } from "lucide-react";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
 
@@ -198,29 +197,6 @@ export default function ProductList() {
                     -{discountPercentage}%
                   </div>
                 )}
-
-                {/* Wishlist */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setWishlist((prev) =>
-                      prev.includes(product.id)
-                        ? prev.filter((id) => id !== product.id)
-                        : [...prev, product.id]
-                    );
-                  }}
-                  className="absolute top-3 right-3 z-20 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white"
-                >
-                  <Heart
-                    size={16}
-                    className={`transition-colors ${
-                      wishlist.includes(product.id)
-                        ? "fill-red-500 text-red-500"
-                        : "text-gray-600"
-                    }`}
-                  />
-                </button>
-
                 {/* Clickable Card Content */}
                 <div onClick={() => goToProductDetails(product.id)}>
                   {/* Image */}
@@ -283,7 +259,7 @@ export default function ProductList() {
                         {isPending ? "Adding..." : "Add to Cart"}
                       </button>
                     )}
-                    <button
+                    {/* <button
                       onClick={(e) => {
                         e.stopPropagation();
                         console.log(`Buy Now: ${product.id}`);
@@ -291,7 +267,7 @@ export default function ProductList() {
                       className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       Buy Now
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               </div>

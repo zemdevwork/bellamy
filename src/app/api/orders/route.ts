@@ -61,6 +61,14 @@ export async function POST(req: NextRequest) {
       include: { items: { include: { product: true } } },
     });
 
+    // ✅ Update product stock
+    for (const item of cart.items) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: { qty: { decrement: item.quantity } },
+      });
+    }
+
     // ✅ Clear cart after placing order
     await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
 
