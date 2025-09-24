@@ -11,7 +11,7 @@ export default function ProvidersLayout({
 }) {
   const pathname = usePathname();
 
-  const noHeaderRoutes = ["/", "/login", "/sign-up", "/dashboard-login"];
+  const noHeaderRoutes = ["/login", "/sign-up", "/dashboard-login"];
   const hideHeader =
     noHeaderRoutes.includes(pathname) || pathname.startsWith("/admin");
 
