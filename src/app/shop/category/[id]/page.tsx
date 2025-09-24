@@ -1,5 +1,4 @@
 import Footer from "@/components/Footer";
-import Header from "@/components/Header";
 import ShopProductListing from "@/components/shop-productlisting";
 
 type Props = {
