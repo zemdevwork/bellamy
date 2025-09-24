@@ -1,7 +1,4 @@
 
-
-
-
 "use client";
 
 import Link from "next/link";
@@ -253,56 +250,84 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu (unchanged, still has plain SHOP link) */}
-      <div
-        className={`md:hidden bg-white border-t border-gray-200 shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
-      >
-        <nav className="px-4 py-4 space-y-3">
+      {/* Mobile Menu (updated SHOP dropdown) */}
+<div
+  className={`md:hidden bg-white border-t border-gray-200 shadow-lg transition-all duration-300 ease-in-out overflow-hidden ${
+    isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+  }`}
+>
+  <nav className="px-4 py-4 space-y-3">
+    <Link
+      href="/"
+      className={`block py-2 text-lg font-medium transition-colors ${isActive(
+        "/"
+      )}`}
+      onClick={() => setIsMenuOpen(false)}
+    >
+      HOME
+    </Link>
+
+    {/* ✅ SHOP with expandable categories */}
+    <details className="group">
+      <summary className="flex justify-between items-center py-2 text-lg font-medium text-gray-700 hover:text-blue-900 cursor-pointer">
+        SHOP
+        <svg
+          className="w-4 h-4 transition-transform group-open:rotate-180"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </summary>
+      <div className="pl-4 mt-2 space-y-2">
+        {categories.map((cat) => (
           <Link
-            href="/"
-            className={`block py-2 text-lg font-medium transition-colors ${isActive(
-              "/"
-            )}`}
+            key={cat.id}
+            href={`/shop/category/${cat.id}`}
+            className="block text-gray-600 hover:text-blue-900 transition-colors"
             onClick={() => setIsMenuOpen(false)}
           >
-            HOME
+            {cat.name}
           </Link>
-          <Link
-            href="/shop"
-            className="block py-2 text-lg font-medium text-gray-700 hover:text-blue-900 transition-colors"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            SHOP
-          </Link>
-          <Link
-            href="/our-story"
-            className={`block py-2 text-lg font-medium transition-colors ${isActive(
-              "/our-story"
-            )}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            OUR STORY
-          </Link>
-          <Link
-            href="/contact"
-            className={`block py-2 text-lg font-medium transition-colors ${isActive(
-              "/contact"
-            )}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            CONTACT
-          </Link>
-          <Link
-            href="/user-profile"
-            className={`block py-2 text-lg font-medium transition-colors ${isActive(
-              "/user-profile"
-            )}`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            PROFILE
-          </Link>
-        </nav>
+        ))}
+      </div>
+    </details>
+
+    <Link
+      href="/our-story"
+      className={`block py-2 text-lg font-medium transition-colors ${isActive(
+        "/our-story"
+      )}`}
+      onClick={() => setIsMenuOpen(false)}
+    >
+      OUR STORY
+    </Link>
+    <Link
+      href="/contact"
+      className={`block py-2 text-lg font-medium transition-colors ${isActive(
+        "/contact"
+      )}`}
+      onClick={() => setIsMenuOpen(false)}
+    >
+      CONTACT
+    </Link>
+    <Link
+      href="/user-profile"
+      className={`block py-2 text-lg font-medium transition-colors ${isActive(
+        "/user-profile"
+      )}`}
+      onClick={() => setIsMenuOpen(false)}
+    >
+      PROFILE
+    </Link>
+  </nav>
+
 
       </div>
     </header>

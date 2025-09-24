@@ -244,26 +244,6 @@ export default function ProductList() {
                       </p>
                     )}
 
-                    {/* Rating */}
-                    {product.rating && product.rating > 0 && (
-                      <div className="flex items-center mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            className={`${
-                              i < (product.rating ?? 0)
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "fill-gray-200 text-gray-200"
-                            }`}
-                          />
-                        ))}
-                        <span className="text-xs text-gray-500 ml-1">
-                          {product.reviews ? `(${product.reviews})` : ""}
-                        </span>
-                      </div>
-                    )}
-
                     {/* Price */}
                     <div className="mb-3">
                       {product.oldPrice && (
