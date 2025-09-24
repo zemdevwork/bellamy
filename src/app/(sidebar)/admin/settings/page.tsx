@@ -1,6 +1,6 @@
 
 import React from "react";
-import Settings from "@/components/settings/Settings";
+import Settings from "@/components/admin/settings";
 
 export default function SettingsPage() {
   return (

@@ -1,3 +1,7 @@
+// types/user.ts
+
+import { User, Order, OrderItem, Product } from '@prisma/client';
+
 export type Role = {
   id: string;
   name: string;
@@ -5,37 +9,7 @@ export type Role = {
   description?: string;
 };
 
-
-// export type User = {
-//   id: string;
-//   name: string;
-//   email: string;
-//   role: string; // This is likely role.name or role.id, depending on usage
-//   branch: string;
-//   createdAt: Date;
-//   updatedAt: Date;
-// };
-
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-  image: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  banned: boolean | null;
-  banReason: string | null;
-  banExpires: Date | null;
-  branch: string;
-  role: string;
-};
-
-export type UsersTableProps = {
-  users: User[];
-  roles: Role[];
-};
-
+// Existing User and UserFormData types are fine as is.
 export type UserFormData = {
   id?: string;
   name: string;
@@ -52,10 +26,33 @@ export type UserFormProps = {
   isEdit?: boolean;
 };
 
+// Existing User and UsersTableProps can be re-used.
+export type UsersTableProps = {
+  users: User[];
+  roles: Role[];
+};
+
+// Existing UserProfile interface.
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
   image?: string | null;
   role?: string | null;
+}
+
+// This matches the data structure from your server action.
+export type UserWithOrders = User & {
+  orders: (Order & {
+    items: (OrderItem & {
+      product: Product;
+    })[];
+  })[];
+};
+
+export interface FetchUserDetailsResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  user?: UserWithOrders;
 }

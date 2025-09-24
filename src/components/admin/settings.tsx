@@ -2,8 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FaUser, FaLock, FaEye, FaEyeSlash, FaCheck, FaTimes, FaUserCircle, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { User, Lock, Eye, EyeOff, Check, X, Mail, Phone } from 'lucide-react';
 import { getAdminProfile, resetPassword } from '@/server/actions/admin-settings-action';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import BufferingLoader from '@/components/ui/spinner';
 import { toast } from 'sonner';
 import { fallBackImage } from '@/constants/values';
@@ -130,238 +134,232 @@ function Settings() {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center w-full h-96">
-                <div className="bg-white rounded-xl p-8 shadow-lg flex flex-col justify-center items-center border border-slate-200">
-                    <BufferingLoader />
-                    <p className="text-slate-600 text-sm mt-4 text-center">Loading settings...</p>
-                </div>
+            <div className="p-4 text-center">
+                <BufferingLoader />
+                <p className="text-muted-foreground text-sm mt-4">Loading settings...</p>
             </div>
         );
     }
 
     return (
-        <div className="w-full h-full">
-            <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <div className="p-4 space-y-6">
+            <h1 className="text-3xl font-bold">Settings</h1>
 
-                {/* Header Section */}
-                <div className="bg-white border-b border-slate-200 px-6 py-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-indigo-50 border border-indigo-200 rounded-lg">
-                                <FaUser className="w-6 h-6 text-indigo-600" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-                                <p className="text-slate-600 text-sm mt-1">Manage your profile and account settings</p>
-                            </div>
-                        </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3">
-                            <div className="text-slate-500 text-xs font-medium">Account Status</div>
-                            <div className="text-lg font-bold text-slate-900">Active</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-                        {/* Profile Information Section */}
-                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                            <div className="flex items-center space-x-2 mb-6">
-                                <FaUserCircle className="w-5 h-5 text-indigo-600" />
-                                <h2 className="text-xl font-semibold text-slate-800">Profile Information</h2>
-                            </div>
-
-                            {profile && (
-                                <div className="space-y-4">
-                                    {/* Profile Image */}
-                                    <div className="flex justify-center mb-6">
-                                        <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center border border-indigo-200">
-                                            {profile.image ? (
-                                                <Image src={profile.image || fallBackImage} width={96} height={96} alt="Profile" className="w-24 h-24 rounded-full object-cover" />
-                                            ) : (
-                                                <FaUserCircle className="w-16 h-16 text-indigo-400" />
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Profile Details */}
-                                    <div className="space-y-4">
-                                        <div className="bg-white rounded-lg p-4 border border-slate-200 hover:border-indigo-200 transition-colors duration-200">
-                                            <div className="flex items-center space-x-3">
-                                                <FaUser className="w-4 h-4 text-indigo-600" />
-                                                <div>
-                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Full Name</p>
-                                                    <p className="text-slate-800 font-medium">{profile.name || 'Not provided'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-white rounded-lg p-4 border border-slate-200 hover:border-blue-200 transition-colors duration-200">
-                                            <div className="flex items-center space-x-3">
-                                                <FaEnvelope className="w-4 h-4 text-blue-600" />
-                                                <div>
-                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Email Address</p>
-                                                    <p className="text-slate-800 font-medium">{profile.email}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-white rounded-lg p-4 border border-slate-200 hover:border-indigo-200 transition-colors duration-200">
-                                            <div className="flex items-center space-x-3">
-                                                <FaPhone className="w-4 h-4 text-indigo-600" />
-                                                <div>
-                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Phone Number</p>
-                                                    <p className="text-slate-800 font-medium">{profile.phone || 'Not provided'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Change Password Section */}
-                        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-                            <div className="flex items-center space-x-2 mb-6">
-                                <FaLock className="w-5 h-5 text-blue-600" />
-                                <h2 className="text-xl font-semibold text-slate-800">Change Password</h2>
-                            </div>
-
-                            <form onSubmit={handlePasswordReset} className="space-y-4">
-                                {/* Current Password */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Current Password
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPasswords.current ? 'text' : 'password'}
-                                            value={passwordData.currentPassword}
-                                            onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                                            placeholder="Enter current password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => togglePasswordVisibility('current')}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-indigo-600 transition-colors duration-200"
-                                        >
-                                            {showPasswords.current ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
-                                        </button>
+            {/* Profile Information */}
+            <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <User className="h-5 w-5" />
+                            Profile Information
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {profile ? (
+                            <>
+                                {/* Profile Image */}
+                                <div className="flex justify-center mb-4">
+                                    <div className="w-20 h-20 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                                        {profile.image ? (
+                                            <Image 
+                                                src={profile.image || fallBackImage} 
+                                                width={80} 
+                                                height={80} 
+                                                alt="Profile" 
+                                                className="w-20 h-20 rounded-full object-cover" 
+                                            />
+                                        ) : (
+                                            <User className="h-8 w-8 text-muted-foreground" />
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* New Password */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        New Password
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPasswords.new ? 'text' : 'password'}
-                                            value={passwordData.newPassword}
-                                            onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
-                                            placeholder="Enter new password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => togglePasswordVisibility('new')}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-blue-600 transition-colors duration-200"
-                                        >
-                                            {showPasswords.new ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
-                                        </button>
+                                {/* Profile Details */}
+                                <div className="space-y-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Name</p>
+                                        <p className="font-medium">{profile.name || "N/A"}</p>
                                     </div>
+                                    
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                                            <Mail className="h-4 w-4" />
+                                            Email
+                                        </p>
+                                        <p className="font-medium">{profile.email}</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                                            <Phone className="h-4 w-4" />
+                                            Phone
+                                        </p>
+                                        <p className="font-medium">{profile.phone || "N/A"}</p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm font-medium text-muted-foreground">Role</p>
+                                        <p className="font-medium capitalize">{profile.role}</p>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-sm text-center text-muted-foreground">
+                                No profile information available.
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
+
+            {/* Change Password */}
+            <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Lock className="h-5 w-5" />
+                            Change Password
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handlePasswordReset} className="space-y-4">
+                            {/* Current Password */}
+                            <div className="space-y-2">
+                                <Label htmlFor="current-password">Current Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="current-password"
+                                        type={showPasswords.current ? 'text' : 'password'}
+                                        value={passwordData.currentPassword}
+                                        onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                                        placeholder="Enter current password"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                        onClick={() => togglePasswordVisibility('current')}
+                                    >
+                                        {showPasswords.current ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* New Password */}
+                            <div className="space-y-2">
+                                <Label htmlFor="new-password">New Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="new-password"
+                                        type={showPasswords.new ? 'text' : 'password'}
+                                        value={passwordData.newPassword}
+                                        onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                                        placeholder="Enter new password"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                        onClick={() => togglePasswordVisibility('new')}
+                                    >
+                                        {showPasswords.new ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </Button>
                                 </div>
 
                                 {/* Password Requirements */}
                                 {passwordData.newPassword && (
-                                    <div className="bg-indigo-50 rounded-lg p-3 border border-indigo-200">
-                                        <p className="text-xs font-medium text-indigo-800 mb-2">Password Requirements:</p>
-                                        <div className="space-y-1">
-                                            {['At least 8 characters', 'One number'].map((requirement) => {
-                                                const isValid = !passwordErrors.includes(requirement);
-                                                return (
-                                                    <div key={requirement} className="flex items-center space-x-2">
-                                                        {isValid ? (
-                                                            <FaCheck className="w-3 h-3 text-green-500" />
-                                                        ) : (
-                                                            <FaTimes className="w-3 h-3 text-red-500" />
-                                                        )}
-                                                        <span className={`text-xs ${isValid ? 'text-green-600' : 'text-red-600'}`}>
-                                                            {requirement}
-                                                        </span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
+                                    <div className="text-sm space-y-1">
+                                        {['At least 8 characters', 'One number'].map((requirement) => {
+                                            const isValid = !passwordErrors.includes(requirement);
+                                            return (
+                                                <div key={requirement} className="flex items-center gap-2">
+                                                    {isValid ? (
+                                                        <Check className="h-3 w-3 text-green-500" />
+                                                    ) : (
+                                                        <X className="h-3 w-3 text-red-500" />
+                                                    )}
+                                                    <span className={isValid ? 'text-green-600' : 'text-red-600'}>
+                                                        {requirement}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
+                            </div>
 
-                                {/* Confirm Password */}
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Confirm New Password
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPasswords.confirm ? 'text' : 'password'}
-                                            value={passwordData.confirmPassword}
-                                            onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
-                                            className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
-                                            placeholder="Confirm new password"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => togglePasswordVisibility('confirm')}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-blue-600 transition-colors duration-200"
-                                        >
-                                            {showPasswords.confirm ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-
-                                    {/* Password Match Indicator */}
-                                    {passwordData.confirmPassword && (
-                                        <div className="mt-2 flex items-center space-x-2">
-                                            {passwordData.newPassword === passwordData.confirmPassword ? (
-                                                <>
-                                                    <FaCheck className="w-3 h-3 text-green-500" />
-                                                    <span className="text-xs text-green-600">Passwords match</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <FaTimes className="w-3 h-3 text-red-500" />
-                                                    <span className="text-xs text-red-600">Passwords do not match</span>
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
+                            {/* Confirm Password */}
+                            <div className="space-y-2">
+                                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="confirm-password"
+                                        type={showPasswords.confirm ? 'text' : 'password'}
+                                        value={passwordData.confirmPassword}
+                                        onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                                        placeholder="Confirm new password"
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                        onClick={() => togglePasswordVisibility('confirm')}
+                                    >
+                                        {showPasswords.confirm ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </Button>
                                 </div>
 
-                                {/* Submit Button */}
-                                <button
-                                    type="submit"
-                                    disabled={passwordLoading || !passwordValid || passwordData.newPassword !== passwordData.confirmPassword}
-                                    className="w-full px-6 py-3 text-sm font-medium bg-white text-indigo-700 border border-indigo-300 rounded-lg hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 hover:border-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-                                >
-                                    {passwordLoading ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
-                                            Updating Password...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FaLock className="w-4 h-4" />
-                                            Update Password
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                                {/* Password Match Indicator */}
+                                {passwordData.confirmPassword && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                        {passwordData.newPassword === passwordData.confirmPassword ? (
+                                            <>
+                                                <Check className="h-3 w-3 text-green-500" />
+                                                <span className="text-green-600">Passwords match</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <X className="h-3 w-3 text-red-500" />
+                                                <span className="text-red-600">Passwords do not match</span>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Submit Button */}
+                            <Button
+                                type="submit"
+                                disabled={passwordLoading || !passwordValid || passwordData.newPassword !== passwordData.confirmPassword}
+                                className="w-full"
+                            >
+                                {passwordLoading ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                        Updating Password...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock className="w-4 h-4 mr-2" />
+                                        Update Password
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
         </div>
     );
 }

@@ -27,11 +27,12 @@ export type User = {
   banExpires: string | null;
   createdAt: string;
 };
+import { useRouter } from "next/navigation"; // ✅ import
 
-// Extract the actions cell into a separate component
 function ActionsCell({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter(); // ✅ initialize router
 
   const handleUnban = () => {
     startTransition(async () => {
@@ -59,13 +60,12 @@ function ActionsCell({ user }: { user: User }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem
-            onClick={() =>
-              toast.info(`Viewing details for ${user.name}`)
-            }
-          >
+
+          {/* ✅ Updated View Details */}
+          <DropdownMenuItem onClick={() => router.push(`/admin/customers/${user.id}`)}>
             View Details
           </DropdownMenuItem>
+
           <DropdownMenuSeparator />
           {user.banned ? (
             <DropdownMenuItem
@@ -86,11 +86,11 @@ function ActionsCell({ user }: { user: User }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Ban dialog (handles banUser inside it) */}
       <DialogForm open={open} setOpen={setOpen} user={user} />
     </>
   );
 }
+
 
 export const columns: ColumnDef<User>[] = [
   {
