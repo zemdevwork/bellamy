@@ -280,9 +280,9 @@ useEffect(() => {
                         Add to Cart
                       </button>
                     )}
-                    <button onClick={() => console.log(`Buy Now: ${product.id}`)} className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    {/* <button onClick={() => console.log(`Buy Now: ${product.id}`)} className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                       Buy Now
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               </div>

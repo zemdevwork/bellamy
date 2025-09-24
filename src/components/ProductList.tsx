@@ -283,7 +283,7 @@ export default function ProductList() {
                         {isPending ? "Adding..." : "Add to Cart"}
                       </button>
                     )}
-                    <button
+                    {/* <button
                       onClick={(e) => {
                         e.stopPropagation();
                         console.log(`Buy Now: ${product.id}`);
@@ -291,7 +291,7 @@ export default function ProductList() {
                       className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       Buy Now
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               </div>
