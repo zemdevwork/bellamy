@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SiteHeader } from "@/components/common/site-header";
 import { APP_CONFIG, theme } from "@/config/app";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
 export const metadata: Metadata = {
   title: APP_CONFIG.name,
@@ -16,9 +14,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth.api.getSession({
-     headers: await headers(),
-  });  
 
   return (
     <SidebarProvider
@@ -29,7 +24,8 @@ export default async function RootLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="floating" user={session?.user} />
+           <AdminSidebar />
+
       <SidebarInset>
         <SiteHeader/>
         <main>{children}</main>

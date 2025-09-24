@@ -216,16 +216,18 @@ function Sidebar({
     >
       {/* This is what handles the sidebar gap on desktop */}
       <div
-        data-slot="sidebar-gap"
-        className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
-          "group-data-[collapsible=offcanvas]:w-0",
-          "group-data-[side=right]:rotate-180",
-          variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
-        )}
-      />
+  data-slot="sidebar-gap"
+  className={cn(
+    "relative w-10 bg-transparent transition-[width] duration-200 ease-linear",
+    // Only collapse to w-0 for offcanvas, keep w-10 for icon collapse
+    "group-data-[collapsible=offcanvas]:w-0",
+    "group-data-[side=right]:rotate-180",
+    // For floating/inset variants, adjust the collapsed width but keep base width
+    variant === "floating" || variant === "inset"
+      ? "group-data-[collapsible=icon]:w-[calc(2.5rem+(var(--spacing)*1))]" // w-10 + small padding
+      : "group-data-[collapsible=icon]:w-10" // Keep w-10 even when collapsed to icon
+  )}
+/>
       <div
         data-slot="sidebar-container"
         className={cn(

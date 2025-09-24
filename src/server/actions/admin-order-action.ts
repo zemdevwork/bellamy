@@ -42,3 +42,38 @@ export async function updateOrderStatus(orderId: string, status: string) {
     throw new Error("Failed to update order status");
   }
 }
+
+
+export async function getOrderByID(orderId: string) {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        items: {
+          include: {
+            product: {
+              include: {
+                brand: true,
+                category: true,
+                subCategory: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return order;
+  } catch (error) {
+    console.error("❌ Admin fetch order error:", error);
+    throw new Error("Failed to fetch order");
+  }
+}

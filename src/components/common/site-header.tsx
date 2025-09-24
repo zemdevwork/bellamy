@@ -4,6 +4,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 import { IconBrandGithub } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/config/app";
+import { AdminHeader } from "../admin/admin-header";
 
 const { showGitHubLink, defaultTitle } = APP_CONFIG.siteHeader;
 const { author } = APP_CONFIG;
@@ -14,7 +15,8 @@ interface SiteHeaderProps {
 
 export function SiteHeader({ title = defaultTitle }: SiteHeaderProps = {}) {
   return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+    <div>
+    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear w-full group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
         <Separator
@@ -45,5 +47,7 @@ export function SiteHeader({ title = defaultTitle }: SiteHeaderProps = {}) {
         </div>
       </div>
     </header>
+        <AdminHeader />
+    </div>
   );
 }

@@ -1,10 +1,11 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { APP_CONFIG } from "@/config/app";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-import Header from "@/components/Header";
+import ProvidersLayout from "./providerLayout";
 
 const fontSans = DM_Sans({
   variable: "--font-sans",
@@ -18,20 +19,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${fontSans.variable} font-sans antialiased`}>
-        <Header/>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          {/* Client-side wrapper */}
+          <ProvidersLayout>{children}</ProvidersLayout>
           <Toaster richColors />
         </ThemeProvider>
       </body>

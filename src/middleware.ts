@@ -4,41 +4,43 @@ import { betterFetch } from "@better-fetch/fetch";
 import { SessionResponse } from "@/types/auth";
 
 export async function middleware(request: NextRequest) {
-const baseURL =
-  process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
+  const baseURL =
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000";
 
-const { data: session } = await betterFetch<SessionResponse>(
-  "/api/auth/get-session",
-  {
-    baseURL,
-    headers: {
-      cookie: request.headers.get("cookie") || "", // Forward cookies
+  const { data: session } = await betterFetch<SessionResponse>(
+    "/api/auth/get-session",
+    {
+      baseURL,
+      headers: {
+        cookie: request.headers.get("cookie") || "", // Forward cookies
+      },
     },
-  },
-);
-
+  );
 
   const pathname = request.nextUrl.pathname;
 
-  // If no session exists, redirect to login for all protected routes
+  // Public routes (no session required)
+  const publicRoutes = ["/", "/login", "/sign-up", "/dashboard-login"];
+  if (publicRoutes.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // If no session, redirect to login
   if (!session) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // ✅ Safe to destructure now
   const { user } = session;
 
-  // Check if user is trying to access admin routes
-  if (pathname.startsWith("/admin")) {
-    // Only allow admin users to access admin routes
-    if (user.role !== "admin") {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+  // Restrict admin routes
+  if (pathname.startsWith("/admin") && user.role !== "admin") {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // For all other protected routes, just being logged in is sufficient
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|login|sign-up|$).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

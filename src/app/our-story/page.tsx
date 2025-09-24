@@ -1,11 +1,8 @@
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
 export default function OurStoryPage() {
   return (
     <div className="bg-white min-h-screen">
-      <Header />
-      
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">

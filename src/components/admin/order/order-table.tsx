@@ -28,6 +28,13 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Order } from "./order-columns"; // ✅ import Order type from columns
 
 interface OrderTableProps<TValue> {
@@ -42,6 +49,11 @@ export default function OrderTable<TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+
+  // Get unique status values from the data
+  const uniqueStatuses = Array.from(
+    new Set(data.map(order => order.status))
+  ).filter(Boolean);
 
   const table = useReactTable({
     data,
@@ -70,24 +82,52 @@ export default function OrderTable<TValue>({
     },
   });
 
+  const handleStatusFilter = (value: string) => {
+    if (value === "all") {
+      table.getColumn("status")?.setFilterValue(undefined);
+    } else {
+      table.getColumn("status")?.setFilterValue(value);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Filter */}
+      {/* Filters */}
       <Card>
         <CardHeader>
           <div className="space-y-2">
             <CardTitle>Filters</CardTitle>
-            <CardDescription>Search orders by user</CardDescription>
+            <CardDescription>Search and filter orders</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by user name or email"
-              className="pl-8"
-              onChange={(e) => setGlobalFilter(e.target.value)}
-            />
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Search Filter */}
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by user name or email"
+                className="pl-8"
+                onChange={(e) => setGlobalFilter(e.target.value)}
+              />
+            </div>
+            
+            {/* Status Filter */}
+            <div className="w-full sm:w-48">
+              <Select onValueChange={handleStatusFilter} defaultValue="all">
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {uniqueStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
