@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Star, Heart } from "lucide-react";
 import { addToCart } from "@/server/actions/cart-action";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -13,8 +12,6 @@ type ProductProps = {
   price: string;
   oldPrice?: string;
   image: string;
-  rating?: number;
-  reviews?: number;
   badge?: string;
   description?: string;
 };
@@ -25,12 +22,9 @@ export default function ProductCard({
   price,
   oldPrice,
   image,
-  rating = 0,
-  reviews = 0,
   badge,
   description,
 }: ProductProps) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isInCart, setIsInCart] = useState(false);
@@ -38,11 +32,11 @@ export default function ProductCard({
 
   const discountPercentage = oldPrice
     ? Math.round(
-      ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
-        parseFloat(price.replace(/[₹$]/g, ""))) /
-        parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
-      100
-    )
+        ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
+          parseFloat(price.replace(/[₹$]/g, ""))) /
+          parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
+          100
+      )
     : 0;
 
   const handleAddToCart = async () => {
@@ -80,18 +74,6 @@ export default function ProductCard({
           </div>
         )}
 
-        {/* Wishlist Button */}
-        <button
-          onClick={() => setIsWishlisted(!isWishlisted)}
-          className="absolute top-3 right-3 z-20 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white"
-        >
-          <Heart
-            size={16}
-            className={`transition-colors ${isWishlisted ? "fill-red-500 text-red-500" : "text-gray-600"
-              }`}
-          />
-        </button>
-
         {/* Product Image */}
         <div className="relative">
           <Image
@@ -118,27 +100,6 @@ export default function ProductCard({
             </p>
           )}
 
-          {/* Rating */}
-          {rating > 0 && (
-            <div className="flex items-center mb-2">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    className={`${i < rating
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "fill-gray-200 text-gray-200"
-                      }`}
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-gray-500 ml-1">
-                {reviews > 0 && `(${reviews})`}
-              </span>
-            </div>
-          )}
-
           {/* Price */}
           <div className="mb-3">
             {oldPrice && (
@@ -151,7 +112,7 @@ export default function ProductCard({
             </span>
           </div>
 
-          {/* Buttons (same style as BestSellers) */}
+          {/* Buttons */}
           <div className="flex flex-col space-y-2">
             {isInCart ? (
               <button

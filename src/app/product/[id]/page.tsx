@@ -9,7 +9,7 @@ export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   
   return {
-    title: `Product ${id}`,
+    title: `Product ${id}`, 
   };
 }
 
