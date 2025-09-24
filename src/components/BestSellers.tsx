@@ -249,7 +249,7 @@ useEffect(() => {
                 }}
               >
                 <div className="relative">
-                  <Image src={product.image} alt={product.title} width={400} height={300} className="w-full h-64 object-cover" />
+                  <Image src={product.image} alt={"Product"} width={400} height={300} className="w-full h-64 object-cover" />
                   {product.isOnSale && (
                     <div className="absolute bottom-2 left-2">
                       <span className="bg-green-800 text-white text-xs px-2 py-1 rounded-full font-medium">
