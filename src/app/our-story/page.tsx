@@ -4,7 +4,6 @@ import Footer from "../../components/Footer";
 export default function OurStoryPage() {
   return (
     <div className="bg-white min-h-screen">
-      <Header />
       
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-20">
