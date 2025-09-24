@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
+import OrderCheckout from "@/components/orders/OrderCheckout"; // ✅ import checkout
 
 type Attribute = {
   key: string;
@@ -36,6 +37,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isInCart, setIsInCart] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [showCheckout, setShowCheckout] = useState(false); // ✅ toggle checkout
 
   const router = useRouter();
 
@@ -105,9 +107,11 @@ export default function ProductDetails({ productId }: { productId: string }) {
   };
 
   const handleGoToCart = () => router.push("/cart");
+
   const handleBuyNow = () => {
-    toast.info("Proceeding to checkout!");
-    router.push("/checkout");
+    if (!product) return;
+    // ✅ directly open checkout modal
+    setShowCheckout(true);
   };
 
   return (
@@ -171,8 +175,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
               {product.brand.name}
             </p>
           )}
-            {/* Price */}
-            <div className="space-y-1">
+
+          {/* Price */}
+          <div className="space-y-1">
             {product.oldPrice && (
               <p className="line-through text-gray-400">₹{product.oldPrice}</p>
             )}
@@ -183,9 +188,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
           {/* Colors */}
           {colorAttrs && colorAttrs.length > 0 && (
             <div className="mt-2">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Color:
-              </p>
+              <p className="text-sm font-medium text-gray-700 mb-2">Color:</p>
               <div className="flex gap-3 flex-wrap">
                 {colorAttrs.map((color) => (
                   <button
@@ -207,9 +210,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
           {/* Sizes */}
           {sizeAttrs && sizeAttrs.length > 0 && (
             <div className="mt-2">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-               Size:
-              </p>
+              <p className="text-sm font-medium text-gray-700 mb-2">Size:</p>
               <div className="flex gap-3">
                 {sizeAttrs.map((size) => (
                   <button
@@ -277,15 +278,29 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
           {/* Description */}
           <div className="pt-4 border-t">
-            {/* <h2 className="text-lg font-semibold mb-2 text-gray-900">
-              Product Description
-            </h2> */}
             <p className="text-gray-600 leading-relaxed text-sm">
               {product.description}
             </p>
           </div>
         </div>
       </div>
+
+      {/* ✅ Checkout Modal */}
+      {showCheckout && (
+        <OrderCheckout
+          products={[
+            {
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              quantity,
+              image: product.image ?? undefined,
+            },
+          ]}
+          total={product.price * quantity}
+          onClose={() => setShowCheckout(false)}
+        />
+      )}
     </div>
   );
 }
