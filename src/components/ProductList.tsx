@@ -33,7 +33,6 @@ type ProductResponse = {
 
 export default function ProductList() {
   const [showAll, setShowAll] = useState(false);
-  const [wishlist, setWishlist] = useState<string[]>([]);
   const [cart, setCart] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
