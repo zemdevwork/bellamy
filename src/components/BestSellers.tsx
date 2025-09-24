@@ -261,11 +261,6 @@ useEffect(() => {
                 <div className="p-4">
   <h4 className="text-xs text-gray-500 font-semibold">{product.name}</h4> {/* ✅ Brand/Name */}
   <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">{product.title}</h3>
-  
-  <div className="flex items-center mb-2">
-    <div className="flex items-center">{renderStars(product.rating ?? 0)}</div>
-    {product.reviewCount && <span className="text-xs text-gray-500 ml-1">({product.reviewCount})</span>}
-  </div>
 
   <div className="mb-3">
     {product.originalPrice && (
