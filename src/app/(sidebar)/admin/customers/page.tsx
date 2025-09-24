@@ -1,9 +1,14 @@
-import React from 'react'
 
-function CustomersPage() {
+
+import React from "react";
+import { DataTable } from "@/components/admin/admin-user/Table";
+import { columns } from "@/components/admin/admin-user/Columns";
+
+export default function AdminUserPage() {
   return (
-    <div>CustomersPage</div>
-  )
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold mb-6">Admin – Manage Users</h1>
+      <DataTable columns={columns} />
+    </div>
+  );
 }
-
-export default CustomersPage

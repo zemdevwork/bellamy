@@ -1,9 +1,11 @@
-import React from 'react'
 
-function SettingsPage() {
+import React from "react";
+import Settings from "@/components/settings/Settings";
+
+export default function SettingsPage() {
   return (
-    <div>SettingsPage</div>
-  )
+    <div className="p-6">
+      <Settings />
+    </div>
+  );
 }
-
-export default SettingsPage
