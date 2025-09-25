@@ -139,7 +139,11 @@ const handleAddToCart = async (productId: string) => {
       body: JSON.stringify({ productId, quantity: 1 }),
     });
 
-    if (!res.ok) throw new Error("Failed to add to cart");
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error("Add to cart failed:", errorData);
+      return;
+    }
 
     // Update UI
     setCartItems([...cartItems, productId]);

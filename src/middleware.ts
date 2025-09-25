@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Public routes (no session required)
-  const publicRoutes = ["/", "/login", "/sign-up", "/dashboard-login"];
+  const publicRoutes = ["/", "/login", "/sign-up", "/dashboard-login","contact",'our-story','product','shop'];
   if (publicRoutes.includes(pathname)) {
     return NextResponse.next();
   }

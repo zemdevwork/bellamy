@@ -45,7 +45,7 @@ export default function Banner() {
             alt={`Banner ${index + 1}`}
             width={800}
             height={500}
-            className={`absolute inset-0 w-full h-full object-contain rounded-lg transition-opacity duration-1000 ${
+            className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-1000 ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           />
