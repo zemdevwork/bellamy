@@ -4,10 +4,12 @@ import { useState } from "react";
 import UserProfile from "@/components/profile/User-profile";
 import UserSettings from "@/components/settings/Settings";
 import OrderList from "@/components/orders/Order";
-import { User, Settings, ShoppingBag } from "lucide-react";
+import { LogoutDialog } from "@/components/auth/logout-modal"; 
+import { User, Settings, ShoppingBag, LogOut } from "lucide-react";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const tabs = [
     {
@@ -64,6 +66,17 @@ export default function ProfilePage() {
                     </button>
                   );
                 })}
+                
+                {/* Logout Button */}
+                <div className="pt-4 mt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowLogoutDialog(true)}
+                    className="w-full flex items-center gap-3 p-3 rounded transition-colors text-red-600 hover:bg-red-50"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Logout</span>
+                  </button>
+                </div>
               </nav>
             </div>
           </div>
@@ -93,6 +106,12 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Logout Dialog */}
+      <LogoutDialog 
+        open={showLogoutDialog} 
+        setOpen={setShowLogoutDialog} 
+      />
     </div>
   );
 }

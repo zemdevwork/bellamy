@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "",
+        hostname: "i.pinimg.com",
         pathname: "/**",
       }
     ],

@@ -13,8 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-// import { toast } from "sonner";
-// import { useRouter } from "next/navigation";
 
 export const LogoutDialog = ({
   open,
@@ -41,6 +39,7 @@ const handleLogout = async () => {
       return;
     }
 
+    localStorage.removeItem("user");
     toast.success(data?.message || "Logged out successfully");
     router.replace("/login");
   } catch (error) {

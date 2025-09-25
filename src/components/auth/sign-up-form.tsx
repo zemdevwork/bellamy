@@ -1,17 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardContent,
-  CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { Eye, LucideEyeOff, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -20,20 +19,25 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { userFormSchema } from "@/schema/user-schema"; 
-import { UserFormData } from "@/types/user"; 
+import { userFormSchema } from "@/schema/user-schema";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, LucideEyeOff, Loader2 } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UserFormData } from "@/types/user";
+import { IconLogout } from "@tabler/icons-react";
+import Link from "next/link";
 
 type CreateUserFormData = UserFormData;
 
-
-export function SignUpForm() {
+export function SignUpForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const router = useRouter();
 
   const form = useForm<CreateUserFormData>({
     resolver: zodResolver(userFormSchema),
@@ -61,6 +65,8 @@ export function SignUpForm() {
       if (!res.ok) {
         setErrorMessage(result.error || "Sign up failed");
       } else {
+        localStorage.setItem('user', JSON.stringify(result.user));
+        console.log("Sign up successful:", result);
         router.replace(result.redirectTo || "/");
       }
     } catch (error) {
@@ -72,147 +78,144 @@ export function SignUpForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <Card className="w-full max-w-md p-3 py-5 shadow-lg rounded-2xl">
-        {/* Header */}
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Card className="w-[400px]" >
+        <CardHeader className="text-center space-y-2">
+          <div className="flex justify-center">
+            <IconLogout />
+          </div>
+          <CardTitle className="font-serif font-normal">Create your account</CardTitle>
+          <CardDescription>
+            Enter your details to create a new account
+          </CardDescription>
         </CardHeader>
 
-        {/* Content */}
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Name */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                                             <Input
-                         placeholder="John Doe"
-                         className="bg-background"
-                         {...field}
-                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Email */}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                                              <Input
-                          placeholder="hello@example.com"
-                          type="email"
-                          className="bg-background"
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <div className="flex flex-col gap-6">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="bg-white"
+                          placeholder="John Doe"
                           {...field}
                         />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Email Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="bg-white"
+                          placeholder="hello@example.com"
+                          type="email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Phone</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="bg-white"
+                          placeholder="+91"
+                          type="tel"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-white">Password</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            className="bg-white pr-10"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            {...field}
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1.5 text-muted-foreground"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <LucideEyeOff /> : <Eye />}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <p className="text-xs text-gray-400">
+                  By continuing, you agree to our{" "}
+                  <a href="#" className="text-blue-400 hover:underline">
+                    terms of service
+                  </a>
+                  .
+                </p>
+
+                {errorMessage && (
+                  <div className="text-sm font-medium text-white">
+                    {errorMessage}
+                  </div>
                 )}
-              />
 
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                    <Input
-                        placeholder="+91"
-                        type="tel"
-                        autoComplete="tel"
-                        disabled={isExecuting}
-                        {...field}
-                    />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-                )}
-            />
-
-              {/* Password */}
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                                                 <Input
-                           placeholder="••••••••"
-                           type={showPassword ? "text" : "password"}
-                           className="bg-background pr-10"
-                           {...field}
-                         />
-                         <button
-                           type="button"
-                           className="absolute right-3 top-1.5 text-muted-foreground"
-                           onClick={() => setShowPassword(!showPassword)}
-                         >
-                          {showPassword ? <LucideEyeOff /> : <Eye />}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Terms */}
-                             <p className="text-xs text-muted-foreground">
-                 By continuing, you agree to our{" "}
-                 <a href="#" className="text-red-500 hover:underline">
-                   terms of service
-                 </a>
-                 .
-               </p>
-
-              {/* Error message */}
-              {errorMessage && (
-                <p className="text-sm text-red-500">{errorMessage}</p>
-              )}
-
-              {/* Sign Up Button */}
-              <Button
-                type="submit"
-                className="w-full bg-red-500 hover:bg-red-600"
-                disabled={isExecuting}
-              >
-                {isExecuting ? (
-                  <Loader2 className="animate-spin size-4" />
-                ) : (
-                  "Sign up"
-                )}
-              </Button>
+                <Button type="submit" className="w-full" disabled={isExecuting}>
+                  {isExecuting ? (
+                    <Loader2 className="animate-spin size-4" />
+                  ) : (
+                    "Sign up"
+                  )}
+                </Button>
+                <hr className="my-4" />
+                <p className="text-sm text-center text-gray-600">
+                  Already have an account?{" "}
+                  <Link href="/login" className="text-blue-600 hover:underline">
+                    Sign in here
+                  </Link>
+                </p>
+                {/* ✅ Go Home link added here */}
+                <p className="text-sm text-center text-gray-600">
+                  <Link href="/" className="text-blue-600 hover:underline">
+                    Go Home
+                  </Link>
+                </p>
+              </div>
             </form>
           </Form>
         </CardContent>
-
-        {/* Footer */}
-        <CardFooter className="text-center">
-                     <p className="text-sm text-muted-foreground w-full">
-             Already have an account?{" "}
-             <Link
-               href="/login"
-               className="text-red-500 hover:underline font-medium"
-             >
-               Sign in here
-             </Link>
-           </p>
-        </CardFooter>
       </Card>
     </div>
   );

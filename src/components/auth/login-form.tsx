@@ -27,7 +27,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginData } from "@/types/auth";
 import { IconLogout } from "@tabler/icons-react";
 import Link from "next/link"; // ✅ added
-import { log } from "console";
 
 export function LoginForm({
   className,
@@ -62,9 +61,8 @@ export function LoginForm({
 
       if (!res.ok) {
         setErrorMessage(result.error || "Login failed");
-      } else 
-        {console.log("Login successful:", result);
-        
+      } else {
+        localStorage.setItem('user', JSON.stringify(result.user));
         router.replace("/");
       }
     } catch (error) {
@@ -142,12 +140,18 @@ export function LoginForm({
                     "Login"
                   )}
                 </Button>
-
+                <hr className="my-4" />
                 {/* ✅ Sign Up link added here */}
                 <p className="text-sm text-center text-gray-600">
                   Don’t have an account?{" "}
                   <Link href="/sign-up" className="text-blue-600 hover:underline">
                     Sign Up
+                  </Link>
+                </p>
+                {/* ✅ Go Home link added here */}
+                <p className="text-sm text-center text-gray-600">
+                  <Link href="/" className="text-blue-600 hover:underline">
+                    Go Home
                   </Link>
                 </p>
               </div>
