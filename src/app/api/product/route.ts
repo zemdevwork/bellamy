@@ -81,17 +81,20 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get("categoryId");
     const subCategoryId = searchParams.get("subCategoryId");
-
-    // ✅ Support multiple brands: ?brandId=1,2,3
     const brandIds = searchParams.get("brandId");
-
-    // ✅ Support sorting: ?sort=price_asc or ?sort=price_desc
     const sort = searchParams.get("sort");
 
     // Build where clause dynamically
     const whereClause: Record<string, unknown> = {};
-    if (categoryId) whereClause.categoryId = categoryId;
-    if (subCategoryId) whereClause.subCategoryId = subCategoryId;
+    if (categoryId && categoryId.length > 0) {
+      whereClause.categoryId = categoryId;
+    }
+    
+    // Add subCategoryId to the whereClause only if categoryId is also present
+    if (subCategoryId && subCategoryId.length > 0 && categoryId && categoryId.length > 0) {
+      whereClause.subCategoryId = subCategoryId;
+    }
+    
     if (brandIds) {
       const brandIdArray = brandIds.split(",");
       whereClause.brandId = { in: brandIdArray };

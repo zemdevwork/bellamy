@@ -20,12 +20,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { loginSchema } from "@/schema/user-schema";
-import {  useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginData } from "@/types/auth";
 import { IconLogout } from "@tabler/icons-react";
+import Link from "next/link"; // ✅ added
+import { log } from "console";
 
 export function LoginForm({
   className,
@@ -60,7 +62,9 @@ export function LoginForm({
 
       if (!res.ok) {
         setErrorMessage(result.error || "Login failed");
-      } else {
+      } else 
+        {console.log("Login successful:", result);
+        
         router.replace("/");
       }
     } catch (error) {
@@ -76,7 +80,7 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center">
-            <IconLogout  />
+            <IconLogout />
           </div>
           <CardTitle>Login to your account</CardTitle>
           <CardDescription>
@@ -95,7 +99,7 @@ export function LoginForm({
                     <FormItem>
                       <FormLabel className="text-white">Email</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           className="bg-white"
                           placeholder="m@example.com"
                           type="email"
@@ -115,7 +119,12 @@ export function LoginForm({
                         <FormLabel className="text-white">Password</FormLabel>
                       </div>
                       <FormControl>
-                        <Input className="bg-white" type="password" {...field} placeholder="password"/>
+                        <Input
+                          className="bg-white"
+                          type="password"
+                          {...field}
+                          placeholder="password"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -127,8 +136,20 @@ export function LoginForm({
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={isExecuting}>
-                  {isExecuting ? <Loader2 className="animate-spin size-4" /> : "Login"}
+                  {isExecuting ? (
+                    <Loader2 className="animate-spin size-4" />
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
+
+                {/* ✅ Sign Up link added here */}
+                <p className="text-sm text-center text-gray-600">
+                  Don’t have an account?{" "}
+                  <Link href="/sign-up" className="text-blue-600 hover:underline">
+                    Sign Up
+                  </Link>
+                </p>
               </div>
             </form>
           </Form>
