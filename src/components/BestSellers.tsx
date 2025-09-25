@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, ShoppingCart } from "lucide-react";
 
 type Product = {
   id: string;
@@ -197,49 +198,76 @@ useEffect(() => {
           onTouchEnd={handleTouchEnd}
         >
           {products.map((product) => (
-            <div key={product.id} className="w-72 flex-shrink-0">
-              <div
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden cursor-pointer"
-                onClick={(e) => {
-                  if ((e.target as HTMLElement).tagName === "BUTTON") return;
-                  router.push(`/product/${product.id}`);
-                }}
-              >
-                <div className="relative">
-                  <Image src={product.image} alt={"Product"} width={400} height={300} className="w-full h-64 object-cover" />
-                  {product.isOnSale && (
-                    <div className="absolute bottom-2 left-2">
-                      <span className="bg-green-800 text-white text-xs px-2 py-1 rounded-full font-medium">
-                        {product.saleTag || "Sale"}
-                      </span>
-                    </div>
+            <div
+            key={product.id}
+            className="w-72 flex-shrink-0"
+          >
+            <div
+              className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 overflow-hidden cursor-pointer"
+              onClick={(e) => {
+                if ((e.target as HTMLElement).tagName === "BUTTON") return;
+                router.push(`/product/${product.id}`);
+              }}
+            >
+              <div className="relative w-full h-64 overflow-hidden">
+                <Image
+                  src={product.image}
+                  alt={"Product"}
+                  width={400}
+                  height={300}
+                  className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                {product.isOnSale && (
+                  <div className="absolute bottom-2 left-2">
+                    <span className="bg-green-800 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      {product.saleTag || "Sale"}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="p-4">
+                <h4 className="text-xs text-gray-500 font-semibold">{product.name}</h4>
+                <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
+                  {product.title}
+                </h3>
+          
+                <div className="mb-3">
+                  {product.originalPrice && (
+                    <span className="text-sm text-gray-400 line-through mr-2">
+                      ₹{product.originalPrice}
+                    </span>
                   )}
+                  <span className="text-lg font-semibold text-gray-800">
+                    ₹{product.price}
+                  </span>
                 </div>
-                <div className="p-4">
-  <h4 className="text-xs text-gray-500 font-semibold">{product.name}</h4> {/* ✅ Brand/Name */}
-  <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">{product.title}</h3>
-
-  <div className="mb-3">
-    {product.originalPrice && (
-      <span className="text-sm text-gray-400 line-through mr-2">{product.originalPrice}</span>
-    )}
-    <span className="text-lg font-semibold text-gray-800">{product.price}</span>
-  </div>
-
+          
 
                   <div className="flex flex-col space-y-2">
                     {cartItems.includes(product.id) ? (
-                      <button onClick={handleGoToCart} className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                        Go to Cart
-                      </button>
+                      <button
+                      onClick={handleGoToCart}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <ShoppingCart size={16} />
+                      Go to Cart
+                    </button>
                     ) : (
-                      <button onClick={() => handleAddToCart(product.id)} className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                        Add to Cart
-                      </button>
+                      <button
+      onClick={() => handleAddToCart(product.id)}
+      className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+    >
+      <ShoppingCart size={16} />
+      Add to Cart
+    </button>
                     )}
-                    {/* <button onClick={() => console.log(`Buy Now: ${product.id}`)} className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                      Buy Now
-                    </button> */}
+                     <button
+  onClick={() => router.push(`/product/${product.id}`)}
+  className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
+>
+  <Eye size={16} /> 
+  View Details
+</button>
                   </div>
                 </div>
               </div>

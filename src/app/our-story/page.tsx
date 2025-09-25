@@ -6,7 +6,7 @@ export default function OurStoryPage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-5xl font-bold mb-6">Our Story</h1>
+          <h1 className="text-5xl font-serif mb-6">Our Story</h1>
           <p className="text-xl text-blue-100 leading-relaxed">
             From humble beginnings to becoming a trusted name in quality products, 
             discover the journey that shaped Bellamy into what it is today.
@@ -20,7 +20,7 @@ export default function OurStoryPage() {
         <section className="mb-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-6">The Beginning</h2>
+              <h2 className="text-3xl font-serif text-gray-800 mb-6">The Beginning</h2>
               <div className="space-y-4 text-gray-600 leading-relaxed">
                 <p>
                   Founded in 2015, Bellamy started as a small family business with a simple mission: 
@@ -53,7 +53,7 @@ export default function OurStoryPage() {
         {/* Our Values */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Our Values</h2>
+            <h2 className="text-3xl font-serif text-gray-800 mb-4">Our Values</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               These core principles guide everything we do and shape our commitment to excellence.
             </p>
@@ -103,7 +103,7 @@ export default function OurStoryPage() {
 
         {/* Our Journey */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-800 text-center mb-12">Our Journey</h2>
+          <h2 className="text-3xl font-serif text-gray-800 text-center mb-12">Our Journey</h2>
           
           <div className="space-y-8">
             <div className="flex flex-col md:flex-row items-center gap-8">
@@ -167,7 +167,7 @@ export default function OurStoryPage() {
         {/* Team Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">Meet Our Team</h2>
+            <h2 className="text-3xl font-serif text-gray-800 mb-4">Meet Our Team</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               The passionate individuals behind Bellamy&apos;s success, dedicated to bringing you the best products and service.
             </p>
@@ -217,7 +217,7 @@ export default function OurStoryPage() {
 
         {/* Call to Action */}
         <section className="bg-gray-50 rounded-lg p-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Join Our Story</h2>
+          <h2 className="text-2xl font-serif text-gray-800 mb-4">Join Our Story</h2>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
             Be part of our journey as we continue to grow and serve customers worldwide. 
             Discover our products and experience the Bellamy difference.
