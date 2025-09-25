@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import OrderCheckout from "@/components/orders/OrderCheckout"; // 👈 import checkout
+import { isLoggedIn } from "@/lib/utils"; // 👈 import utils at the top
+
 
 type ProductProps = {
   id: string;
@@ -82,7 +84,14 @@ export default function ProductCard({
   };
 
   const handleGoToCart = () => router.push("/cart");
-  const handleBuyNow = () => setShowCheckout(true);
+   const handleBuyNow = () => {
+  if (!isLoggedIn()) {
+    toast.error("Please login to continue with Buy Now");
+    return;
+  }
+  setShowCheckout(true);
+};
+
 
   return (
     <div className="w-72 flex-shrink-0">
