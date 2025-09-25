@@ -6,7 +6,7 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardHeader,
@@ -93,7 +93,6 @@ export default function ProductTable({ columns }: ProductTableProps) {
   // Filter data
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -119,12 +118,6 @@ export default function ProductTable({ columns }: ProductTableProps) {
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
-  // Get available subcategories based on selected category
-  const availableSubCategories = useMemo(() => {
-    if (!selectedCategoryId) return [];
-    return subCategories.filter(sub => sub.categoryId === selectedCategoryId);
-  }, [selectedCategoryId, subCategories]);
 
   // Build query parameters
   const buildQueryParams = useCallback(() => {
@@ -169,7 +162,6 @@ export default function ProductTable({ columns }: ProductTableProps) {
         const subCategoriesData = await subCategoriesRes.json();
         console.log("subCategoriesData", subCategoriesData,Array.isArray(subCategoriesData));
         // Fix: Access the data directly since your API returns arrays directly
-        setSubCategories(subCategoriesData);
       }
     } catch (err) {
       console.error('Error fetching filter data:', err);
