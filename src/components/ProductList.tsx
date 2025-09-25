@@ -248,7 +248,7 @@ export default function ProductList() {
                         e.stopPropagation();
                         handleGoToCart();
                       }}
-                      className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center cursor-pointer justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
                       <ShoppingCart size={16} />
                       Go to Cart
@@ -260,14 +260,14 @@ export default function ProductList() {
                           handleAddToCart(product);
                         }}
                         disabled={isPending}
-                        className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="w-full flex items-center justify-center cursor-pointer gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                       >
                         <ShoppingCart size={16} />
                         {isPending ? "Adding..." : "Add to Cart"}
                       </button>
                     )}
                    <button onClick={() => router.push(`/product/${product.id}`)}
-                    className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors" >
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 border cursor-pointer border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors" >
                     <Eye size={16} /> 
                     View Details
                   </button>
