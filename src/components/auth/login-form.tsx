@@ -27,6 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginData } from "@/types/auth";
 import { IconLogout } from "@tabler/icons-react";
 import Link from "next/link"; // ✅ added
+import { log } from "console";
 
 export function LoginForm({
   className,
@@ -61,7 +62,9 @@ export function LoginForm({
 
       if (!res.ok) {
         setErrorMessage(result.error || "Login failed");
-      } else {
+      } else 
+        {console.log("Login successful:", result);
+        
         router.replace("/");
       }
     } catch (error) {
