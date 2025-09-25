@@ -446,7 +446,6 @@ export default function ProductTable({ columns }: ProductTableProps) {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      {loading ? "Loading..." : "No products found."}
                     </TableCell>
                   </TableRow>
                 )}
