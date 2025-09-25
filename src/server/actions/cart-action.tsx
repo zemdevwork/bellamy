@@ -10,6 +10,7 @@ import {
   updateCartItemSchema,
   removeFromCartSchema,
 } from "@/schema/cart-schema";
+import z from "zod";
 
 export async function getAuthenticatedUser() {
   const nextHeaders = await headers();
@@ -120,6 +121,103 @@ export async function addToCart(data: unknown) {
         },
       });
       console.log('✅ New cart item created:', newItem.id);
+    }
+
+    revalidatePath('/');
+    revalidatePath('/cart');
+
+    console.log('✅ Cart operation successful');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Add to cart error:', error);
+    throw error;
+  }
+}
+
+
+const addToCartBundleInput = z.array(
+  z.object({
+    productId: z.string().min(1, "Product ID is required"),
+    quantity: z.number().min(1, "Quantity must be at least 1"),
+  })
+);
+
+export async function addToCartAsBundle(data: unknown) {
+  try {
+    const user = await getAuthenticatedUser();
+    if (!user) {
+      console.log('❌ Unauthorized user');
+      throw new Error('Unauthorized');
+    }
+
+    const parsedItems = addToCartBundleInput.parse(data);
+    console.log('✅ Data parsed:', parsedItems);
+
+    // Find or create the user's cart once at the beginning
+    let cart = await prisma.cart.findUnique({
+      where: { userId: user.id },
+      include: { items: true },
+    });
+
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: { userId: user.id },
+        include: { items: true },
+      });
+      console.log('✅ New cart created:', cart.id);
+    } else {
+      console.log('✅ Existing cart found:', cart.id);
+    }
+
+    // Process each item in the array sequentially
+    for (const item of parsedItems) {
+      const { productId, quantity } = item;
+
+      // 1. Get product and check stock
+      const product = await prisma.product.findUnique({
+        where: { id: productId },
+      });
+
+      if (!product) {
+        console.log(`❌ Product not found: ${productId}`);
+        throw new Error(`Product not found: ${productId}`);
+      }
+
+      // 2. Find existing cart item for the product
+      const existingItem = cart.items.find((i) => i.productId === productId);
+      const currentQuantityInCart = existingItem?.quantity || 0;
+      const newTotalQuantity = currentQuantityInCart + quantity;
+
+      // 3. Perform the stock check
+      if (newTotalQuantity > product.qty) {
+        console.log('❌ Insufficient stock:', {
+          requested: newTotalQuantity,
+          available: product.qty,
+        });
+        throw new Error(
+          `Insufficient stock. Only ${product.qty} of ${product.name} are left. You currently have ${currentQuantityInCart} in your cart.`
+        );
+      }
+
+      // 4. Update or create the cart item
+      if (existingItem) {
+        console.log(`📦 Updating existing item quantity for product ${productId}`);
+        await prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { quantity: newTotalQuantity },
+        });
+        console.log('✅ Item quantity updated');
+      } else {
+        console.log(`📦 Creating new cart item for product ${productId}`);
+        const newItem = await prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            productId: productId,
+            quantity: quantity,
+          },
+        });
+        console.log('✅ New cart item created:', newItem.id);
+      }
     }
 
     revalidatePath('/');

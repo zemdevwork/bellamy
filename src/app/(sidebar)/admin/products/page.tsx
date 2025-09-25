@@ -3,15 +3,6 @@ import ProductTable from "@/components/product/product-table";
 import { productColumns } from "@/components/product/product-columns";
 
 export default async function ProductPage() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/product`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch products");
-  }
-
-  const products = await res.json();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -26,7 +17,7 @@ export default async function ProductPage() {
             <ProductFormDialog />
           </div>
 
-          <ProductTable data={products} columns={productColumns} />
+          <ProductTable columns={productColumns} />
         </div>
       </div>
     </div>

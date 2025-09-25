@@ -110,11 +110,6 @@ export const updateProductAction = actionClient
   .inputSchema(updateProductSchema)
   .action(async ({ parsedInput }) => {
     try {
-      console.log("=== UPDATE PRODUCT DEBUG ===");
-      console.log("Full parsedInput:", parsedInput);
-      console.log("Update subimage array:", parsedInput.subimage);
-      console.log("Update subimage length:", parsedInput.subimage?.length || 0);
-
       // Get existing product to preserve current images if needed
       const existingProduct = await prisma.product.findUnique({
         where: { id: parsedInput.id },
@@ -274,7 +269,7 @@ export const deleteProductAction = actionClient
 
       await prisma.product.delete({ where: { id: parsedInput.id } });
 
-      revalidatePath("/product");
+      revalidatePath("/admin/products");
       return { success: true, message: "Product deleted successfully" };
     } catch (error) {
       console.error("Delete product error:", error);

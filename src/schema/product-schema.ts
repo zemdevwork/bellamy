@@ -114,15 +114,7 @@ export const updateProductSchema = zfd.formData({
       message: "You can only upload up to 3 sub-images.",
     }),
     
-  attributes: zfd.text(z.string().transform((val) => {
-    if (!val) return undefined;
-    try {
-      const parsed = JSON.parse(val);
-      return z.array(attributeSchema).parse(parsed);
-    } catch {
-      return undefined;
-    }
-  })).optional()
+  attributes: z.array(attributeSchema).optional()
 });
 
 export const deleteProductSchema = z.object({
