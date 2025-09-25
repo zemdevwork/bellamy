@@ -1,7 +1,7 @@
 'use server';
 
 import { PrismaClient } from '@prisma/client';
-
+import { getAuthenticatedAdmin } from './admin-user-action';
 const prisma = new PrismaClient();
 
 // Types for filters and responses
@@ -77,6 +77,7 @@ export interface OrderSummary {
 // Sales Metrics Server Action
 export async function getSalesMetrics(filter: SalesMetricsFilter = {}): Promise<SalesMetrics> {
   try {
+    await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
     // Date range filter
@@ -141,6 +142,7 @@ export async function getTopSellingProducts(
   filter: DateRangeFilter = {}
 ): Promise<TopSellingProduct[]> {
   try {
+    await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
     // Date range filter for orders
@@ -209,6 +211,7 @@ export async function getTopSellingProducts(
 // Product Inventory Report Server Action
 export async function getProductInventory(filter: ProductFilter = {}): Promise<ProductInventory[]> {
   try {
+    await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
     // Brand filter
@@ -297,6 +300,7 @@ export async function getOrdersWithPaymentStatus(
   filter: SalesMetricsFilter = {}
 ): Promise<OrderSummary[]> {
   try {
+    await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
     // Date range filter
@@ -370,6 +374,7 @@ export async function getOrdersWithPaymentStatus(
 // Get Low Stock Products Alert
 export async function getLowStockProducts(threshold: number = 10): Promise<ProductInventory[]> {
   try {
+    await getAuthenticatedAdmin();
     const products = await getProductInventory({ lowStock: threshold });
     return products;
   } catch (error) {
@@ -383,6 +388,7 @@ export async function getSalesByDateRange(
   filter: DateRangeFilter = {}
 ): Promise<Array<{ date: string; sales: number; orders: number }>> {
   try {
+    await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
     // Date range filter
@@ -439,6 +445,7 @@ export async function getFilterOptions(): Promise<{
   subCategories: Array<{ id: string; name: string; categoryId: string }>;
 }> {
   try {
+    await getAuthenticatedAdmin();
     const [brands, categories, subCategories] = await Promise.all([
       prisma.brand.findMany({
         select: {
@@ -497,6 +504,7 @@ export async function getOrderDetails(orderId: string): Promise<{
   };
 } | null> {
   try {
+    await getAuthenticatedAdmin();
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {

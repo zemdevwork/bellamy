@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { orderStatusSchema } from "@/schema/order-schema";
+import { getAuthenticatedAdmin } from "./admin-user-action";
 
 // 🔹 Get all orders (admin)
 export async function getAllOrders() {
   try {
+    await getAuthenticatedAdmin();
     const orders = await prisma.order.findMany({
       include: {
         user: { select: { id: true, name: true, email: true } },
@@ -24,7 +26,9 @@ export async function getAllOrders() {
 
 // 🔹 Update order status (admin)
 export async function updateOrderStatus(orderId: string, status: string) {
+
   try {
+await getAuthenticatedAdmin();
     // ✅ validate status using schema
     orderStatusSchema.parse(status);
 
@@ -46,6 +50,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
 
 export async function getOrderByID(orderId: string) {
   try {
+    await getAuthenticatedAdmin();
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {

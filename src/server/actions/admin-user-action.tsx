@@ -8,7 +8,7 @@ import { Prisma } from "@prisma/client";
 /**
  * Ensure the current session belongs to an admin
  */
-async function getAuthenticatedAdmin() {
+export async function getAuthenticatedAdmin() {
   const nextHeaders = await headers();
   const standardHeaders = new Headers();
   nextHeaders.forEach((value, key) => {
@@ -60,21 +60,23 @@ export const getAllUsers = async ({
       dateFilter = { createdAt: { gte: start, lte: end } };
     }
 
-    const where: Prisma.UserWhereInput = {
-      OR: search
-        ? [
-            { name: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
-            { phone: { contains: search, mode: "insensitive" } },
-          ]
-        : undefined,
-      ...(status === "banned"
-        ? { banned: true }
-        : status === "active"
-        ? { banned: false }
-        : {}),
-      ...dateFilter, // ✅ apply date filter if selected
-    };
+const where: Prisma.UserWhereInput = {
+  role: { not: "admin" },
+  OR: search
+    ? [
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+        { phone: { contains: search, mode: "insensitive" } },
+      ]
+    : undefined,
+  ...(status === "banned"
+    ? { banned: true }
+    : status === "active"
+    ? { banned: false }
+    : {}),
+  ...dateFilter, // ✅ apply date filter if selected
+};
+
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -176,3 +178,48 @@ export const unbanUser = async (userId: string) => {
     throw new Error("Failed to unban user");
   }
 };
+
+export async function fetchUserDetails(userId: string) {
+  if (!userId) {
+    return {
+      error: "User ID is required.",
+    }
+  }
+
+  try {
+    await getAuthenticatedAdmin();
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        orders: {
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!user) {
+      return {
+        error: "User not found.",
+      }
+    }
+
+    return {
+      success: true,
+      message: "User details fetched successfully.",
+      user,
+    }
+  } catch (error) {
+    console.error("Error fetching user details:", error)
+    return {
+      error: "An unexpected error occurred.",
+    }
+  }
+}
