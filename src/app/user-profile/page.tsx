@@ -37,7 +37,7 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto p-4">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Account</h1>
+          <h1 className="text-2xl font-serif text-gray-900">My Account</h1>
           <p className="text-gray-600">Manage your profile, orders, and settings</p>
         </div>
 

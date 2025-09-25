@@ -82,7 +82,7 @@ export function LoginForm({
           <div className="flex justify-center">
             <IconLogout />
           </div>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle className="font-serif font-normal">Login to your account</CardTitle>
           <CardDescription>
             Enter your email and password to login
           </CardDescription>

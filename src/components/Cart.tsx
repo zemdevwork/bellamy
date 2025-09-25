@@ -108,7 +108,7 @@ export default function CartComponent() {
         Back to Home
       </Button>
       {/* Title */}
-      <h1 className="text-3xl font-bold mb-8">Your cart</h1>
+      <h1 className="text-3xl font-serif mb-8">Your cart</h1>
 
       {/* Header row */}
       <div className="grid grid-cols-12 items-center border-b pb-4 mb-6 text-sm font-medium text-muted-foreground">
