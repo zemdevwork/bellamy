@@ -27,6 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginData } from "@/types/auth";
 import { IconLogout } from "@tabler/icons-react";
 import Link from "next/link"; // ✅ added
+import { syncLocalCartToBackend } from "@/lib/local-cart";
 
 export function LoginForm({
   className,
@@ -63,7 +64,7 @@ export function LoginForm({
         setErrorMessage(result.error || "Login failed");
       } else {
         localStorage.setItem('user', JSON.stringify(result.user));
-        
+        await syncLocalCartToBackend();
         router.replace("/");
       }
     } catch (error) {

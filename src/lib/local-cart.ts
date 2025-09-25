@@ -2,14 +2,7 @@
 
 import { z } from "zod";
 import { addToCartAsBundle} from "@/server/actions/cart-action";
-
-
-export const addToCartBundleInput = z.array(
-  z.object({
-    productId: z.string().min(1, "Product ID is required"),
-    quantity: z.number().min(1, "Quantity must be at least 1"),
-  })
-);
+import { addToCartBundleInput } from "@/schema/cart-schema";
 
 
 const CART_KEY = "cart";
@@ -53,6 +46,8 @@ export async function syncLocalCartToBackend() {
 
   try {
     const parsed = addToCartBundleInput.parse(cart);
+
+    console.log("Syncing local cart to backend:", parsed);
     const res = await addToCartAsBundle(parsed);
 
     if (res?.success) {

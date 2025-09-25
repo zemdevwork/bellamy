@@ -66,8 +66,7 @@ export function SignUpForm({
         setErrorMessage(result.error || "Sign up failed");
       } else {
         localStorage.setItem('user', JSON.stringify(result.user));
-        console.log("Sign up successful:", result);
-        router.replace(result.redirectTo || "/");
+        router.replace("/login");
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -78,7 +77,7 @@ export function SignUpForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-4", className)} {...props}>
       <Card className="w-[400px]" >
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center">
@@ -93,7 +92,7 @@ export function SignUpForm({
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
                 <FormField
                   control={form.control}
                   name="name"

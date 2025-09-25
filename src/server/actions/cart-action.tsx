@@ -4,13 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-
 import {
   addToCartSchema,
   updateCartItemSchema,
+  addToCartBundleInput,
   removeFromCartSchema,
 } from "@/schema/cart-schema";
-import { addToCartBundleInput } from "@/lib/local-cart";
 
 export async function getAuthenticatedUser() {
   const nextHeaders = await headers();

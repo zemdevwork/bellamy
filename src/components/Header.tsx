@@ -139,6 +139,7 @@ export default function Header() {
     }
   }, [isMenuOpen]);
 
+  
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
   };
