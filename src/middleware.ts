@@ -20,10 +20,24 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Public routes (no session required)
-  const publicRoutes = ["/", "/login", "/sign-up", "/dashboard-login","contact",'our-story','product','shop'];
-  if (publicRoutes.includes(pathname)) {
-    return NextResponse.next();
-  }
+ const publicRoutes = [
+  "/",
+  "/login",
+  "/sign-up",
+  "/dashboard-login",
+  "/contact",
+  "/our-story",
+  "/product",
+  "/shop",
+];
+
+const isPublic = publicRoutes.some((route) =>
+  pathname === route || pathname.startsWith(route + "/")
+);
+
+if (isPublic) {
+  return NextResponse.next();
+}
 
   // If no session, redirect to login
   if (!session) {
