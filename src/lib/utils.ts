@@ -91,3 +91,8 @@ export function formatDateTime(
   const parsedDate = typeof date === 'string' ? new Date(date) : date;
   return new Intl.DateTimeFormat(locale, options).format(parsedDate);
 }
+
+
+export const isLoggedIn = () => {
+  return localStorage.getItem('user') !== null;
+};

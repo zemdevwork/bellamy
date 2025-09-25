@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "res.cloudinary.com",
         pathname: "/**", // allow all images from Cloudinary
+      },
+      {
+        protocol: "https",
+        hostname: "",
+        pathname: "/**",
       }
     ],
   },
