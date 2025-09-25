@@ -130,10 +130,10 @@ export default function UserProfile() {
       <div className="max-w-2xl mx-auto p-4">
         <Card>
           <CardContent className="p-8 text-center">
-            <div className="animate-pulse">
-              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
-              <p>Loading your profile...</p>
-            </div>
+          <div className="text-center py-10">
+      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <p className="mt-2">Loading profile...</p>
+    </div>
           </CardContent>
         </Card>
       </div>

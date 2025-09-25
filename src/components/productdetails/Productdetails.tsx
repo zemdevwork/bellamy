@@ -75,7 +75,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
     fetchProduct();
   }, [productId]);
 
-  if (loading) return <p className="p-6">Loading product...</p>;
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <p className="mt-2">Loading product...</p>
+      </div>
+    );
+  }  
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!product) return <p className="p-6">Product not found.</p>;
 

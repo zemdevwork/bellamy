@@ -39,8 +39,26 @@ export default function BestSellers() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [cartItems, setCartItems] = useState<string[]>([]);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true); // start loader
+        const res = await fetch("/api/product", { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to fetch products");
+        const data: ProductResponse[] = await res.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false); // stop loader
+      }
+    };
+    fetchProducts();
+  }, []);
   // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
@@ -168,6 +186,14 @@ export default function BestSellers() {
     };
     fetchCart();
   }, []);
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <p className="mt-2">Loading Best Sellers...</p>
+      </div>
+    );
+  }
 
 
   const handleGoToCart = () => router.push("/cart");
