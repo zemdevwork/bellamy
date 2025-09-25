@@ -130,7 +130,7 @@ export default function Header() {
           >
             HOME
           </Link>
-        {/* SHOP Dropdown */}
+       {/* SHOP Dropdown */}
 <div className="relative group">
   <Link
     href="/shop"
@@ -138,13 +138,13 @@ export default function Header() {
   >
     SHOP
   </Link>
-  <div className="absolute left-0 mt-2 w-56 bg-white shadow-lg rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-    <ul className="py-2">
-      {categories.map((cat) => (
-        <li key={cat.id}>
+  <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+    <ul>
+      {categories.map((cat, index) => (
+        <li key={cat.id} className={index < categories.length - 1 ? "border-gray-200" : ""}>
           <Link
             href={`/shop/category/${cat.id}`}
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-900 transition-colors"
+            className="block px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-blue-900 hover:underline transition-colors text-sm font-medium uppercase tracking-wide"
           >
             {cat.name}
           </Link>
@@ -153,7 +153,6 @@ export default function Header() {
     </ul>
   </div>
 </div>
-
           <Link
             href="/our-story"
             className={`hover:text-blue-900 transition-colors ${isActive("/our-story")}`}
