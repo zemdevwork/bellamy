@@ -70,7 +70,7 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
           const categoryData = await response.json();
           if (mounted && Array.isArray(categoryData)) {
             setCategories(categoryData);
-            if (!categoryId || categoryId == ""){setSelectedCategory (categoryData[0]?.id || "")}
+            if (!categoryId || categoryId == "") { setSelectedCategory(categoryData[0]?.id || "") }
           }
         }
       } catch (err) {
@@ -179,83 +179,83 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
   return (
     <div>
       {/* 🔹 Filters Row */}
-     {/* 🔹 Filters Row */}
-<div className="flex flex-wrap items-center gap-4 mb-6">
-  {/* Category Filter */}
-  <div className="flex flex-col">
-    <span className="text-sm font-medium mb-1 text-gray-600">Category</span>
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="min-w-[150px] justify-between">
-          {categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>Select Category</DropdownMenuLabel>
-        {categories.map((category) => (
-          <DropdownMenuItem 
-            key={category.id} 
-            onClick={() => handleCategoryChange(category.id)}
-            className={selectedCategory === category.id ? "bg-gray-100" : ""}
-          >
-            {category.name}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </div>
+      {/* 🔹 Filters Row */}
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        {/* Category Filter */}
+        <div className="flex flex-col">
+          <span className="text-sm font-medium mb-1 text-gray-600">Category</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-[150px] justify-between">
+                {categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Select Category</DropdownMenuLabel>
+              {categories.map((category) => (
+                <DropdownMenuItem
+                  key={category.id}
+                  onClick={() => handleCategoryChange(category.id)}
+                  className={selectedCategory === category.id ? "bg-gray-100" : ""}
+                >
+                  {category.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-  {/* Brand Filter */}
-  <div className="flex flex-col">
-    <span className="text-sm font-medium mb-1 text-gray-600">Brand</span>
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="min-w-[150px] justify-between">
-          {selectedBrand
-            ? brands.find((b) => b.id === selectedBrand)?.name
-            : "All Brands"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>Select Brand</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => setSelectedBrand("")}>
-          All Brands
-        </DropdownMenuItem>
-        {brands.map((brand) => (
-          <DropdownMenuItem key={brand.id} onClick={() => setSelectedBrand(brand.id)}>
-            {brand.name}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </div>
+        {/* Brand Filter */}
+        <div className="flex flex-col">
+          <span className="text-sm font-medium mb-1 text-gray-600">Brand</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-[150px] justify-between">
+                {selectedBrand
+                  ? brands.find((b) => b.id === selectedBrand)?.name
+                  : "All Brands"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Select Brand</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setSelectedBrand("")}>
+                All Brands
+              </DropdownMenuItem>
+              {brands.map((brand) => (
+                <DropdownMenuItem key={brand.id} onClick={() => setSelectedBrand(brand.id)}>
+                  {brand.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-  {/* Sort Filter */}
-  <div className="flex flex-col">
-    <span className="text-sm font-medium mb-1 text-gray-600">Sort</span>
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="min-w-[150px] justify-between">
-          {sortOrder === "price_asc"
-            ? "Price: Low to High"
-            : sortOrder === "price_desc"
-            ? "Price: High to Low"
-            : "Newest"}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-        <DropdownMenuItem onClick={() => setSortOrder("")}>Newest</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setSortOrder("price_asc")}>
-          Price: Low to High
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setSortOrder("price_desc")}>
-          Price: High to Low
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </div>
-</div>
+        {/* Sort Filter */}
+        <div className="flex flex-col">
+          <span className="text-sm font-medium mb-1 text-gray-600">Sort</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-[150px] justify-between">
+                {sortOrder === "price_asc"
+                  ? "Price: Low to High"
+                  : sortOrder === "price_desc"
+                    ? "Price: High to Low"
+                    : "Newest"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setSortOrder("")}>Newest</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOrder("price_asc")}>
+                Price: Low to High
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortOrder("price_desc")}>
+                Price: High to Low
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
 
 
       {/* Product Grid */}

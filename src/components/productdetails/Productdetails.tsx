@@ -6,6 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
 import OrderCheckout from "@/components/orders/OrderCheckout";
+import { isLoggedIn } from "@/lib/utils"; // 👈 add this
+
 
 type Attribute = {
   key: string;
@@ -117,9 +119,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
   const handleGoToCart = () => router.push("/cart");
   const handleBuyNow = () => {
-    if (!product) return;
-    setShowCheckout(true);
-  };
+  if (!isLoggedIn()) {
+    toast.error("Please login to continue with Buy Now");
+    return;
+  }
+  if (!product) return;
+  setShowCheckout(true);
+};
 
   return (
     <div className="min-h-screen">

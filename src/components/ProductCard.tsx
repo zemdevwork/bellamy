@@ -1,10 +1,14 @@
+
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { addToCart } from "@/server/actions/cart-action";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import OrderCheckout from "@/components/orders/OrderCheckout"; // 👈 import checkout
+import { isLoggedIn } from "@/lib/utils"; // 👈 import utils at the top
+
 
 type ProductProps = {
   id: string;
@@ -28,15 +32,37 @@ export default function ProductCard({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isInCart, setIsInCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const router = useRouter();
+
+  // ✅ Check if product already in cart on mount
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const res = await fetch("/api/cart", { cache: "no-store" });
+        if (!res.ok) return;
+        const cart = await res.json();
+        if (cart?.items) {
+          const exists = cart.items.some(
+            (item: { product: { id: string } }) => item.product.id === id
+          );
+          setIsInCart(exists);
+        }
+      } catch (error) {
+        console.error("Error loading cart:", error);
+      }
+    };
+
+    if (id) fetchCart();
+  }, [id]);
 
   const discountPercentage = oldPrice
     ? Math.round(
-        ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
-          parseFloat(price.replace(/[₹$]/g, ""))) /
-          parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
-          100
-      )
+      ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
+        parseFloat(price.replace(/[₹$]/g, ""))) /
+        parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
+      100
+    )
     : 0;
 
   const handleAddToCart = async () => {
@@ -58,10 +84,23 @@ export default function ProductCard({
   };
 
   const handleGoToCart = () => router.push("/cart");
+   const handleBuyNow = () => {
+  if (!isLoggedIn()) {
+    toast.error("Please login to continue with Buy Now");
+    return;
+  }
+  setShowCheckout(true);
+};
+
 
   return (
     <div className="w-72 flex-shrink-0">
-      <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden relative">
+      {/* Wrapper with hover effects */}
+      <div
+        className="group bg-white rounded-lg shadow-sm hover:shadow-lg 
+        transition-transform duration-300 ease-in-out transform hover:scale-105 
+        overflow-hidden cursor-pointer"
+      >
         {/* Badge */}
         {badge && (
           <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
@@ -75,13 +114,13 @@ export default function ProductCard({
         )}
 
         {/* Product Image */}
-        <div className="relative">
+        <div className="relative w-full h-64 overflow-hidden">
           <Image
             src={image}
             alt={name}
             width={400}
             height={300}
-            className="w-full h-64 object-cover"
+            className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
             onLoad={() => setImageLoaded(true)}
           />
           {!imageLoaded && (
@@ -117,7 +156,9 @@ export default function ProductCard({
             {isInCart ? (
               <button
                 onClick={handleGoToCart}
-                className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="w-full py-2 px-4 border border-gray-300 
+      rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 
+      hover:border-black transition-colors"
               >
                 Go to Cart
               </button>
@@ -125,20 +166,43 @@ export default function ProductCard({
               <button
                 onClick={handleAddToCart}
                 disabled={isPending}
-                className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                className="w-full py-2 px-4 border border-gray-300 rounded-md 
+      text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-black 
+      transition-colors disabled:opacity-50"
               >
                 {isPending ? "Adding..." : "Add to Cart"}
               </button>
             )}
             <button
-              onClick={() => console.log(`Buy Now: ${id}`)}
-              className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              onClick={handleBuyNow}
+              className="w-full py-2 px-4 border border-gray-300 
+    rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 
+    hover:border-black transition-colors"
             >
               Buy Now
             </button>
           </div>
+
+
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      {showCheckout && (
+        <OrderCheckout
+          products={[
+            {
+              id,
+              name,
+              price: parseFloat(price.replace(/[₹$]/g, "")),
+              quantity: 1,
+              image,
+            },
+          ]}
+          total={parseFloat(price.replace(/[₹$]/g, ""))}
+          onClose={() => setShowCheckout(false)}
+        />
+      )}
     </div>
   );
 }
