@@ -17,7 +17,7 @@ export default async function ProductPage({ params }: Props) {
   const { id } = await params;
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
+    <div className="w-full min-h-screen px-6 py-10">
       <ProductDetails productId={id} />
     </div>
   );

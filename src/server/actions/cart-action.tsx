@@ -251,13 +251,6 @@ export async function getUserCart() {
       console.log("📦 No cart found for user:", user.id);
       return null;
     }
-
-    console.log("✅ Cart found with", cart.items.length, "items");
-    console.log("Cart items:", cart.items.map(item => ({
-      productId: item.productId,
-      productName: item.product.name,
-      quantity: item.quantity
-    })));
     
     return cart;
   } catch (error) {
@@ -328,5 +321,48 @@ export async function removeFromCart(data: unknown) {
   } catch (error) {
     console.error("❌ Remove from cart error:", error);
     throw error;
+  }
+}
+
+export async function dummyCart(data: unknown) {
+  try {
+    const parsed = addToCartBundleInput.parse(data);
+    const productIds = parsed.map(item => item.productId);
+    const products = await prisma.product.findMany({
+      where: {
+        id: {
+          in: productIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        image: true,
+      },
+    });
+
+    const cartItemsWithDetails = parsed.map(cartItem => {
+      const productDetails = products.find(
+        (product) => product.id === cartItem.productId
+      );
+      return {
+        ...cartItem,
+        ...productDetails, 
+      };
+    });
+
+    return {
+      success: true,
+      message: "Cart items fetched successfully.",
+      data: cartItemsWithDetails,
+    };
+  } catch (err) {
+    console.error("Failed to fetch dummy cart", err);
+    return {
+      success: false,
+      message: "Failed to fetch cart items.",
+      data: null,
+    };
   }
 }

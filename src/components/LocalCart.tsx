@@ -6,54 +6,99 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Minus, Plus, Trash2, ShoppingCart, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { dummyCart } from "@/server/actions/cart-action";
+import { getLocalCart } from "@/lib/local-cart";
 
-import {
-  getUserCart,
-  updateCartItem,
-  removeFromCart,
-} from "@/server/actions/cart-action";
-
-import OrderCheckout from "@/components/orders/OrderCheckout"; // ✅ import checkout
-
-type Cart = {
-  id: string;
-  items: {
-    id: string;
-    productId: string;
-    quantity: number;
-    product: {
-      id: string;
-      name: string;
-      price: number;
-      image: string | null;
-    };
-  }[];
+type CartItem = {
+  productId: string;
+  quantity: number;
 };
 
-export default function CartComponent() {
-  const [cart, setCart] = useState<Cart | null>(null);
+type ProductWithDetails = {
+  id: string;
+  name: string;
+  price: number;
+  image: string | null;
+  productId: string;
+  quantity: number;
+};
+
+type DummyCartResponse = {
+  success: boolean;
+  message: string;
+  data: ProductWithDetails[] | null;
+};
+
+export default function LocalCart() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [productsWithDetails, setProductsWithDetails] = useState<ProductWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
-  const [showCheckout, setShowCheckout] = useState(false); // ✅ toggle checkout
   const router = useRouter();
-  const fetchCart = async () => {
+
+  const fetchCartDetails = async () => {
     setLoading(true);
-    const userCart = await getUserCart();
-    setCart(userCart);
-    setLoading(false);
+    const localCart = getLocalCart();
+    setCartItems(localCart);
+
+    if (localCart.length === 0) {
+      setProductsWithDetails([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await dummyCart(localCart) as DummyCartResponse;
+      if (response.success && response.data) {
+        setProductsWithDetails(response.data);
+      } else {
+        toast.error("Failed to fetch product details");
+        setProductsWithDetails([]);
+      }
+    } catch (error) {
+      console.error("Error fetching cart details:", error);
+      toast.error("Failed to load cart");
+      setProductsWithDetails([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    fetchCart();
+    fetchCartDetails();
   }, []);
+
+  const updateLocalStorage = (updatedCart: CartItem[]) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cart", JSON.stringify(updatedCart));
+    }
+    setCartItems(updatedCart);
+  };
 
   const handleUpdateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
+    
     startTransition(async () => {
       try {
-        await updateCartItem({ productId, quantity: newQuantity });
-        fetchCart();
-      } catch {
+        const updatedCart = cartItems.map(item => 
+          item.productId === productId 
+            ? { ...item, quantity: newQuantity }
+            : item
+        );
+        updateLocalStorage(updatedCart);
+        
+        // Update the products with details
+        setProductsWithDetails(prev => 
+          prev.map(product => 
+            product.productId === productId 
+              ? { ...product, quantity: newQuantity }
+              : product
+          )
+        );
+        
+        toast.success("Cart updated");
+      } catch (error) {
+        console.error("Error updating quantity:", error);
         toast.error("Failed to update cart");
       }
     });
@@ -62,46 +107,58 @@ export default function CartComponent() {
   const handleRemove = (productId: string) => {
     startTransition(async () => {
       try {
-        await removeFromCart({ productId });
+        const updatedCart = cartItems.filter(item => item.productId !== productId);
+        updateLocalStorage(updatedCart);
+        
+        // Remove from products with details
+        setProductsWithDetails(prev => 
+          prev.filter(product => product.productId !== productId)
+        );
+        
         toast.success("Item removed");
-        fetchCart();
-      } catch {
+      } catch (error) {
+        console.error("Error removing item:", error);
         toast.error("Failed to remove item");
       }
     });
   };
 
-  const total =
-    cart?.items?.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0
-    ) || 0;
+  const handleBuyNow = () => {
+    router.push("/login");
+  };
+
+  const total = productsWithDetails.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   if (loading) {
-    return  <div className="text-center py-10">
-    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-    <p className="mt-2">Loading Cart...</p>
-  </div>;
+    return (
+      <div className="text-center py-10">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        <p className="mt-2">Loading Cart...</p>
+      </div>
+    );
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (productsWithDetails.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-      <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-      <p className="text-lg font-medium">Your cart is empty</p>
-      <p className="text-sm text-muted-foreground">
-        Add some products to continue shopping.
-      </p>
-      <Button className="mt-6" onClick={() => router.push("/")}>
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Home
-      </Button>
-    </div>
+        <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+        <p className="text-lg font-medium">Your cart is empty</p>
+        <p className="text-sm text-muted-foreground">
+          Add some products to continue shopping.
+        </p>
+        <Button className="mt-6" onClick={() => router.push("/")}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto ">
+    <div className="max-w-5xl mx-auto">
       <Button
         variant="ghost"
         className="mb-6 flex items-center"
@@ -110,6 +167,7 @@ export default function CartComponent() {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Home
       </Button>
+
       {/* Title */}
       <h1 className="text-3xl font-serif mb-8">Your cart</h1>
 
@@ -122,26 +180,26 @@ export default function CartComponent() {
 
       {/* Cart Items */}
       <div className="space-y-6">
-        {cart.items.map((item) => (
+        {productsWithDetails.map((item) => (
           <div
-            key={item.id}
+            key={item.productId}
             className="grid grid-cols-12 items-center border-b pb-6"
           >
             {/* Product */}
             <div onClick={() => router.push(`/product/${item.productId}`)} className="col-span-6 flex items-center gap-4">
-              {item.product.image && (
+              {item.image && (
                 <Image
-                  src={item.product.image}
-                  alt={item.product.name}
+                  src={item.image}
+                  alt={item.name}
                   width={100}
                   height={100}
                   className="rounded-md object-cover w-24 h-24"
                 />
               )}
               <div>
-                <h3 className="text-lg font-medium">{item.product.name}</h3>
+                <h3 className="text-lg font-medium">{item.name}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Rs. {item.product.price}
+                  Rs. {item.price}
                 </p>
               </div>
             </div>
@@ -185,7 +243,7 @@ export default function CartComponent() {
 
             {/* Total */}
             <div className="col-span-3 text-right font-medium">
-              Rs. {(item.product.price * item.quantity).toFixed(2)}
+              Rs. {(item.price * item.quantity).toFixed(2)}
             </div>
           </div>
         ))}
@@ -203,28 +261,13 @@ export default function CartComponent() {
           </p>
           <Button
             className="w-full h-12 text-lg font-medium"
-            onClick={() => setShowCheckout(true)} // ✅ open checkout
+            onClick={handleBuyNow}
             disabled={isPending}
           >
             Buy it now
           </Button>
         </div>
       </div>
-
-      {/* ✅ Checkout modal/component */}
-      {showCheckout && (
-        <OrderCheckout
-          products={cart.items.map((item) => ({
-            id: item.product.id,
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-            image: item.product.image ?? undefined,
-          }))}
-          total={total}
-          onClose={() => setShowCheckout(false)}
-        />
-      )}
     </div>
   );
 }

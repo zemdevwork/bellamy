@@ -18,8 +18,6 @@ type Product = {
   rating?: number;
   reviewCount?: number;
   image: string;
-  isOnSale?: boolean;
-  saleTag?: string;
 };
 
 type ProductResponse = {
@@ -31,8 +29,6 @@ type ProductResponse = {
   rating?: number;
   reviewCount?: number;
   image: string;
-  isOnSale?: boolean;
-  saleTag?: string;
 };
 
 
@@ -46,28 +42,11 @@ export default function BestSellers() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true); // start loader
-        const res = await fetch("/api/product", { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data: ProductResponse[] = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false); // stop loader
-      }
-    };
-    fetchProducts();
-  }, []);
-  // Fetch products from backend
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch("/api/product", { cache: "no-store" });
+        setLoading(true);
+        const res = await fetch("/api/best-seller", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch products");
 
         const data: ProductResponse[] = await res.json();
@@ -79,15 +58,12 @@ export default function BestSellers() {
           title: p.title,
           price: p.price,
           originalPrice: p.originalPrice,
-          rating: p.rating,
-          reviewCount: p.reviewCount,
           image: p.image,
-          isOnSale: p.isOnSale,
-          saleTag: p.saleTag,
         }));
 
 
         setProducts(mappedProducts);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -271,13 +247,6 @@ const handleAddToCart = async (productId: string) => {
                     height={300}
                     className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  {product.isOnSale && (
-                    <div className="absolute bottom-2 left-2">
-                      <span className="bg-green-800 text-white text-xs px-2 py-1 rounded-full font-medium">
-                        {product.saleTag || "Sale"}
-                      </span>
-                    </div>
-                  )}
                 </div>
                 <div className="p-4">
                   <h4 className="text-xs text-gray-500 font-semibold">{product.name}</h4>

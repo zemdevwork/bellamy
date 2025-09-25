@@ -20,26 +20,38 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Public routes (no session required)
- const publicRoutes = [
-  "/",
-  "/login",
-  "/sign-up",
-  "/dashboard-login",
-  "/contact",
-  "/our-story",
-  "/product",
-  "/shop",
-];
+  const publicRoutes = [
+    "/",
+    "/login",
+    "/sign-up",
+    "/dashboard-login",
+    "/contact",
+    "/our-story",
+    "/product",
+    "/shop",
+    "/local-cart" // Add local-cart to public routes
+    // Note: Removed "/cart" from here
+  ];
 
-const isPublic = publicRoutes.some((route) =>
-  pathname === route || pathname.startsWith(route + "/")
-);
+  const isPublic = publicRoutes.some((route) =>
+    pathname === route || pathname.startsWith(route + "/")
+  );
 
-if (isPublic) {
-  return NextResponse.next();
-}
+  if (isPublic) {
+    return NextResponse.next();
+  }
 
-  // If no session, redirect to login
+  // Special handling for /cart route
+  if (pathname === '/cart') {
+    if (!session) {
+      console.log("Redirecting to local cart");
+      return NextResponse.redirect(new URL("/local-cart", request.url));
+    }
+    // If user is logged in, allow access to /cart
+    return NextResponse.next();
+  }
+
+  // If no session, redirect to login for protected routes
   if (!session) {
     return NextResponse.redirect(new URL("/login", request.url));
   }

@@ -21,4 +21,3 @@ export const addToCartBundleInput = z.array(
     quantity: z.number().min(1, "Quantity must be at least 1"),
   })
 );
-

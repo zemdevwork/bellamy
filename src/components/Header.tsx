@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { getUserCart } from "@/server/actions/cart-action";
 import { useState, useEffect } from "react";
 import { LogoutDialog } from "./auth/logout-modal"; 
+import { getLocalCart } from "@/lib/local-cart";
 
 export const isLoggedIn = () => {
   return localStorage.getItem('user') !== null;
@@ -81,17 +82,25 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
-    async function fetchCartCount() {
-      try {
+  async function fetchCartCount() {
+    try {
+      if (userLoggedIn) {
+        // For logged-in users, get cart from server
         const cart = await getUserCart();
         const totalItems = cart?.items?.length || 0;
         setCartCount(totalItems);
-      } catch (error) {
-        console.error("Failed to load cart", error);
+      } else {
+        // For logged-out users, get cart from localStorage
+        const localCart = getLocalCart();
+        const totalItems = localCart.reduce((sum, item) => sum + item.quantity, 0);
+        setCartCount(totalItems);
       }
+    } catch (error) {
+      console.error("Failed to load cart", error);
     }
-    fetchCartCount();
-  }, []);
+  }
+  fetchCartCount();
+}, [userLoggedIn]); // Add userLoggedIn as dependency
 
   useEffect(() => {
     const handleScroll = () => {
