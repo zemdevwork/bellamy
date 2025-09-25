@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
 import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils"; // 👈 add this
-
+import { addLocalCartItem, getLocalCart } from "@/lib/local-cart"; // 👈 add this
 
 type Attribute = {
   key: string;
@@ -59,12 +59,20 @@ export default function ProductDetails({ productId }: { productId: string }) {
         setProduct(data);
         setSelectedImage(data.image || data.subimage?.[0] || null);
 
-        const cartRes = await fetch("/api/cart");
-        if (cartRes.ok) {
-          const cartData = await cartRes.json();
-          const exists =
-            cartData && cartData.items?.some((item: CartItem) => item.productId === data.id);
-          setIsInCart(!!exists);
+        // ✅ Check cart (server if logged in, local if not)
+        if (isLoggedIn()) {
+          const cartRes = await fetch("/api/cart");
+          if (cartRes.ok) {
+            const cartData = await cartRes.json();
+            const exists =
+              cartData &&
+              cartData.items?.some((item: CartItem) => item.productId === data.id);
+            setIsInCart(!!exists);
+          }
+        } else {
+          const localCart = getLocalCart();
+          const exists = localCart.some((item) => item.productId === data.id);
+          setIsInCart(exists);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
@@ -86,46 +94,62 @@ export default function ProductDetails({ productId }: { productId: string }) {
     ?.filter((a) => a.key.toLowerCase() === "size")
     .map((a) => a.value);
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    if (quantity < 1) {
-      toast.error("Quantity must be at least 1");
-      return;
-    }
-    if (quantity > 10) {
-      toast.error("Cannot add more than 10 items at once");
-      return;
-    }
-    startTransition(async () => {
-      try {
+  // ✅ Add to cart (server OR local)
+const handleAddToCart = () => {
+  if (!product) return;
+
+  // 🔹 Validation messages
+  if (quantity < 1) {
+    toast.error("❌ Quantity must be at least 1");
+    return;
+  }
+  if (quantity > 10) {
+    toast.error("❌ Cannot add more than 10 items at once");
+    return;
+  }
+
+  startTransition(async () => {
+    try {
+      if (isLoggedIn()) {
+        // ✅ Logged in → server cart
         await addToCart({
           productId: product.id,
           quantity,
           size: selectedSize || undefined,
           color: selectedColor || undefined,
         });
-        toast.success(`Added "${product.name}" to cart!`);
-        setIsInCart(true);
-      } catch (error) {
-        console.error("Failed to add to cart:", error);
-        if (error instanceof Error) {
-          toast.error(error.message || "Failed to add to cart. Try to lower the quantity.");
-        } else {
-          toast.error("Failed to add to cart. Please try again.");
-        }
+        toast.success(`✅ Added "${product.name}" to your cart!`);
+      } else {
+        // ✅ Guest → local cart
+        addLocalCartItem(product.id, quantity);
+        toast.success(`🛒 Added "${product.name}" to cart (local)!`);
       }
-    });
-  };
+
+      setIsInCart(true);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+
+      if (error instanceof Error) {
+        toast.error(
+          `❌ ${error.message || "Failed to add to cart. Try lowering the quantity."}`
+        );
+      } else {
+        toast.error("❌ Failed to add to cart. Please try again.");
+      }
+    }
+  });
+};
+
 
   const handleGoToCart = () => router.push("/cart");
   const handleBuyNow = () => {
-  if (!isLoggedIn()) {
-    toast.error("Please login to continue with Buy Now");
-    return;
-  }
-  if (!product) return;
-  setShowCheckout(true);
-};
+    if (!isLoggedIn()) {
+      toast.error("Please login to continue with Buy Now");
+      return;
+    }
+    if (!product) return;
+    setShowCheckout(true);
+  };
 
   return (
     <div className="min-h-screen">
@@ -159,7 +183,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
                 key={idx}
                 onClick={() => setSelectedImage(img)}
                 className={`w-20 h-20 relative cursor-pointer border rounded-lg transition hover:scale-105 ${
-                  selectedImage === img ? "border-black shadow-sm" : "border-gray-300"
+                  selectedImage === img
+                    ? "border-black shadow-sm"
+                    : "border-gray-300"
                 }`}
               >
                 <Image src={img} alt="Thumbnail" fill className="object-contain p-2" />
@@ -183,9 +209,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
           {/* Price */}
           <div>
             {product.oldPrice && (
-              <span className="line-through text-gray-400 mr-2">₹{product.oldPrice}</span>
+              <span className="line-through text-gray-400 mr-2">
+                ₹{product.oldPrice}
+              </span>
             )}
-            <span className="text-2xl font-bold text-blue-700">₹{product.price}</span>
+            <span className="text-2xl font-bold text-blue-700">
+              ₹{product.price}
+            </span>
             <p className="text-xs text-gray-500 mt-1">Inclusive of taxes</p>
           </div>
 

@@ -4,6 +4,10 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, ShoppingCart } from "lucide-react";
+import { isLoggedIn } from "@/lib/utils"; // 👈 add
+import { addLocalCartItem, getLocalCart } from "@/lib/local-cart"; // 👈 add
+import { toast } from "sonner"; // 👈 make sure this is at the top
+
 
 type Product = {
   id: string;
@@ -131,8 +135,12 @@ export default function BestSellers() {
   // Cart functions
   // Inside BestSellers.tsx
 
-  const handleAddToCart = async (productId: string) => {
-    try {
+  
+
+const handleAddToCart = async (productId: string) => {
+  try {
+    if (isLoggedIn()) {
+      // ✅ Logged in → server cart
       const res = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,32 +150,48 @@ export default function BestSellers() {
       if (!res.ok) {
         const errorData = await res.json();
         console.error("Add to cart failed:", errorData);
+        toast.error("❌ Failed to add product to cart.");
         return;
       }
 
-      // Update UI
-      setCartItems([...cartItems, productId]);
-    } catch (error) {
-      console.error("Add to cart failed:", error);
+      toast.success("✅ Product added to cart!");
+    } else {
+      // ✅ Not logged in → local cart
+      addLocalCartItem(productId, 1);
+      toast.success("🛒 Product added to cart (local)!");
     }
-  };
 
-  // Load existing cart when page loads
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
+    // Update UI
+    setCartItems([...cartItems, productId]);
+  } catch (error) {
+    console.error("Add to cart failed:", error);
+    toast.error("❌ Something went wrong. Please try again.");
+  }
+};
+
+ useEffect(() => {
+  const fetchCart = async () => {
+    try {
+      if (isLoggedIn()) {
+        // ✅ Logged in → get server cart
         const res = await fetch("/api/cart", { cache: "no-store" });
         if (!res.ok) return;
         const cart = await res.json();
         if (cart?.items) {
           setCartItems(cart.items.map((item: CartItem) => item.product.id));
         }
-      } catch (error) {
-        console.error("Error loading cart:", error);
+      } else {
+        // ✅ Not logged in → get local cart
+        const localCart = getLocalCart();
+        setCartItems(localCart.map((item) => item.productId));
       }
-    };
-    fetchCart();
-  }, []);
+    } catch (error) {
+      console.error("Error loading cart:", error);
+    }
+  };
+  fetchCart();
+}, []);
+
 
 
   const handleGoToCart = () => router.push("/cart");
