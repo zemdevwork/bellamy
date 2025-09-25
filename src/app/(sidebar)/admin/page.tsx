@@ -114,7 +114,7 @@ async function DashboardStats() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className={stat.alert ? "border-orange-200 bg-orange-50" : ""}>
+            <Card key={stat.title} className={stat.alert ? "border-orange-200" : ""}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
@@ -234,7 +234,7 @@ async function LowStockAlert() {
     const lowStockProducts = await getLowStockProducts(10);
     
     return (
-      <Card className={lowStockProducts.length > 0 ? "border-orange-200 bg-orange-50" : ""}>
+      <Card className={lowStockProducts.length > 0 ? "border-orange-200" : ""}>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             {lowStockProducts.length > 0 && (

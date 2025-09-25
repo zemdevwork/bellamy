@@ -8,7 +8,7 @@ export default function SidebarLayout({
     <div className="flex h-screen bg-background">
       <div className="flex-1 lg:ml-64 flex flex-col">
         <main className="flex-1 overflow-auto">
-          <div className="h-full">
+          <div className="h-full p-5">
             {children}
           </div>
         </main>
