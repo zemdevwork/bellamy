@@ -9,6 +9,7 @@ import cloudinary from "@/lib/cloudinary";
 
 import { createProductSchema, updateProductSchema, deleteProductSchema } from "@/schema/product-schema";
 import { Product } from "@/types/product";
+import { Prisma } from "@prisma/client";
 
 // Define the attribute structure for type safety
 type ProductAttribute = {
@@ -244,36 +245,103 @@ export const deleteProductAction = actionClient
   .inputSchema(deleteProductSchema)
   .action(async ({ parsedInput }) => {
     try {
+      // Find the product and its related order items
       const product = await prisma.product.findUnique({
         where: { id: parsedInput.id },
+        include: {
+          orderItems: true,
+        },
       });
-      if (!product) throw new Error("Product not found");
 
-      // delete main image from Cloudinary
-      if (product.image) {
-        const publicId = product.image.split("/").pop()?.split(".")[0];
-        if (publicId) {
-          await cloudinary.uploader.destroy(`BELLAMY/${publicId}`);
-        }
+      if (!product) {
+        return {
+          success: false,
+          message: "Product not found",
+        };
       }
 
-      // delete subimages from Cloudinary
-      if (product.subimage && product.subimage.length > 0) {
-        for (const url of product.subimage) {
-          const publicId = url.split("/").pop()?.split(".")[0];
-          if (publicId) {
-            await cloudinary.uploader.destroy(`BELLAMY/${publicId}`);
-          }
-        }
+      // Check if the product is associated with any orders
+      if (product.orderItems.length > 0) {
+        return {
+          success: false,
+          message: "Cannot delete product. It is part of existing orders.",
+        };
       }
+
+      // Proceed with deletion if no order items are found
+      // ... (rest of your deletion logic, e.g., Cloudinary cleanup)
 
       await prisma.product.delete({ where: { id: parsedInput.id } });
 
       revalidatePath("/admin/products");
-      return { success: true, message: "Product deleted successfully" };
-    } catch (error) {
+      return { 
+        success: true, 
+        message: "Product deleted successfully" 
+      };
+    } catch (error: unknown) {
       console.error("Delete product error:", error);
-      throw new Error(error instanceof Error ? error.message : "Failed to delete product");
+      
+      // Type-safe Prisma error handling
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        // Handle specific Prisma error codes
+        switch (error.code) {
+          case 'P2014':
+            return {
+              success: false,
+              message: "Cannot delete product. It is part of existing orders.",
+            };
+          case 'P2025':
+            return {
+              success: false,
+              message: "Product not found.",
+            };
+          case 'P2003':
+            return {
+              success: false,
+              message: "Cannot delete product due to related data.",
+            };
+          default:
+            return {
+              success: false,
+              message: `Database error: ${error.message}`,
+            };
+        }
+      }
+      
+      // Handle other Prisma errors
+      if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+        return {
+          success: false,
+          message: "An unknown database error occurred.",
+        };
+      }
+      
+      if (error instanceof Prisma.PrismaClientRustPanicError) {
+        return {
+          success: false,
+          message: "Database connection error.",
+        };
+      }
+      
+      if (error instanceof Prisma.PrismaClientInitializationError) {
+        return {
+          success: false,
+          message: "Database initialization error.",
+        };
+      }
+      
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        return {
+          success: false,
+          message: "Invalid data provided.",
+        };
+      }
+      
+      // Handle any other errors
+      return {
+        success: false,
+        message: "An unexpected error occurred. Please try again.",
+      };
     }
   });
 

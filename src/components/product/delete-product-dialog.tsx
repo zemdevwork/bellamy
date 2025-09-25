@@ -30,19 +30,25 @@ export const ProductDeleteDialog: FC<ProductDeleteDialogProps> = ({
   product,
 }) => {
   const router = useRouter();
-  const { execute, isExecuting } = useAction(deleteProductAction);
-
-  const handleDelete = async (id: string) => {
-    try {
-      await execute({ id });
-      router.refresh();
-      toast.success("Product deleted successfully");
-    } catch (error) {
+  const { execute, isExecuting } = useAction(deleteProductAction, {
+    onSuccess: (data) => {
+      if (data.data.success) {
+        router.refresh();
+        toast.success(data.data.message || "Product deleted successfully");
+      } else {
+        toast.error(data.data.message || "Failed to delete product");
+      }
+      setOpen(false);
+    },
+    onError: (error) => {
       console.error("Error deleting product:", error);
       toast.error("Failed to delete product");
-    } finally {
       setOpen(false);
-    }
+    },
+  });
+
+  const handleDelete = async (id: string) => {
+    await execute({ id });
   };
 
   return (
