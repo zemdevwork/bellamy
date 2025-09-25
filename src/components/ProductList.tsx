@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
+import { Eye, ShoppingCart } from "lucide-react";
 
 type Product = {
   id: string;
@@ -111,8 +112,11 @@ export default function ProductList() {
 
   if (loading) {
     return (
-      <section className="py-10 px-6 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8">Our Products</h2>
+      <section className="py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+        <h2 className="text-3xl font-serif text-gray-800">Our Products</h2>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {[...Array(6)].map((_, i) => (
             <div
@@ -127,6 +131,7 @@ export default function ProductList() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </section>
     );
@@ -150,10 +155,11 @@ export default function ProductList() {
   }
 
   return (
-    <section className="py-10 px-6 max-w-7xl mx-auto">
+    <section className="py-10 px-6 ">
+      <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bold">Our Products</h2>
+        <h2 className="text-3xl font-serif">Our Products</h2>
         {products.length > 8 && (
           <button
             onClick={() => setShowAll(!showAll)}
@@ -182,9 +188,9 @@ export default function ProductList() {
 
             return (
               <div
-                key={product.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden relative border border-gray-100 group cursor-pointer"
-              >
+              key={product.id}
+              className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 overflow-hidden relative border border-gray-100 group cursor-pointer"
+            >
                 {/* Badge */}
                 {product.badge && (
                   <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
@@ -199,14 +205,14 @@ export default function ProductList() {
                 {/* Clickable Card Content */}
                 <div onClick={() => goToProductDetails(product.id)}>
                   {/* Image */}
-                  <div className="relative w-full h-64">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                  <div className="relative w-full h-64 overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
 
                   {/* Info */}
                   <div className="p-4">
@@ -238,14 +244,15 @@ export default function ProductList() {
                   <div className="flex flex-col space-y-2">
                     {cart.includes(product.id) ? (
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleGoToCart();
-                        }}
-                        className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                      >
-                        Go to Cart
-                      </button>
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGoToCart();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <ShoppingCart size={16} />
+                      Go to Cart
+                    </button>
                     ) : (
                       <button
                         onClick={(e) => {
@@ -253,20 +260,17 @@ export default function ProductList() {
                           handleAddToCart(product);
                         }}
                         disabled={isPending}
-                        className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
                       >
+                        <ShoppingCart size={16} />
                         {isPending ? "Adding..." : "Add to Cart"}
                       </button>
                     )}
-                    {/* <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log(`Buy Now: ${product.id}`);
-                      }}
-                      className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Buy Now
-                    </button> */}
+                   <button onClick={() => router.push(`/product/${product.id}`)}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors" >
+                    <Eye size={16} /> 
+                    View Details
+                  </button>
                   </div>
                 </div>
               </div>
@@ -274,6 +278,7 @@ export default function ProductList() {
           })}
         </div>
       )}
+      </div>
     </section>
   );
 }

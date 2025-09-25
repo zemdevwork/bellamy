@@ -114,8 +114,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
       }
     });
   };
-  const handleGoToCart = () => router.push("/cart");
 
+  const handleGoToCart = () => router.push("/cart");
   const handleBuyNow = () => {
     if (!product) return;
     setShowCheckout(true);
@@ -132,10 +132,10 @@ export default function ProductDetails({ productId }: { productId: string }) {
         Back
       </button>
 
-      {/* SINGLE CARD LAYOUT */}
-     <div className="w-full max-w-[90%] mx-auto flex flex-col space-y-6 p-6 rounded-xl shadow-lg border">
-        {/* IMAGE GALLERY */}
-        <div className="w-full">
+      {/* TWO COLUMN LAYOUT */}
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 p-6 rounded-xl shadow-lg border bg-white">
+        {/* LEFT: IMAGE GALLERY */}
+        <div>
           <div className="w-full h-[420px] relative border rounded-xl overflow-hidden shadow-sm">
             {selectedImage && (
               <Image
@@ -162,10 +162,10 @@ export default function ProductDetails({ productId }: { productId: string }) {
           </div>
         </div>
 
-        {/* PRODUCT DETAILS */}
+        {/* RIGHT: PRODUCT DETAILS */}
         <div className="flex flex-col space-y-4">
           {/* Product Name */}
-          <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+          <h1 className="text-2xl font-serif text-gray-900">{product.name}</h1>
 
           {/* Brand */}
           {product.brand && (
