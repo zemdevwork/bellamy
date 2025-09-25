@@ -70,6 +70,7 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
           const categoryData = await response.json();
           if (mounted && Array.isArray(categoryData)) {
             setCategories(categoryData);
+            if (!categoryId || categoryId == ""){setSelectedCategory (categoryData[0]?.id || "")}
           }
         }
       } catch (err) {

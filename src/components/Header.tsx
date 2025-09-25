@@ -4,12 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getUserCart } from "@/server/actions/cart-action";
 import { useState, useEffect } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 
 export default function Header() {
   const pathname = usePathname();
@@ -135,20 +130,30 @@ export default function Header() {
           >
             HOME
           </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={`hover:text-blue-900 transition-colors ${isActive("/shop")}`}
-            >
-              SHOP
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {categories.map((cat) => (
-                <DropdownMenuItem key={cat.id} asChild>
-                  <Link href={`/shop/category/${cat.id}`}>{cat.name}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* SHOP Dropdown */}
+<div className="relative group">
+  <Link
+    href="/shop"
+    className={`hover:text-blue-900 transition-colors ${isActive("/shop")}`}
+  >
+    SHOP
+  </Link>
+  <div className="absolute left-0 mt-2 w-56 bg-white shadow-lg rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+    <ul className="py-2">
+      {categories.map((cat) => (
+        <li key={cat.id}>
+          <Link
+            href={`/shop/category/${cat.id}`}
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-900 transition-colors"
+          >
+            {cat.name}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>
+
           <Link
             href="/our-story"
             className={`hover:text-blue-900 transition-colors ${isActive("/our-story")}`}
