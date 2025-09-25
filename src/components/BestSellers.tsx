@@ -63,7 +63,7 @@ export default function BestSellers() {
           isOnSale: p.isOnSale,
           saleTag: p.saleTag,
         }));
-        
+
 
         setProducts(mappedProducts);
       } catch (error) {
@@ -120,54 +120,54 @@ export default function BestSellers() {
   };
 
   const handleTouchEnd = () => setIsDragging(false);
-  
+
   type CartItem = {
     product: {
       id: string;
     };
     quantity: number;
   };
-  
+
   // Cart functions
-// Inside BestSellers.tsx
+  // Inside BestSellers.tsx
 
-const handleAddToCart = async (productId: string) => {
-  try {
-    const res = await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId, quantity: 1 }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      console.error("Add to cart failed:", errorData);
-      return;
-    }
-
-    // Update UI
-    setCartItems([...cartItems, productId]);
-  } catch (error) {
-    console.error("Add to cart failed:", error);
-  }
-};
-
-// Load existing cart when page loads
-useEffect(() => {
-  const fetchCart = async () => {
+  const handleAddToCart = async (productId: string) => {
     try {
-      const res = await fetch("/api/cart", { cache: "no-store" });
-      if (!res.ok) return;
-      const cart = await res.json();
-      if (cart?.items) {
-        setCartItems(cart.items.map((item: CartItem) => item.product.id));
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, quantity: 1 }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Add to cart failed:", errorData);
+        return;
       }
+
+      // Update UI
+      setCartItems([...cartItems, productId]);
     } catch (error) {
-      console.error("Error loading cart:", error);
+      console.error("Add to cart failed:", error);
     }
   };
-  fetchCart();
-}, []);
+
+  // Load existing cart when page loads
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const res = await fetch("/api/cart", { cache: "no-store" });
+        if (!res.ok) return;
+        const cart = await res.json();
+        if (cart?.items) {
+          setCartItems(cart.items.map((item: CartItem) => item.product.id));
+        }
+      } catch (error) {
+        console.error("Error loading cart:", error);
+      }
+    };
+    fetchCart();
+  }, []);
 
 
   const handleGoToCart = () => router.push("/cart");
@@ -180,10 +180,10 @@ useEffect(() => {
           <h2 className="text-3xl font-serif text-gray-800">Our Best Sellers</h2>
           <div className="flex space-x-2">
             <button onClick={prevSlide} className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /> </svg>
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /> </svg>
             </button>
             <button onClick={nextSlide} className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /> </svg>
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /> </svg>
             </button>
           </div>
         </div>
@@ -203,75 +203,78 @@ useEffect(() => {
         >
           {products.map((product) => (
             <div
-            key={product.id}
-            className="w-72 flex-shrink-0"
-          >
-            <div
-              className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 overflow-hidden cursor-pointer"
-              onClick={(e) => {
-                if ((e.target as HTMLElement).tagName === "BUTTON") return;
-                router.push(`/product/${product.id}`);
-              }}
+              key={product.id}
+              className="w-72 flex-shrink-0"
             >
-              <div className="relative w-full h-64 overflow-hidden">
-                <Image
-                  src={product.image}
-                  alt={"Product"}
-                  width={400}
-                  height={300}
-                  className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                {product.isOnSale && (
-                  <div className="absolute bottom-2 left-2">
-                    <span className="bg-green-800 text-white text-xs px-2 py-1 rounded-full font-medium">
-                      {product.saleTag || "Sale"}
+              <div
+                className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 overflow-hidden cursor-pointer"
+                onClick={(e) => {
+                  if ((e.target as HTMLElement).tagName === "BUTTON") return;
+                  router.push(`/product/${product.id}`);
+                }}
+              >
+                <div className="relative w-full h-64 overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={"Product"}
+                    width={400}
+                    height={300}
+                    className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  {product.isOnSale && (
+                    <div className="absolute bottom-2 left-2">
+                      <span className="bg-green-800 text-white text-xs px-2 py-1 rounded-full font-medium">
+                        {product.saleTag || "Sale"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h4 className="text-xs text-gray-500 font-semibold">{product.name}</h4>
+                  <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
+                    {product.title}
+                  </h3>
+
+                  <div className="mb-3">
+                    {product.originalPrice && (
+                      <span className="text-sm text-gray-400 line-through mr-2">
+                        ₹{product.originalPrice}
+                      </span>
+                    )}
+                    <span className="text-lg font-semibold text-gray-800">
+                      ₹{product.price}
                     </span>
                   </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h4 className="text-xs text-gray-500 font-semibold">{product.name}</h4>
-                <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
-                  {product.title}
-                </h3>
-          
-                <div className="mb-3">
-                  {product.originalPrice && (
-                    <span className="text-sm text-gray-400 line-through mr-2">
-                      ₹{product.originalPrice}
-                    </span>
-                  )}
-                  <span className="text-lg font-semibold text-gray-800">
-                    ₹{product.price}
-                  </span>
-                </div>
-          
+
 
                   <div className="flex flex-col space-y-2">
                     {cartItems.includes(product.id) ? (
                       <button
-                      onClick={handleGoToCart}
-                      className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      <ShoppingCart size={16} />
-                      Go to Cart
-                    </button>
+                        onClick={handleGoToCart}
+                        className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300
+                         rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <ShoppingCart size={16} />
+                        Go to Cart
+                      </button>
                     ) : (
                       <button
-      onClick={() => handleAddToCart(product.id)}
-      className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-    >
-      <ShoppingCart size={16} />
-      Add to Cart
-    </button>
+                        onClick={() => handleAddToCart(product.id)}
+                        className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 
+                        rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <ShoppingCart size={16} />
+                        Add to Cart
+                      </button>
                     )}
-                     <button
-  onClick={() => router.push(`/product/${product.id}`)}
-  className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
->
-  <Eye size={16} /> 
-  View Details
-</button>
+                    <button
+                      onClick={() => router.push(`/product/${product.id}`)}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-4 border 
+                      border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      <Eye size={16} />
+                      View Details
+                    </button>
                   </div>
                 </div>
               </div>
