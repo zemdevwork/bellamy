@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useTransition, useEffect } from "react";
@@ -8,7 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import OrderCheckout from "@/components/orders/OrderCheckout"; // 👈 import checkout
 import { isLoggedIn } from "@/lib/utils"; // 👈 import utils at the top
-
+import { addLocalCartItem, getLocalCart } from "@/lib/local-cart"; // 👈 import local cart utils
 
 type ProductProps = {
   id: string;
@@ -35,17 +34,23 @@ export default function ProductCard({
   const [showCheckout, setShowCheckout] = useState(false);
   const router = useRouter();
 
-  // ✅ Check if product already in cart on mount
+  // ✅ Check if product already in cart (server OR local) on mount
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const res = await fetch("/api/cart", { cache: "no-store" });
-        if (!res.ok) return;
-        const cart = await res.json();
-        if (cart?.items) {
-          const exists = cart.items.some(
-            (item: { product: { id: string } }) => item.product.id === id
-          );
+        if (isLoggedIn()) {
+          const res = await fetch("/api/cart", { cache: "no-store" });
+          if (!res.ok) return;
+          const cart = await res.json();
+          if (cart?.items) {
+            const exists = cart.items.some(
+              (item: { product: { id: string } }) => item.product.id === id
+            );
+            setIsInCart(exists);
+          }
+        } else {
+          const localCart = getLocalCart();
+          const exists = localCart.some((item) => item.productId === id);
           setIsInCart(exists);
         }
       } catch (error) {
@@ -58,13 +63,14 @@ export default function ProductCard({
 
   const discountPercentage = oldPrice
     ? Math.round(
-      ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
-        parseFloat(price.replace(/[₹$]/g, ""))) /
-        parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
-      100
-    )
+        ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
+          parseFloat(price.replace(/[₹$]/g, ""))) /
+          parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
+          100
+      )
     : 0;
 
+  // ✅ Add to cart (server OR local)
   const handleAddToCart = async () => {
     if (!id) {
       toast.error("Product ID is missing");
@@ -73,8 +79,13 @@ export default function ProductCard({
 
     startTransition(async () => {
       try {
-        await addToCart({ productId: id, quantity: 1 });
-        toast.success(`Added "${name}" to cart!`);
+        if (isLoggedIn()) {
+          await addToCart({ productId: id, quantity: 1 });
+          toast.success(`Added "${name}" to cart!`);
+        } else {
+          addLocalCartItem(id, 1);
+          toast.success(`Added "${name}" to cart (Local)!`);
+        }
         setIsInCart(true);
       } catch (error) {
         console.error("Failed to add to cart:", error);
@@ -84,14 +95,14 @@ export default function ProductCard({
   };
 
   const handleGoToCart = () => router.push("/cart");
-   const handleBuyNow = () => {
-  if (!isLoggedIn()) {
-    toast.error("Please login to continue with Buy Now");
-    return;
-  }
-  setShowCheckout(true);
-};
 
+  const handleBuyNow = () => {
+    if (!isLoggedIn()) {
+      toast.error("Please login to continue with Buy Now");
+      return;
+    }
+    setShowCheckout(true);
+  };
 
   return (
     <div className="w-72 flex-shrink-0">
@@ -158,7 +169,7 @@ export default function ProductCard({
                 onClick={handleGoToCart}
                 className="w-full py-2 px-4 border border-gray-300 
       rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 
-      hover:border-black transition-colors"
+      hover:border-black transition-colors cursor-pointer"
               >
                 Go to Cart
               </button>
@@ -168,7 +179,7 @@ export default function ProductCard({
                 disabled={isPending}
                 className="w-full py-2 px-4 border border-gray-300 rounded-md 
       text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-black 
-      transition-colors disabled:opacity-50"
+      transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {isPending ? "Adding..." : "Add to Cart"}
               </button>
@@ -177,13 +188,11 @@ export default function ProductCard({
               onClick={handleBuyNow}
               className="w-full py-2 px-4 border border-gray-300 
     rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 
-    hover:border-black transition-colors"
+    hover:border-black transition-colors cursor-pointer"
             >
               Buy Now
             </button>
           </div>
-
-
         </div>
       </div>
 

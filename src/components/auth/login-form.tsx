@@ -63,6 +63,7 @@ export function LoginForm({
         setErrorMessage(result.error || "Login failed");
       } else {
         localStorage.setItem('user', JSON.stringify(result.user));
+        
         router.replace("/");
       }
     } catch (error) {
