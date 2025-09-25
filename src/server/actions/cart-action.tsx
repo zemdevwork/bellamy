@@ -10,7 +10,7 @@ import {
   updateCartItemSchema,
   removeFromCartSchema,
 } from "@/schema/cart-schema";
-import z from "zod";
+import { addToCartBundleInput } from "@/lib/local-cart";
 
 export async function getAuthenticatedUser() {
   const nextHeaders = await headers();
@@ -134,13 +134,6 @@ export async function addToCart(data: unknown) {
   }
 }
 
-
-export const addToCartBundleInput = z.array(
-  z.object({
-    productId: z.string().min(1, "Product ID is required"),
-    quantity: z.number().min(1, "Quantity must be at least 1"),
-  })
-);
 
 export async function addToCartAsBundle(data: unknown) {
   try {

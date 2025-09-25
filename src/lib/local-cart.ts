@@ -1,7 +1,16 @@
 "use client";
 
 import { z } from "zod";
-import { addToCartAsBundle , addToCartBundleInput } from "@/server/actions/cart-action";
+import { addToCartAsBundle} from "@/server/actions/cart-action";
+
+
+export const addToCartBundleInput = z.array(
+  z.object({
+    productId: z.string().min(1, "Product ID is required"),
+    quantity: z.number().min(1, "Quantity must be at least 1"),
+  })
+);
+
 
 const CART_KEY = "cart";
 

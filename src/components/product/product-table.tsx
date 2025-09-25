@@ -175,7 +175,7 @@ export default function ProductTable({ columns }: ProductTableProps) {
       setError(null);
       
       const queryParams = buildQueryParams();
-      const response = await fetch(`/api/product?${queryParams}`);
+      const response = await fetch(`/api/admin-products?${queryParams}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch products');
