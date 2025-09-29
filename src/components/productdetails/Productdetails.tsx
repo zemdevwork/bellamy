@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
+import { addToWishlist } from "@/server/actions/wishlist-action";
 import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils"; // 👈 add this
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart"; // 👈 add this
@@ -58,6 +59,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isInCart, setIsInCart] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isWishPending, startWishTransition] = useTransition();
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
 
   const router = useRouter();
@@ -98,6 +101,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
             const cartData = await cartRes.json();
             const exists = cartData && cartData.items?.some((item: CartItem) => item.variant?.id === (defaultVariantId || ""));
             setIsInCart(!!exists);
+          }
+          // check wishlist presence
+          const wlRes = await fetch("/api/wishlist");
+          if (wlRes.ok) {
+            const wl = await wlRes.json();
+            const existsW = wl && wl.items?.some((item: { variant: { id: string } }) => item.variant?.id === (defaultVariantId || ""));
+            setIsInWishlist(!!existsW);
           }
         } else {
           const localCart = getLocalCart();
@@ -171,6 +181,27 @@ const handleAddToCart = () => {
     }
   });
 };
+
+  // ✅ Add to wishlist (server only)
+  const handleAddToWishlist = () => {
+    if (!isLoggedIn()) {
+      toast.error("Please login to use wishlist");
+      return;
+    }
+    if (!product || !selectedVariantId) return;
+
+    startWishTransition(async () => {
+      try {
+        const res = await addToWishlist({ variantId: selectedVariantId });
+        if (res?.success) {
+          setIsInWishlist(true);
+          toast.success(`❤️ Added to wishlist`);
+        }
+      } catch (e) {
+        toast.error("Failed to add to wishlist");
+      }
+    });
+  };
 
 
   const handleGoToCart = () => router.push("/cart");
@@ -320,6 +351,13 @@ const handleAddToCart = () => {
               className="flex-1 py-4 text-lg rounded-lg bg-black text-white hover:bg-gray-800 font-medium shadow"
             >
               Buy Now
+            </button>
+            <button
+              onClick={handleAddToWishlist}
+              disabled={isWishPending || isInWishlist}
+              className="px-5 py-4 text-lg rounded-lg border border-gray-800 hover:bg-gray-50 font-medium disabled:opacity-50"
+            >
+              {isInWishlist ? "In Wishlist" : isWishPending ? "Adding..." : "Add to Wishlist"}
             </button>
           </div>
 

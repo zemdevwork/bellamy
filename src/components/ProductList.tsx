@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
 import { Eye, ShoppingCart } from "lucide-react";
-
-// 👇 added imports
 import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
 
@@ -21,9 +19,9 @@ type Product = {
   reviews?: number;
   badge?: string;
   description?: string;
+  variantId?: string;
 };
 
-// API response type
 type ProductResponse = {
   id: string;
   name: string;
@@ -34,14 +32,15 @@ type ProductResponse = {
   reviews?: number;
   badge?: string;
   description?: string;
+  defaultVariantId: string;
 };
 
 type CartItem = {
-          product: {
-            id: string;
-          };
-          quantity: number;
-        };
+  variant: {
+    id: string;
+  };
+  quantity: number;
+};
 
 export default function ProductList() {
   const [showAll, setShowAll] = useState(false);
@@ -71,22 +70,23 @@ export default function ProductList() {
           rating: product.rating ?? 0,
           reviews: product.reviews ?? 0,
           badge: product.badge,
+          variantId: product.defaultVariantId,
         }));
 
         setProducts(transformedProducts);
 
-        // ✅ Fetch cart
+        // ✅ Fetch cart with variantId
         if (isLoggedIn()) {
           const cartRes = await fetch("/api/cart", { cache: "no-store" });
           if (cartRes.ok) {
             const cartData = await cartRes.json();
             if (cartData?.items) {
-              setCart(cartData.items.map((item: CartItem) => item.product.id));
+              setCart(cartData.items.map((item: CartItem) => item.variant.id));
             }
           }
         } else {
           const localCart = getLocalCart();
-          setCart(localCart.map((item) => item.productId));
+          setCart(localCart.map((item) => item.variantId));
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -101,25 +101,28 @@ export default function ProductList() {
   const visibleProducts = showAll ? products : products.slice(0, 8);
 
   const handleAddToCart = async (product: Product) => {
-  startTransition(async () => {
-    try {
-      if (isLoggedIn()) {
-        // ✅ logged in → server cart
-        await addToCart({ productId: product.id, quantity: 1 });
-        toast.success(`✅ "${product.name}" added to your cart!`);
-      } else {
-        // ✅ guest → local cart
-        addLocalCartItem(product.id, 1);
-        toast.success(`🛒 "${product.name}" added to your cart (local)!`);
-      }
-
-      setCart((prev) => [...prev, product.id]);
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-      toast.error("❌ Failed to add to cart. Please try again.");
+    if (!product.variantId) {
+      toast.error("Variant is required");
+      return;
     }
-  });
-};
+
+    startTransition(async () => {
+      try {
+        if (isLoggedIn()) {
+          await addToCart({ variantId: product.variantId, quantity: 1 });
+          toast.success(`✅ "${product.name}" added to your cart!`);
+        } else {
+          addLocalCartItem(product.variantId as string, 1);
+          toast.success(`🛒 "${product.name}" added to your cart (local)!`);
+        }
+
+        setCart((prev) => [...prev, product.variantId!]);
+      } catch (error) {
+        console.error("Failed to add to cart:", error);
+        toast.error("❌ Failed to add to cart. Please try again.");
+      }
+    });
+  };
 
   const handleGoToCart = () => router.push("/cart");
 
@@ -174,7 +177,6 @@ export default function ProductList() {
   return (
     <section className="py-10 px-6 ">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-serif">Our Products</h2>
           {products.length > 8 && (
@@ -208,7 +210,6 @@ export default function ProductList() {
                   key={product.id}
                   className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 overflow-hidden relative border border-gray-100 group cursor-pointer"
                 >
-                  {/* Badge */}
                   {product.badge && (
                     <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
                       {product.badge}
@@ -219,9 +220,8 @@ export default function ProductList() {
                       -{discountPercentage}%
                     </div>
                   )}
-                  {/* Clickable Card Content */}
+
                   <div onClick={() => goToProductDetails(product.id)}>
-                    {/* Image */}
                     <div className="relative w-full h-64 overflow-hidden">
                       <Image
                         src={product.image}
@@ -231,7 +231,6 @@ export default function ProductList() {
                       />
                     </div>
 
-                    {/* Info */}
                     <div className="p-4">
                       <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
                         {product.name}
@@ -242,7 +241,6 @@ export default function ProductList() {
                         </p>
                       )}
 
-                      {/* Price */}
                       <div className="mb-3">
                         {product.oldPrice && (
                           <span className="text-sm text-gray-400 line-through mr-2">
@@ -256,10 +254,9 @@ export default function ProductList() {
                     </div>
                   </div>
 
-                  {/* Buttons (not navigating) */}
                   <div className="p-4 pt-0">
                     <div className="flex flex-col space-y-2">
-                      {cart.includes(product.id) ? (
+                      {cart.includes(product.variantId || "") ? (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
