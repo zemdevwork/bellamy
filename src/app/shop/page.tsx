@@ -5,8 +5,8 @@ import React from 'react'
 function ShopPage() {
   return (
       <div>
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-2xl font-serif mb-6">Products</h1>
+      <div className="page-wrap">
+        <h1 className="page-title mb-6">Products</h1>
         <ShopList />
       </div>
       <Footer/>

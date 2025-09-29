@@ -30,7 +30,7 @@ export default function WishlistPage() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center">
+      <div className="page-wrap text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
         <p className="text-gray-600">Loading wishlist...</p>
       </div>
@@ -39,13 +39,13 @@ export default function WishlistPage() {
 
   if (items.length === 0) {
     return (
-      <div className="p-8">
+      <div className="page-wrap">
         <div className="max-w-2xl mx-auto">
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
               <Heart className="w-10 h-10 text-gray-400" />
             </div>
-            <h2 className="text-2xl font-medium text-gray-900 mb-2">
+            <h2 className="page-title mb-2">
               Your wishlist is empty
             </h2>
             <p className="text-gray-600 text-sm mb-6">
@@ -64,11 +64,11 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="page-wrap">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-serif text-gray-900 mb-1">My Wishlist</h1>
+          <h1 className="page-title text-gray-900 mb-1">My Wishlist</h1>
           <p className="text-gray-600 text-sm">
             {items.length} {items.length === 1 ? "item" : "items"} saved
           </p>
@@ -81,6 +81,9 @@ export default function WishlistPage() {
               key={it.id}
               variantId={it.variantId || it.variant.id}
               product={it.variant.product}
+              onRemoved={(vid) =>
+                setItems((prev) => prev.filter((x) => (x.variantId || x.variant.id) !== vid))
+              }
             />
           ))}
         </div>

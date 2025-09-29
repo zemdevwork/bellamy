@@ -319,11 +319,10 @@ export default function CheckoutModal({
           city,
           state,
           pincode,
-          totalAmount: total,
+          // For Buy Now, send items with variantId and quantity; server calculates totals
           items: products.map((p) => ({
-            productId: p.id,
+            variantId: p.id,
             quantity: p.quantity,
-            price: p.price,
           })),
         }),
       });

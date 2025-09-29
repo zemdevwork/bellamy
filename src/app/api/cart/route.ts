@@ -11,7 +11,36 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // First, clean up orphaned cart items (items with deleted variants)
     const cart = await prisma.cart.findUnique({
+      where: { userId: session.user.id },
+      include: {
+        items: true,
+      },
+    });
+
+    // If no cart exists, return empty array
+    if (!cart) {
+      return NextResponse.json([]);
+    }
+
+    // Check each item and delete if variant doesn't exist
+    const itemsToCheck = cart.items;
+    for (const item of itemsToCheck) {
+      const variantExists = await prisma.productVariant.findUnique({
+        where: { id: item.variantId },
+      });
+      
+      if (!variantExists) {
+        // Delete orphaned cart item
+        await prisma.cartItem.delete({
+          where: { id: item.id },
+        });
+      }
+    }
+
+    // Now fetch the cleaned cart with all relations
+    const cleanCart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
       include: {
         items: {
@@ -26,14 +55,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(cart);
+    // Return items array or empty array if no cart
+    return NextResponse.json(cleanCart?.items || []);
   } catch (error) {
-    console.error("❌ Cart API error:", error);
+    console.error("Cart API error:", error);
     return NextResponse.json({ error: "Failed to fetch cart" }, { status: 500 });
   }
 }
 
-// ✅ ADD TO CART
+// ADD TO CART
 export async function POST(request: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -48,7 +78,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Variant ID required" }, { status: 400 });
     }
 
-    // ✅ Ensure cart exists
+    // Verify variant exists before adding to cart
+    const variantExists = await prisma.productVariant.findUnique({
+      where: { id: variantId },
+    });
+
+    if (!variantExists) {
+      return NextResponse.json({ error: "Product variant not found" }, { status: 404 });
+    }
+
+    // Ensure cart exists
     let cart = await prisma.cart.findUnique({
       where: { userId: session.user.id },
     });
@@ -59,7 +98,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // ✅ Check if variant already exists in cart
+    // Check if variant already exists in cart
     const existingItem = await prisma.cartItem.findFirst({
       where: { cartId: cart.id, variantId },
     });
@@ -81,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("❌ Add to Cart error:", error);
+    console.error("Add to Cart error:", error);
     return NextResponse.json({ error: "Failed to add to cart" }, { status: 500 });
   }
 }

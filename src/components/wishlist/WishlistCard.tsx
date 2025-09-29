@@ -9,9 +9,10 @@ import { Heart, ShoppingCart, Trash2 } from "lucide-react";
 type WishlistItemProps = {
   variantId: string;
   product: { id: string; name: string; image: string; price?: number };
+  onRemoved?: (variantId: string) => void;
 };
 
-export default function WishlistCard({ variantId, product }: WishlistItemProps) {
+export default function WishlistCard({ variantId, product, onRemoved }: WishlistItemProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -20,6 +21,7 @@ export default function WishlistCard({ variantId, product }: WishlistItemProps) 
       try {
         await removeFromWishlist({ variantId });
         toast.success("Removed from wishlist");
+        onRemoved?.(variantId);
       } catch {
         toast.error("Failed to remove from wishlist");
       }
@@ -66,34 +68,37 @@ export default function WishlistCard({ variantId, product }: WishlistItemProps) 
         </div>
 
         {/* Product Details */}
-        <div className="flex-1 min-w-0">
-          <h3
-            onClick={() => router.push(`/product/${product.id}`)}
-            className="font-medium text-gray-900 cursor-pointer hover:text-gray-700 mb-1"
-          >
-            {product.name}
-          </h3>
-          {product.price && (
-            <p className="text-sm text-gray-600 mb-3">
-              ₹{product.price.toFixed(2)}
-            </p>
-          )}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex-1">
+            <h3
+              onClick={() => router.push(`/product/${product.id}`)}
+              className="font-medium text-gray-900 cursor-pointer hover:text-gray-700 mb-1"
+            >
+              {product.name}
+            </h3>
+            {product.price && (
+              <p className="text-sm text-gray-600 mb-2">
+                ₹{product.price.toFixed(2)}
+              </p>
+            )}
+          </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 mt-auto">
             <button
               onClick={handleAddToCart}
               disabled={isPending}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ShoppingCart className="w-4 h-4" />
-              Add to Cart
+              <span>Add to Cart</span>
             </button>
 
             <button
               onClick={handleRemove}
               disabled={isPending}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
+              className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors border border-transparent hover:border-red-100"
+              aria-label="Remove from wishlist"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -102,7 +107,7 @@ export default function WishlistCard({ variantId, product }: WishlistItemProps) 
 
         {/* Price on Right (Desktop) */}
         {product.price && (
-          <div className="text-right hidden sm:block">
+          <div className="text-right hidden sm:block flex-shrink-0">
             <p className="font-medium text-gray-900">
               ₹{product.price.toFixed(2)}
             </p>

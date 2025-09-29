@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="page-wrap">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-600 mb-8">
           <button className="hover:text-gray-900">Home</button>
@@ -46,7 +46,7 @@ export default function ProfilePage() {
 
         {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-medium text-gray-900 mb-2">My Account</h1>
+          <h1 className="page-title text-gray-900 mb-2">My Account</h1>
           <p className="text-gray-600">Manage your profile and preferences</p>
         </div>
 

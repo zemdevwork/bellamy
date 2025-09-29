@@ -5,9 +5,10 @@ import { addToCart } from "@/server/actions/cart-action";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import OrderCheckout from "@/components/orders/OrderCheckout"; // 👈 import checkout
-import { isLoggedIn } from "@/lib/utils"; // 👈 import utils at the top
-import { addLocalCartItem, getLocalCart } from "@/lib/local-cart"; // 👈 import local cart utils
+import OrderCheckout from "@/components/orders/OrderCheckout";
+import { isLoggedIn } from "@/lib/utils";
+import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
+import { Eye, ShoppingCart } from "lucide-react";
 
 type ProductProps = {
   id: string;
@@ -17,7 +18,9 @@ type ProductProps = {
   image: string;
   badge?: string;
   description?: string;
-  variantId?: string; // default variant to add
+  variantId?: string;
+  brandName?: string;
+  brandThemePrimary?: string;
 };
 
 export default function ProductCard({
@@ -29,6 +32,8 @@ export default function ProductCard({
   badge,
   description,
   variantId,
+  brandName,
+  brandThemePrimary = "#000",
 }: ProductProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -36,7 +41,7 @@ export default function ProductCard({
   const [showCheckout, setShowCheckout] = useState(false);
   const router = useRouter();
 
-  // ✅ Check if product already in cart (server OR local) on mount
+  // Check if product already in cart on mount
   useEffect(() => {
     const fetchCart = async () => {
       try {
@@ -44,8 +49,9 @@ export default function ProductCard({
           const res = await fetch("/api/cart", { cache: "no-store" });
           if (!res.ok) return;
           const cart = await res.json();
-          if (cart?.items) {
-            const exists = cart.items.some(
+          // cart is now an array
+          if (Array.isArray(cart)) {
+            const exists = cart.some(
               (item: { variant: { id: string } }) => !!item.variant && (variantId ? item.variant.id === variantId : false)
             );
             setIsInCart(exists);
@@ -72,8 +78,11 @@ export default function ProductCard({
       )
     : 0;
 
-  // ✅ Add to cart (server OR local)
-  const handleAddToCart = async () => {
+  // Add to cart handler
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!variantId) {
       toast.error("Variant is required");
       return;
@@ -82,7 +91,12 @@ export default function ProductCard({
     startTransition(async () => {
       try {
         if (isLoggedIn()) {
-          await addToCart({ variantId, quantity: 1 });
+          const res = await fetch("/api/cart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ variantId, quantity: 1 }),
+          });
+          if (!res.ok) throw new Error("Failed to add to cart");
           toast.success(`Added "${name}" to cart!`);
         } else {
           addLocalCartItem(variantId, 1);
@@ -96,109 +110,138 @@ export default function ProductCard({
     });
   };
 
-  const handleGoToCart = () => router.push("/cart");
+  const handleGoToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push("/cart");
+  };
 
-  const handleBuyNow = () => {
-    if (!isLoggedIn()) {
-      toast.error("Please login to continue with Buy Now");
-      return;
-    }
-    setShowCheckout(true);
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/product/${id}`);
   };
 
   return (
-    <div className="w-72 flex-shrink-0">
-      {/* Wrapper with hover effects */}
+    <div className="group relative">
       <div
-        className="group bg-white rounded-lg shadow-sm hover:shadow-lg 
-        transition-transform duration-300 ease-in-out transform hover:scale-105 
-        overflow-hidden cursor-pointer"
+        onClick={() => router.push(`/product/${id}`)}
+        className="cursor-pointer"
       >
-        {/* Badge */}
-        {badge && (
-          <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-            {badge}
-          </div>
-        )}
-        {discountPercentage > 0 && (
-          <div className="absolute top-3 right-3 z-10 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-            -{discountPercentage}%
-          </div>
-        )}
-
-        {/* Product Image */}
-        <div className="relative w-full h-64 overflow-hidden">
-          <Image
-            src={image}
-            alt={name}
-            width={400}
-            height={300}
-            className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-            onLoad={() => setImageLoaded(true)}
-          />
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
-          )}
-        </div>
-
-        {/* Product Info */}
-        <div className="p-4">
-          <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
-            {name}
-          </h3>
-          {description && (
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-              {description}
-            </p>
+        <div className="rounded-xl overflow-hidden border bg-white" style={{ borderColor: "#E9D8DD" }}>
+          {/* Badges */}
+          {(badge || discountPercentage > 0) && (
+            <div className="absolute z-10 inset-x-0 top-0 flex justify-between p-3">
+              <div>
+                {badge && (
+                  <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                    {badge}
+                  </span>
+                )}
+              </div>
+              {discountPercentage > 0 && (
+                <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                  -{discountPercentage}%
+                </span>
+              )}
+            </div>
           )}
 
-          {/* Price */}
-          <div className="mb-3">
-            {oldPrice && (
-              <span className="text-sm text-gray-400 line-through mr-2">
-                {oldPrice}
-              </span>
-            )}
-            <span className="text-lg font-semibold text-gray-800">
-              {price}
-            </span>
+          {/* Image */}
+          <div className="aspect-[3/4] overflow-hidden bg-[#F9F6F7] relative">
+            <Image
+              src={image}
+              alt={name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onLoad={() => setImageLoaded(true)}
+            />
+            {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
+            
+            {/* Action Buttons - Bottom right on mobile, center overlay on desktop hover */}
+            <div className="absolute bottom-3 right-3 flex gap-2 md:hidden">
+              {isInCart ? (
+                <button
+                  onClick={handleGoToCart}
+                  aria-label="Go to cart"
+                  title="Go to cart"
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg"
+                >
+                  <ShoppingCart size={18} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isPending}
+                  aria-label="Add to cart"
+                  title="Add to cart"
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white text-stone-800 hover:bg-amber-100 transition-all disabled:opacity-50 shadow-lg"
+                >
+                  <ShoppingCart size={18} />
+                </button>
+              )}
+              <button
+                onClick={handleViewDetails}
+                aria-label="View details"
+                title="View details"
+                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg"
+              >
+                <Eye size={18} />
+              </button>
+            </div>
+
+            {/* Desktop hover overlay */}
+            <div className="hidden md:flex absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+              {isInCart ? (
+                <button
+                  onClick={handleGoToCart}
+                  aria-label="Go to cart"
+                  title="Go to cart"
+                  className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg transform translate-y-2 group-hover:translate-y-0"
+                >
+                  <ShoppingCart size={20} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isPending}
+                  aria-label="Add to cart"
+                  title="Add to cart"
+                  className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-stone-800 hover:bg-amber-100 transition-all disabled:opacity-50 shadow-lg transform translate-y-2 group-hover:translate-y-0"
+                >
+                  <ShoppingCart size={20} />
+                </button>
+              )}
+              <button
+                onClick={handleViewDetails}
+                aria-label="View details"
+                title="View details"
+                className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg transform translate-y-2 group-hover:translate-y-0"
+              >
+                <Eye size={20} />
+              </button>
+            </div>
           </div>
 
-          {/* Buttons */}
-          <div className="flex flex-col space-y-2">
-            {isInCart ? (
-              <button
-                onClick={handleGoToCart}
-                className="w-full py-2 px-4 border border-gray-300 
-      rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 
-      hover:border-black transition-colors cursor-pointer"
-              >
-                Go to Cart
-              </button>
-            ) : (
-              <button
-                onClick={handleAddToCart}
-                disabled={isPending}
-                className="w-full py-2 px-4 border border-gray-300 rounded-md 
-      text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-black 
-      transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                {isPending ? "Adding..." : "Add to Cart"}
-              </button>
+          {/* Product Info */}
+          <div className="p-4">
+            <div className="text-xs text-gray-500 mb-1">{brandName || " "}</div>
+            <h3 className="font-serif text-base text-gray-900 line-clamp-2">{name}</h3>
+            <div className="mt-2 flex items-center gap-2">
+              {oldPrice && (
+                <span className="text-sm text-gray-400 line-through">{oldPrice}</span>
+              )}
+              <div className="font-semibold" style={{ color: brandThemePrimary }}>
+                {price}
+              </div>
+            </div>
+            {description && (
+              <p className="text-xs text-gray-600 mt-2 line-clamp-2">{description}</p>
             )}
-            <button
-              onClick={handleBuyNow}
-              className="w-full py-2 px-4 border border-gray-300 
-    rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 
-    hover:border-black transition-colors cursor-pointer"
-            >
-              Buy Now
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Checkout Modal */}
       {showCheckout && (
         <OrderCheckout
           products={[

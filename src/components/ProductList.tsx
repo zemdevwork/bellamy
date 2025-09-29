@@ -1,13 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { addToCart } from "@/server/actions/cart-action";
-import { Eye, ShoppingCart } from "lucide-react";
-import { isLoggedIn } from "@/lib/utils";
-import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
+import React, { useState, useEffect } from "react";
+import ProductCard from "@/components/ProductCard";
 
 type Product = {
   id: string;
@@ -35,21 +29,11 @@ type ProductResponse = {
   defaultVariantId: string;
 };
 
-type CartItem = {
-  variant: {
-    id: string;
-  };
-  quantity: number;
-};
-
 export default function ProductList() {
   const [showAll, setShowAll] = useState(false);
-  const [cart, setCart] = useState<string[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const router = useRouter();
 
   useEffect(() => {
     const fetchProductsAndCart = async () => {
@@ -74,20 +58,6 @@ export default function ProductList() {
         }));
 
         setProducts(transformedProducts);
-
-        // ✅ Fetch cart with variantId
-        if (isLoggedIn()) {
-          const cartRes = await fetch("/api/cart", { cache: "no-store" });
-          if (cartRes.ok) {
-            const cartData = await cartRes.json();
-            if (cartData?.items) {
-              setCart(cartData.items.map((item: CartItem) => item.variant.id));
-            }
-          }
-        } else {
-          const localCart = getLocalCart();
-          setCart(localCart.map((item) => item.variantId));
-        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -99,36 +69,6 @@ export default function ProductList() {
   }, []);
 
   const visibleProducts = showAll ? products : products.slice(0, 8);
-
-  const handleAddToCart = async (product: Product) => {
-    if (!product.variantId) {
-      toast.error("Variant is required");
-      return;
-    }
-
-    startTransition(async () => {
-      try {
-        if (isLoggedIn()) {
-          await addToCart({ variantId: product.variantId, quantity: 1 });
-          toast.success(`✅ "${product.name}" added to your cart!`);
-        } else {
-          addLocalCartItem(product.variantId as string, 1);
-          toast.success(`🛒 "${product.name}" added to your cart (local)!`);
-        }
-
-        setCart((prev) => [...prev, product.variantId!]);
-      } catch (error) {
-        console.error("Failed to add to cart:", error);
-        toast.error("❌ Failed to add to cart. Please try again.");
-      }
-    });
-  };
-
-  const handleGoToCart = () => router.push("/cart");
-
-  const goToProductDetails = (id: string) => {
-    router.push(`/product/${id}`);
-  };
 
   if (loading) {
     return (
@@ -195,106 +135,19 @@ export default function ProductList() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {visibleProducts.map((product) => {
-              const discountPercentage = product.oldPrice
-                ? Math.round(
-                    ((parseFloat(product.oldPrice.replace(/[₹$]/g, "")) -
-                      parseFloat(product.price.replace(/[₹$]/g, ""))) /
-                      parseFloat(product.oldPrice.replace(/[₹$]/g, ""))) *
-                      100
-                  )
-                : 0;
-
-              return (
-                <div
-                  key={product.id}
-                  className="bg-white/95 backdrop-blur rounded-xl shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:-translate-y-0.5 overflow-hidden relative border border-stone-200 group cursor-pointer"
-                >
-                  {product.badge && (
-                    <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      {product.badge}
-                    </div>
-                  )}
-                  {discountPercentage > 0 && (
-                    <div className="absolute top-3 left-3 z-10 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      -{discountPercentage}%
-                    </div>
-                  )}
-
-                  <div onClick={() => goToProductDetails(product.id)}>
-                    <div className="relative w-full h-64 overflow-hidden">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+            {visibleProducts.map((product) => (
+              <div key={product.id}>
+                <ProductCard
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  oldPrice={product.oldPrice}
+                  image={product.image}
+                  description={product.description}
+                  variantId={product.variantId}
                       />
                     </div>
-
-                    <div className="p-4">
-                      <h3 className="text-sm font-medium text-stone-800 mb-2 line-clamp-2">
-                        {product.name}
-                      </h3>
-                      {product.description && (
-                        <p className="text-xs text-stone-600 mb-2 line-clamp-2">
-                          {product.description}
-                        </p>
-                      )}
-
-                      <div className="mb-3">
-                        {product.oldPrice && (
-                          <span className="text-sm text-stone-400 line-through mr-2">
-                            {product.oldPrice}
-                          </span>
-                        )}
-                        <span className="text-lg font-semibold text-stone-800">
-                          {product.price}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 pt-0">
-                    <div className="flex items-center gap-2">
-                      {cart.includes(product.variantId || "") ? (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleGoToCart();
-                          }}
-                          aria-label="Go to cart"
-                          title="Go to cart"
-                          className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-stone-300 text-stone-700 hover:bg-stone-50 transition-colors cursor-pointer"
-                        >
-                          <ShoppingCart size={18} />
-                        </button>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(product);
-                          }}
-                          disabled={isPending}
-                          aria-label="Add to cart"
-                          title="Add to cart"
-                          className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-stone-300 text-stone-800 hover:bg-stone-50 transition-colors disabled:opacity-50 bg-amber-100/80 cursor-pointer"
-                        >
-                          <ShoppingCart size={18} />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => router.push(`/product/${product.id}`)}
-                        aria-label="View details"
-                        title="View details"
-                        className="inline-flex items-center justify-center w-10 h-10 rounded-full border cursor-pointer border-stone-300 text-stone-700 hover:bg-stone-50 transition-colors"
-                      >
-                        <Eye size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            ))}
           </div>
         )}
       </div>

@@ -94,10 +94,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
         setSelectedImage(defaultVariant?.images?.[0] || data.image || data.subimage?.[0] || null);
 
         if (isLoggedIn()) {
-          const cartRes = await fetch("/api/cart");
+          const cartRes = await fetch("/api/cart", { cache: "no-store" });
           if (cartRes.ok) {
-            const cartData = await cartRes.json();
-            const exists = cartData && cartData.items?.some((item: CartItem) => item.variant?.id === (defaultVariantId || ""));
+            const items = await cartRes.json();
+            // API returns an array of items
+            const exists = Array.isArray(items)
+              ? items.some((item: CartItem) => item.variant?.id === (defaultVariantId || ""))
+              : false;
             setIsInCart(!!exists);
           }
           const wlRes = await fetch("/api/wishlist");
@@ -150,10 +153,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
     startTransition(async () => {
       try {
         if (isLoggedIn()) {
-          await addToCart({
-            variantId: selectedVariantId,
-            quantity,
+          const res = await fetch("/api/cart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ variantId: selectedVariantId, quantity }),
           });
+          if (!res.ok) throw new Error("Failed to add to cart");
           toast.success(`✅ Added "${capitalizeWords(product.name)}" to your cart!`);
         } else {
           addLocalCartItem(selectedVariantId, quantity);
