@@ -1,59 +1,3 @@
-// "use client";
-// import { useState, useEffect } from "react";
-// import Image from "next/image";
-// import { useRouter } from "next/navigation";
-
-// // ✅ Replace these with your actual images
-// import { BannerImages } from "@/constants/values";
-
-// export default function Banner() {
-//   const [currentIndex, setCurrentIndex] = useState(0);
-//   const router = useRouter();
-
-//   // Auto-slide every 3 seconds
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setCurrentIndex((prev) => (prev + 1) % BannerImages.length);
-//     }, 3000);
-//     return () => clearInterval(interval);
-//   }, []);
-
-//   return (
-//     <section className="relative bg-[#f0f7ff] flex flex-col lg:flex-row items-center justify-between px-4 sm:px-6 md:px-10 py-8 sm:py-12 md:py-16 lg:py-20 min-h-[80]">
-//       {/* Text */}
-//       <div className="max-w-xl z-10">
-//         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-900 mb-4 sm:mb-6">
-//           Dress Your Kids <br /> In Comfort & Style
-//         </h2>
-//         <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
-//           Discover trendy, comfy, and affordable kidswear for every occasion.
-//         </p>
-//         <button
-//           onClick={() => router.push("/shop")}
-//           className="bg-blue-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base"
-//         >
-//           SHOP NOW
-//         </button>
-//       </div>
-
-//       {/* Image Slider */}
-//       <div className="flex space-x-5 mt-8 sm:mt-10 lg:mt-0 relative w-full max-w-[350px] sm:max-w-[500px] md:max-w-[650px] lg:max-w-[800px] h-[350px] sm:h-[350px] md:h-[450px] lg:h-[500px]">
-//         {BannerImages.map((img, index) => (
-//           <Image
-//             key={index}
-//             src={img}
-//             alt={`Banner ${index + 1}`}
-//             width={800}
-//             height={500}
-//             className={`absolute inset-0 w-full h-full object-cover rounded-lg transition-opacity duration-1000 ${
-//               index === currentIndex ? "opacity-100" : "opacity-0"
-//             }`}
-//           />
-//         ))}
-//       </div>
-//     </section>
-//   );
-// }
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -78,7 +22,7 @@ export default function Banner() {
   useEffect(() => {
     if (total <= 1) return;
     if (isHovering) return;
-    const id = setInterval(next, 4000);
+    const id = setInterval(next, 3000);
     return () => clearInterval(id);
   }, [next, total, isHovering]);
 
@@ -140,13 +84,16 @@ export default function Banner() {
         ))}
       </div>
 
-      {/* Gradient overlays for readability */}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-black/40" />
+      {/* Gradient overlays for readability with warm brand vibe */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-black/40" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(244,114,182,0.18),transparent_55%)]" />
+      </div>
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center justify-center md:justify-start">
         <div className="px-6 md:px-12 lg:px-20 max-w-3xl text-center md:text-left">
-          <h1 className="text-white text-4xl md:text-6xl font-bold leading-tight drop-shadow-md">
+          <h1 className="text-white text-4xl md:text-6xl font-bold leading-tight drop-shadow-md tracking-tight">
             Dress Your Kids In Comfort & Style
           </h1>
           <p className="mt-4 text-white/90 text-base md:text-lg max-w-2xl">
@@ -154,7 +101,7 @@ export default function Banner() {
           </p>
           <button
             onClick={() => router.push("/shop")}
-            className="mt-6 inline-flex items-center justify-center rounded-md bg-white/90 hover:bg-white text-gray-900 px-6 py-3 text-sm md:text-base font-semibold transition-colors"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-amber-200/90 hover:bg-amber-200 text-stone-900 px-7 py-3 text-sm md:text-base font-semibold shadow-sm hover:shadow transition-colors"
           >
             Shop now
           </button>

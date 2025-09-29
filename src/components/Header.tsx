@@ -586,20 +586,31 @@ export default function Header() {
               <Link href="/" className={`transition-colors`} style={{ color: isActive("/") ? brand.primary : "#3f3f3f" }}>HOME</Link>
               <div className="relative group">
                 <Link href="/shop" className={`transition-colors`} style={{ color: isActive("/shop") ? brand.primary : "#3f3f3f" }}>SHOP</Link>
-                <div className="absolute left-1/2 -translate-x-1/2 mt-3 w-60 bg-white shadow-xl border border-gray-200 rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                  <ul className="py-3">
-                    {categories.map((cat) => (
-                      <li key={cat.id}>
-                        <Link
-                          href={`/shop/category/${cat.id}`}
-                          className="block px-5 py-2.5 text-[15px]"
-                          style={{ color: brand.primary }}
-                        >
-                          {cat.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="absolute left-1/2 -translate-x-1/2 mt-3 bg-white shadow-2xl border rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden"
+                  style={{ borderColor: "#E3D5CA", width: 360 }}>
+                  <div className="grid grid-cols-2">
+                    <div className="col-span-2 border-b px-4 py-3 text-[13px] font-semibold" style={{ color: brand.primary, borderColor: "#E3D5CA" }}>Shop Categories</div>
+                    {(() => {
+                      const mid = Math.ceil(categories.length / 2);
+                      const left = categories.slice(0, mid);
+                      const right = categories.slice(mid);
+                      const renderCol = (items: { id: string; name: string }[]) => (
+                        <div className="px-4 py-3 first:border-r" style={{ borderColor: "#E3D5CA" }}>
+                          <div className="text-[12px] font-semibold mb-2" style={{ color: brand.primary }}>Browse</div>
+                          <ul className="space-y-2">
+                            {items.map((cat) => (
+                              <li key={cat.id}>
+                                <Link href={`/shop/category/${cat.id}`} className="block text-[13px] text-gray-700 hover:underline" style={{ color: "#3f3f3f" }}>
+                                  {cat.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                      return (<>{renderCol(left)}{renderCol(right)}</>);
+                    })()}
+                  </div>
                 </div>
               </div>
               <Link href="/our-story" className={`transition-colors`} style={{ color: isActive("/our-story") ? brand.primary : "#3f3f3f" }}>OUR STORY</Link>

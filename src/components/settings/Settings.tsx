@@ -1,25 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import {
-  FaUser,
-  FaLock,
-  FaEye,
-  FaEyeSlash,
-  FaCheck,
-  FaTimes,
-  FaUserCircle,
-  FaEnvelope,
-  FaPhone,
-} from "react-icons/fa";
-import {
-  getUserProfile,
-  resetPassword,
-} from "@/server/actions/user-settings-action";
-import BufferingLoader from "@/components/ui/spinner";
+import { User, Lock, Eye, EyeOff, Check, X, Shield } from "lucide-react";
 import { toast } from "sonner";
-import { fallBackImage } from "@/constants/values";
 
 type UserProfile = {
   id: string;
@@ -36,7 +20,7 @@ type PasswordData = {
   confirmPassword: string;
 };
 
-function UserSettings() {
+export default function UserSettings() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -51,20 +35,21 @@ function UserSettings() {
     newPassword: "",
     confirmPassword: "",
   });
-  const [passwordValid, setPasswordValid] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        setLoading(true);
-        const result = await getUserProfile();
-        if (result.success) {
-          setProfile(result.profile);
+        const res = await fetch("/api/user-profile");
+        const data = await res.json();
+        if (data.success) {
+          setProfile(data.data);
+        } else {
+          toast.error("Failed to load profile");
         }
       } catch (error) {
-        toast.error("Failed to load profile");
         console.error("Failed to fetch profile:", error);
+        toast.error("Failed to load profile");
       } finally {
         setLoading(false);
       }
@@ -86,19 +71,13 @@ function UserSettings() {
     if (field === "newPassword") {
       setPasswordErrors(validatePassword(value));
     }
-
-    if (value.length >= 8 && /\d/.test(value)) {
-      setPasswordValid(true);
-    }
   };
 
   const togglePasswordVisibility = (field: "current" | "new" | "confirm") => {
     setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handlePasswordReset = async () => {
     if (
       !passwordData.currentPassword ||
       !passwordData.newPassword ||
@@ -120,10 +99,16 @@ function UserSettings() {
 
     try {
       setPasswordLoading(true);
-      const result = await resetPassword({
-        password: passwordData.currentPassword,
-        newPassword: passwordData.newPassword,
+      const res = await fetch("/api/user-profile/password", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
       });
+
+      const result = await res.json();
 
       if (result.success) {
         toast.success("Password updated successfully");
@@ -132,10 +117,12 @@ function UserSettings() {
           newPassword: "",
           confirmPassword: "",
         });
+      } else {
+        toast.error(result.error || "Failed to update password");
       }
     } catch (error) {
-      toast.error("Failed to update password");
       console.error("Password update error:", error);
+      toast.error("Failed to update password");
     } finally {
       setPasswordLoading(false);
     }
@@ -143,85 +130,87 @@ function UserSettings() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <div className="text-center">
-          <BufferingLoader />
-          <p className="text-gray-600 text-sm mt-4">Loading settings...</p>
-        </div>
+      <div className="p-8 text-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+        <p className="text-gray-600">Loading settings...</p>
       </div>
     );
   }
 
+  if (!profile) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-red-500">Failed to load profile</p>
+      </div>
+    );
+  }
+
+  const isPasswordValid =
+    passwordErrors.length === 0 &&
+    passwordData.newPassword === passwordData.confirmPassword &&
+    passwordData.currentPassword &&
+    passwordData.newPassword &&
+    passwordData.confirmPassword;
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Profile Information */}
-        <div className="border rounded-lg p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <FaUserCircle className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold">Profile Information</h2>
-          </div>
-
-          {profile && (
-            <div className="space-y-4">
-              {/* Profile Image */}
-              <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
-                  {profile.image ? (
-                    <Image
-                      src={profile.image || fallBackImage}
-                      width={80}
-                      height={80}
-                      alt="Profile"
-                      className="w-20 h-20 rounded-full object-cover"
-                    />
-                  ) : (
-                    <FaUserCircle className="w-12 h-12 text-gray-400" />
-                  )}
-                </div>
-              </div>
-
-              {/* Profile Details */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 border rounded">
-                  <FaUser className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase">Full Name</p>
-                    <p className="font-medium">{profile.name || "Not provided"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 border rounded">
-                  <FaEnvelope className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase">Email</p>
-                    <p className="font-medium">{profile.email}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 border rounded">
-                  <FaPhone className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase">Phone</p>
-                    <p className="font-medium">{profile.phone || "Not provided"}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+    <div className="p-8">
+      <div className="max-w-2xl mx-auto space-y-8">
+        {/* Header */}
+        <div>
+          <h2 className="text-2xl font-medium text-gray-900 mb-1">Settings</h2>
+          <p className="text-gray-600 text-sm">
+            Manage your account security and preferences
+          </p>
         </div>
 
-        {/* Change Password */}
+        {/* Profile Overview */}
         <div className="border rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
-            <FaLock className="w-5 h-5 text-gray-600" />
-            <h2 className="text-lg font-semibold">Change Password</h2>
+            <User className="w-5 h-5 text-gray-600" />
+            <h3 className="text-lg font-medium text-gray-900">
+              Account Information
+            </h3>
           </div>
 
-          <form onSubmit={handlePasswordReset} className="space-y-4">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100">
+              {profile.image ? (
+                <Image
+                  src={profile.image}
+                  alt={profile.name}
+                  width={64}
+                  height={64}
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <User className="w-8 h-8 text-gray-400" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-gray-900">{profile.name}</h4>
+              <p className="text-sm text-gray-600 mt-0.5">{profile.email}</p>
+              {profile.phone && (
+                <p className="text-sm text-gray-600 mt-0.5">{profile.phone}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Change Password Section */}
+        <div className="border rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Shield className="w-5 h-5 text-gray-600" />
+            <h3 className="text-lg font-medium text-gray-900">
+              Change Password
+            </h3>
+          </div>
+
+          <div className="space-y-4">
             {/* Current Password */}
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Current Password
               </label>
               <div className="relative">
@@ -231,18 +220,18 @@ function UserSettings() {
                   onChange={(e) =>
                     handlePasswordChange("currentPassword", e.target.value)
                   }
-                  className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 pr-12"
                   placeholder="Enter current password"
                 />
                 <button
                   type="button"
                   onClick={() => togglePasswordVisibility("current")}
-                  className="absolute right-3 top-2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPasswords.current ? (
-                    <FaEyeSlash className="w-4 h-4" />
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <FaEye className="w-4 h-4" />
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
@@ -250,7 +239,7 @@ function UserSettings() {
 
             {/* New Password */}
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 New Password
               </label>
               <div className="relative">
@@ -260,56 +249,56 @@ function UserSettings() {
                   onChange={(e) =>
                     handlePasswordChange("newPassword", e.target.value)
                   }
-                  className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 pr-12"
                   placeholder="Enter new password"
                 />
                 <button
                   type="button"
                   onClick={() => togglePasswordVisibility("new")}
-                  className="absolute right-3 top-2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPasswords.new ? (
-                    <FaEyeSlash className="w-4 h-4" />
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <FaEye className="w-4 h-4" />
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
-            </div>
 
-            {/* Password Requirements */}
-            {passwordData.newPassword && (
-              <div className="bg-gray-50 rounded p-3 border">
-                <p className="text-xs font-medium text-gray-700 mb-2">
-                  Password Requirements:
-                </p>
-                <div className="space-y-1">
-                  {["At least 8 characters", "One number"].map((req) => {
-                    const isValid = !passwordErrors.includes(req);
-                    return (
-                      <div key={req} className="flex items-center gap-2">
-                        {isValid ? (
-                          <FaCheck className="w-3 h-3 text-green-500" />
-                        ) : (
-                          <FaTimes className="w-3 h-3 text-red-500" />
-                        )}
-                        <span
-                          className={`text-xs ${
-                            isValid ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {req}
-                        </span>
-                      </div>
-                    );
-                  })}
+              {/* Password Requirements */}
+              {passwordData.newPassword && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
+                  <p className="text-xs font-medium text-gray-700 mb-2">
+                    Password Requirements:
+                  </p>
+                  <div className="space-y-1.5">
+                    {["At least 8 characters", "One number"].map((req) => {
+                      const isValid = !passwordErrors.includes(req);
+                      return (
+                        <div key={req} className="flex items-center gap-2">
+                          {isValid ? (
+                            <Check className="w-3.5 h-3.5 text-green-600" />
+                          ) : (
+                            <X className="w-3.5 h-3.5 text-red-600" />
+                          )}
+                          <span
+                            className={`text-xs ${
+                              isValid ? "text-green-700" : "text-red-700"
+                            }`}
+                          >
+                            {req}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
                 Confirm New Password
               </label>
               <div className="relative">
@@ -319,35 +308,36 @@ function UserSettings() {
                   onChange={(e) =>
                     handlePasswordChange("confirmPassword", e.target.value)
                   }
-                  className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 pr-12"
                   placeholder="Confirm new password"
                 />
                 <button
                   type="button"
                   onClick={() => togglePasswordVisibility("confirm")}
-                  className="absolute right-3 top-2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPasswords.confirm ? (
-                    <FaEyeSlash className="w-4 h-4" />
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <FaEye className="w-4 h-4" />
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
 
               {passwordData.confirmPassword && (
                 <div className="mt-2 flex items-center gap-2">
-                  {passwordData.newPassword === passwordData.confirmPassword ? (
+                  {passwordData.newPassword ===
+                  passwordData.confirmPassword ? (
                     <>
-                      <FaCheck className="w-3 h-3 text-green-500" />
-                      <span className="text-xs text-green-600">
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                      <span className="text-xs text-green-700">
                         Passwords match
                       </span>
                     </>
                   ) : (
                     <>
-                      <FaTimes className="w-3 h-3 text-red-500" />
-                      <span className="text-xs text-red-600">
+                      <X className="w-3.5 h-3.5 text-red-600" />
+                      <span className="text-xs text-red-700">
                         Passwords do not match
                       </span>
                     </>
@@ -357,32 +347,29 @@ function UserSettings() {
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={
-                passwordLoading ||
-                !passwordValid ||
-                passwordData.newPassword !== passwordData.confirmPassword
-              }
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {passwordLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <FaLock className="w-4 h-4" />
-                  Update Password
-                </>
-              )}
-            </button>
-          </form>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={handlePasswordReset}
+                disabled={passwordLoading || !isPasswordValid}
+                className="w-full py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {passwordLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4" />
+                    Update Password
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default UserSettings;

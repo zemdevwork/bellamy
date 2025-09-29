@@ -160,7 +160,7 @@ export default function ProductList() {
   if (error) {
     return (
       <section className="py-10 px-6 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8">Our Products</h2>
+        <h2 className="text-3xl font-serif mb-8">Our Products</h2>
         <div className="text-center py-10">
           <p className="text-red-500">Error: {error}</p>
           <button
@@ -178,11 +178,11 @@ export default function ProductList() {
     <section className="py-10 px-6 ">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-serif">Our Products</h2>
+          <h2 className="text-3xl font-serif text-stone-800">Our Products</h2>
           {products.length > 8 && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+              className="px-6 py-2 border border-stone-300 rounded-full text-sm font-medium text-stone-700 hover:bg-stone-50 transition"
             >
               {showAll ? "Show Less" : "See All Products"}
             </button>
@@ -208,7 +208,7 @@ export default function ProductList() {
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 overflow-hidden relative border border-gray-100 group cursor-pointer"
+                  className="bg-white/95 backdrop-blur rounded-xl shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:-translate-y-0.5 overflow-hidden relative border border-stone-200 group cursor-pointer"
                 >
                   {product.badge && (
                     <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
@@ -232,22 +232,22 @@ export default function ProductList() {
                     </div>
 
                     <div className="p-4">
-                      <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
+                      <h3 className="text-sm font-medium text-stone-800 mb-2 line-clamp-2">
                         {product.name}
                       </h3>
                       {product.description && (
-                        <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                        <p className="text-xs text-stone-600 mb-2 line-clamp-2">
                           {product.description}
                         </p>
                       )}
 
                       <div className="mb-3">
                         {product.oldPrice && (
-                          <span className="text-sm text-gray-400 line-through mr-2">
+                          <span className="text-sm text-stone-400 line-through mr-2">
                             {product.oldPrice}
                           </span>
                         )}
-                        <span className="text-lg font-semibold text-gray-800">
+                        <span className="text-lg font-semibold text-stone-800">
                           {product.price}
                         </span>
                       </div>
@@ -255,17 +255,18 @@ export default function ProductList() {
                   </div>
 
                   <div className="p-4 pt-0">
-                    <div className="flex flex-col space-y-2">
+                    <div className="flex items-center gap-2">
                       {cart.includes(product.variantId || "") ? (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleGoToCart();
                           }}
-                          className="w-full flex items-center cursor-pointer justify-center gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                          aria-label="Go to cart"
+                          title="Go to cart"
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-stone-300 text-stone-700 hover:bg-stone-50 transition-colors cursor-pointer"
                         >
-                          <ShoppingCart size={16} />
-                          Go to Cart
+                          <ShoppingCart size={18} />
                         </button>
                       ) : (
                         <button
@@ -274,18 +275,20 @@ export default function ProductList() {
                             handleAddToCart(product);
                           }}
                           disabled={isPending}
-                          className="w-full flex items-center justify-center cursor-pointer gap-2 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                          aria-label="Add to cart"
+                          title="Add to cart"
+                          className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-stone-300 text-stone-800 hover:bg-stone-50 transition-colors disabled:opacity-50 bg-amber-100/80 cursor-pointer"
                         >
-                          <ShoppingCart size={16} />
-                          {isPending ? "Adding..." : "Add to Cart"}
+                          <ShoppingCart size={18} />
                         </button>
                       )}
                       <button
                         onClick={() => router.push(`/product/${product.id}`)}
-                        className="w-full flex items-center justify-center gap-2 py-2 px-4 border cursor-pointer border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
+                        aria-label="View details"
+                        title="View details"
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-full border cursor-pointer border-stone-300 text-stone-700 hover:bg-stone-50 transition-colors"
                       >
-                        <Eye size={16} />
-                        View Details
+                        <Eye size={18} />
                       </button>
                     </div>
                   </div>

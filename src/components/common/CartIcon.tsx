@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { ShoppingCart } from "lucide-react";
 
 export default function CartIcon({ count = 0, color = "#8B1D3F" }: { count?: number; color?: string }) {
   return (
@@ -9,9 +10,7 @@ export default function CartIcon({ count = 0, color = "#8B1D3F" }: { count?: num
       style={{ borderColor: color }}
       aria-label="Cart"
     >
-      <svg className="h-5 w-5" fill="none" stroke={color} strokeWidth={1.8} viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m12-9l2 9m-6-4a2 2 0 100-4 2 2 0 000 4z" />
-      </svg>
+      <ShoppingCart size={18} color={color} />
       {count > 0 && (
         <span
           className="absolute -top-1 -right-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"

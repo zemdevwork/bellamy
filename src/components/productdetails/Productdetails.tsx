@@ -2,15 +2,14 @@
 import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { addToCart } from "@/server/actions/cart-action";
 import { addToWishlist } from "@/server/actions/wishlist-action";
 import OrderCheckout from "@/components/orders/OrderCheckout";
-import { isLoggedIn } from "@/lib/utils"; // 👈 add this
-import { addLocalCartItem, getLocalCart } from "@/lib/local-cart"; // 👈 add this
+import { isLoggedIn } from "@/lib/utils";
+import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
 
-// Utility function to capitalize first letter of each word
 const capitalizeWords = (str: string) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
 };
@@ -42,8 +41,8 @@ type Product = {
   description?: string;
   image: string;
   brand?: { id: string; name: string };
-  price: number; // default variant price
-  subimage: string[]; // default variant images
+  price: number;
+  subimage: string[];
   variants: ProductVariant[];
   attributesCatalog: AttributeCatalog[];
   defaultVariantId: string | null;
@@ -94,7 +93,6 @@ export default function ProductDetails({ productId }: { productId: string }) {
         setSelectedAttributes(initialAttributes);
         setSelectedImage(defaultVariant?.images?.[0] || data.image || data.subimage?.[0] || null);
 
-        // ✅ Check cart (server if logged in, local if not)
         if (isLoggedIn()) {
           const cartRes = await fetch("/api/cart");
           if (cartRes.ok) {
@@ -102,7 +100,6 @@ export default function ProductDetails({ productId }: { productId: string }) {
             const exists = cartData && cartData.items?.some((item: CartItem) => item.variant?.id === (defaultVariantId || ""));
             setIsInCart(!!exists);
           }
-          // check wishlist presence
           const wlRes = await fetch("/api/wishlist");
           if (wlRes.ok) {
             const wl = await wlRes.json();
@@ -130,7 +127,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
         <p className="mt-4 text-lg">Loading product...</p>
       </div>
     );
-  }  
+  }
   if (error) return <p className="p-8 text-red-500 text-lg">{error}</p>;
   if (!product) return <p className="p-8 text-lg">Product not found.</p>;
 
@@ -138,51 +135,46 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const price = selectedVariant?.price ?? product?.price ?? 0;
   const galleryImages = selectedVariant?.images?.length ? selectedVariant.images : [product?.image || "", ...(product?.subimage || [])];
 
-  // ✅ Add to cart (server OR local)
-const handleAddToCart = () => {
-  if (!product || !selectedVariantId) return;
+  const handleAddToCart = () => {
+    if (!product || !selectedVariantId) return;
 
-  // 🔹 Validation messages
-  if (quantity < 1) {
-    toast.error("❌ Quantity must be at least 1");
-    return;
-  }
-  if (quantity > 10) {
-    toast.error("❌ Cannot add more than 10 items at once");
-    return;
-  }
-
-  startTransition(async () => {
-    try {
-      if (isLoggedIn()) {
-        // ✅ Logged in → server cart
-        await addToCart({
-          variantId: selectedVariantId,
-          quantity,
-        });
-        toast.success(`✅ Added "${capitalizeWords(product.name)}" to your cart!`);
-      } else {
-        // ✅ Guest → local cart
-        addLocalCartItem(selectedVariantId, quantity);
-        toast.success(`🛒 Added "${capitalizeWords(product.name)}" to cart (local)!`);
-      }
-
-      setIsInCart(true);
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-
-      if (error instanceof Error) {
-        toast.error(
-          `❌ ${error.message || "Failed to add to cart. Try lowering the quantity."}`
-        );
-      } else {
-        toast.error("❌ Failed to add to cart. Please try again.");
-      }
+    if (quantity < 1) {
+      toast.error("❌ Quantity must be at least 1");
+      return;
     }
-  });
-};
+    if (quantity > 10) {
+      toast.error("❌ Cannot add more than 10 items at once");
+      return;
+    }
 
-  // ✅ Add to wishlist (server only)
+    startTransition(async () => {
+      try {
+        if (isLoggedIn()) {
+          await addToCart({
+            variantId: selectedVariantId,
+            quantity,
+          });
+          toast.success(`✅ Added "${capitalizeWords(product.name)}" to your cart!`);
+        } else {
+          addLocalCartItem(selectedVariantId, quantity);
+          toast.success(`🛒 Added "${capitalizeWords(product.name)}" to cart (local)!`);
+        }
+
+        setIsInCart(true);
+      } catch (error) {
+        console.error("Failed to add to cart:", error);
+
+        if (error instanceof Error) {
+          toast.error(
+            `❌ ${error.message || "Failed to add to cart. Try lowering the quantity."}`
+          );
+        } else {
+          toast.error("❌ Failed to add to cart. Please try again.");
+        }
+      }
+    });
+  };
+
   const handleAddToWishlist = () => {
     if (!isLoggedIn()) {
       toast.error("Please login to use wishlist");
@@ -197,12 +189,12 @@ const handleAddToCart = () => {
           setIsInWishlist(true);
           toast.success(`❤️ Added to wishlist`);
         }
-      } catch (e) {
+      } catch (error) {
+        console.log(error)
         toast.error("Failed to add to wishlist");
       }
     });
   };
-
 
   const handleGoToCart = () => router.push("/cart");
   const handleBuyNow = () => {
@@ -215,72 +207,90 @@ const handleAddToCart = () => {
   };
 
   return (
-    <div className="w-full min-h-screen">
-      {/* Back button */}
-      <button
-        onClick={() => router.back()}
-        className="flex items-center text-gray-600 hover:text-black mb-8 text-lg"
-      >
-        <ArrowLeft size={20} className="mr-2" />
-        Back
-      </button>
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
+        <button onClick={() => router.push("/")} className="hover:text-gray-900">Home</button>
+        <span>/</span>
+        <span className="text-gray-400">{capitalizeWords(product.name)}</span>
+      </div>
 
-      {/* TWO COLUMN LAYOUT */}
-      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 rounded-xl shadow-lg border bg-white">
-        {/* LEFT: IMAGE GALLERY */}
-        <div>
-          <div className="w-full h-[500px] relative border rounded-xl overflow-hidden shadow-sm">
+      {/* Main Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - Images */}
+        <div className="space-y-4">
+          {/* Main Image */}
+          <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: "3/4" }}>
             {selectedImage && (
               <Image
                 src={selectedImage}
                 alt={capitalizeWords(product.name)}
                 fill
-                className="object-contain p-6"
+                className="object-cover"
               />
             )}
           </div>
 
-          <div className="flex space-x-4 mt-6 overflow-x-auto">
-            {galleryImages.map((img, idx) => (
+          {/* Thumbnail Gallery */}
+          <div className="grid grid-cols-4 gap-3">
+            {galleryImages.slice(0, 4).map((img, idx) => (
               <div
                 key={idx}
                 onClick={() => setSelectedImage(img)}
-                className={`w-24 h-24 relative cursor-pointer border rounded-lg transition hover:scale-105 ${
-                  selectedImage === img
-                    ? "border-black shadow-sm"
-                    : "border-gray-300"
+                className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition ${
+                  selectedImage === img ? "border-gray-900" : "border-transparent"
                 }`}
+                style={{ aspectRatio: "3/4" }}
               >
-                <Image src={img} alt="Thumbnail" fill className="object-contain p-2" />
+                <Image src={img} alt="Thumbnail" fill className="object-cover" />
               </div>
             ))}
           </div>
         </div>
 
-        {/* RIGHT: PRODUCT DETAILS */}
-        <div className="flex flex-col space-y-6">
-          {/* Product Name */}
-          <h1 className="text-3xl font-serif text-gray-900">{capitalizeWords(product.name)}</h1>
+        {/* Right Column - Product Info */}
+        <div className="space-y-6">
+          {/* Icons */}
+          <div className="flex justify-end gap-3">
+            <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-50">
+              <Share2 size={18} />
+            </button>
+            <button 
+              onClick={handleAddToWishlist}
+              disabled={isWishPending || isInWishlist}
+              className="p-2 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50"
+            >
+              <Heart size={18} fill={isInWishlist ? "currentColor" : "none"} />
+            </button>
+          </div>
 
           {/* Brand */}
           {product.brand && (
-            <p className="text-base text-gray-600">
-              <span className="font-medium">Brand:</span> {capitalizeWords(product.brand.name)}
+            <p className="text-sm text-gray-500 uppercase tracking-wide">
+              {capitalizeWords(product.brand.name)}
             </p>
           )}
 
+          {/* Product Name */}
+          <h1 className="text-2xl font-medium text-gray-900">
+            {capitalizeWords(product.name)}
+          </h1>
+
           {/* Price */}
-          <div>
-            <span className="text-3xl font-bold text-blue-700">
-              ₹{price}
-            </span>
-            <p className="text-sm text-gray-500 mt-1">Inclusive of taxes</p>
+          <div className="flex items-baseline gap-3">
+            <span className="text-2xl font-semibold text-gray-900">₹{price.toLocaleString()}</span>
+            <span className="text-lg text-gray-400 line-through">MRP ₹{(price * 1.2).toFixed(0)}</span>
+            <span className="text-sm text-green-600 font-medium">7% OFF</span>
           </div>
-          {/* Attributes selection */}
+          <p className="text-xs text-gray-500">Inclusive of all taxes</p>
+
+          {/* Attributes Selection */}
           {product.attributesCatalog?.map((attr) => (
             <div key={attr.attributeId}>
-              <p className="text-base font-medium text-gray-700 mb-3">{attr.name}:</p>
-              <div className="flex gap-3 flex-wrap">
+              <p className="text-sm font-medium text-gray-900 mb-3">
+                Select {attr.name}
+              </p>
+              <div className="flex gap-2 flex-wrap">
                 {attr.values.map((val) => {
                   const isSelected = selectedAttributes[attr.attributeId] === val.valueId;
                   return (
@@ -295,8 +305,10 @@ const handleAddToCart = () => {
                         setSelectedVariantId(match ? match.id : null);
                         if (match?.images?.[0]) setSelectedImage(match.images[0]);
                       }}
-                      className={`px-5 py-2 rounded-full border text-sm transition ${
-                        isSelected ? "bg-black text-white border-black" : "border-gray-300 hover:bg-gray-100"
+                      className={`px-4 py-2 text-sm border rounded transition ${
+                        isSelected
+                          ? "bg-gray-900 text-white border-gray-900"
+                          : "bg-white text-gray-900 border-gray-300 hover:border-gray-900"
                       }`}
                     >
                       {capitalizeWords(val.value)}
@@ -307,65 +319,80 @@ const handleAddToCart = () => {
             </div>
           ))}
 
-          {/* Quantity */}
-          <div className="flex items-center gap-4">
-            <span className="text-base font-medium text-gray-700">Quantity:</span>
-            <div className="flex items-center border rounded-full bg-gray-50">
-              <button
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-                className="px-4 py-2 text-lg disabled:text-gray-400 hover:bg-gray-100 rounded-l-full"
-              >
-                -
-              </button>
-              <span className="px-6 py-2 font-semibold text-lg">{quantity}</span>
-              <button
-                onClick={() => setQuantity(quantity + 1)}
-                className="px-4 py-2 text-lg hover:bg-gray-100 rounded-r-full"
-              >
-                +
-              </button>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-4 mt-8">
+          {/* Action Buttons */}
+          <div className="space-y-3 pt-4">
             {isInCart ? (
               <button
                 onClick={handleGoToCart}
-                className="flex-1 py-4 text-lg rounded-lg border border-gray-800 hover:bg-gray-50 font-medium"
+                className="w-full py-3 text-sm font-medium bg-white text-gray-900 border border-gray-900 rounded hover:bg-gray-50 transition"
               >
-                Go to Cart
+                GO TO CART
               </button>
             ) : (
               <button
                 onClick={handleAddToCart}
                 disabled={isPending}
-                className="flex-1 py-4 text-lg rounded-lg border border-gray-800 hover:bg-gray-50 font-medium disabled:opacity-50"
+                className="w-full py-3 text-sm font-medium bg-white text-gray-900 border border-gray-900 rounded hover:bg-gray-50 transition disabled:opacity-50"
               >
-                {isPending ? "Adding..." : "Add to Cart"}
+                {isPending ? "ADDING..." : "ADD TO BAG"}
               </button>
             )}
             <button
               onClick={handleBuyNow}
-              className="flex-1 py-4 text-lg rounded-lg bg-black text-white hover:bg-gray-800 font-medium shadow"
+              className="w-full py-3 text-sm font-medium bg-rose-700 text-white rounded hover:bg-rose-800 transition"
             >
-              Buy Now
-            </button>
-            <button
-              onClick={handleAddToWishlist}
-              disabled={isWishPending || isInWishlist}
-              className="px-5 py-4 text-lg rounded-lg border border-gray-800 hover:bg-gray-50 font-medium disabled:opacity-50"
-            >
-              {isInWishlist ? "In Wishlist" : isWishPending ? "Adding..." : "Add to Wishlist"}
+              BUY NOW
             </button>
           </div>
 
-          {/* Description */}
-          <div className="pt-6 border-t text-base text-gray-600 leading-relaxed">
-            <p className="font-semibold text-gray-800 mb-2 text-lg">Product Description:</p>
-            {product.description}
+          {/* Product Details */}
+          <div className="border-t pt-6 space-y-3">
+            <h3 className="text-sm font-medium text-gray-900 mb-4">Product Details</h3>
+            <div className="space-y-2 text-sm">
+              {product.brand && (
+                <div className="flex">
+                  <span className="text-gray-500 w-32">Brand:</span>
+                  <span className="text-gray-900 font-medium">{capitalizeWords(product.brand.name)}</span>
+                </div>
+              )}
+              {selectedVariant && (
+                <>
+                  <div className="flex">
+                    <span className="text-gray-500 w-32">Availability:</span>
+                    <span className={`font-medium ${selectedVariant.qty > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {selectedVariant.qty > 0 ? `In Stock (${selectedVariant.qty} available)` : 'Out of Stock'}
+                    </span>
+                  </div>
+                  <div className="flex">
+                    <span className="text-gray-500 w-32">SKU:</span>
+                    <span className="text-gray-900">{selectedVariant.id.slice(0, 10).toUpperCase()}</span>
+                  </div>
+                </>
+              )}
+              {product.attributesCatalog?.map((attr) => {
+                const selectedValue = attr.values.find(v => v.valueId === selectedAttributes[attr.attributeId]);
+                return selectedValue ? (
+                  <div key={attr.attributeId} className="flex">
+                    <span className="text-gray-500 w-32">{attr.name}:</span>
+                    <span className="text-gray-900">{capitalizeWords(selectedValue.value)}</span>
+                  </div>
+                ) : null;
+              })}
+            </div>
+            <div className="pt-4 space-y-2 text-sm text-gray-600 border-t mt-4">
+              <p>✓ Usually Dispatches within 1 to 2 Days</p>
+              <p>✓ Easy 7 day return</p>
+              <p>✓ 100% Authentic Products</p>
+            </div>
           </div>
+
+          {/* Description */}
+          {product.description && (
+            <div className="border-t pt-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Product Description</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{product.description}</p>
+            </div>
+          )}
         </div>
       </div>
 

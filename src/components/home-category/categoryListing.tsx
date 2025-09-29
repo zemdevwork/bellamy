@@ -43,7 +43,9 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-semibold mb-6 text-gray-800">Shop By Occasion</h2>
+      <div className="flex items-end justify-between mb-6">
+        <h2 className="text-2xl md:text-3xl font-serif text-stone-800 tracking-tight">Shop By Occasion</h2>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {categories.map((category) => (
           <div
@@ -51,7 +53,7 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
             onClick={() => onCategorySelect?.(category)}
             className="group cursor-pointer"
           >
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-lg transition-transform duration-300 group-hover:scale-[1.02]">
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-md ring-1 ring-stone-200/60 bg-white transition-transform duration-300 group-hover:scale-[1.02]">
               {/* Category Image */}
               <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300">
                 {category.image ? (
@@ -68,11 +70,11 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
               </div>
               
               {/* Gradient overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
               
               {/* Category name centered */}
               <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                <h3 className="text-white text-lg font-semibold drop-shadow-lg text-center">
+                <h3 className="text-white text-lg font-semibold drop-shadow-lg text-center tracking-wide">
                   {category.name}
                 </h3>
               </div>

@@ -203,17 +203,17 @@ export default function BestSellers() {
   const handleGoToCart = () => router.push("/cart");
 
   return (
-    <section className="py-16 px-6 bg-gray-50">
+    <section className="py-16 px-6 bg-transparent">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-serif text-gray-800">
+          <h2 className="text-3xl font-serif text-stone-800">
             Our Best Sellers
           </h2>
           <div className="flex space-x-2">
             <button
               onClick={prevSlide}
-              className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow"
+              className="p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
             >
               <svg
                 className="w-5 h-5 text-gray-600"
@@ -232,7 +232,7 @@ export default function BestSellers() {
             </button>
             <button
               onClick={nextSlide}
-              className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-shadow"
+              className="p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
             >
               <svg
                 className="w-5 h-5 text-gray-600"
@@ -268,7 +268,7 @@ export default function BestSellers() {
           {products.map((product) => (
             <div key={product.id} className="w-72 flex-shrink-0">
               <div
-                className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:scale-105 overflow-hidden cursor-pointer"
+                className="bg-white/95 backdrop-blur rounded-xl shadow-sm hover:shadow-lg transition-transform duration-300 ease-in-out transform hover:-translate-y-0.5 overflow-hidden cursor-pointer ring-1 ring-stone-200/70"
                 onClick={(e) => {
                   if ((e.target as HTMLElement).tagName === "BUTTON") return;
                   router.push(`/product/${product.id}`);
@@ -284,51 +284,51 @@ export default function BestSellers() {
                   />
                 </div>
                 <div className="p-4">
-                  <h4 className="text-xs text-gray-500 font-semibold">
+                  <h4 className="text-xs text-stone-500 font-semibold tracking-wide">
                     {product.name}
                   </h4>
-                  <h3 className="text-sm font-medium text-gray-800 mb-2 line-clamp-2">
+                  <h3 className="text-sm font-medium text-stone-800 mb-2 line-clamp-2">
                     {product.title}
                   </h3>
 
                   <div className="mb-3">
                     {product.originalPrice && (
-                      <span className="text-sm text-gray-400 line-through mr-2">
+                      <span className="text-sm text-stone-400 line-through mr-2">
                         ₹{product.originalPrice}
                       </span>
                     )}
-                    <span className="text-lg font-semibold text-gray-800">
+                    <span className="text-lg font-semibold text-stone-800">
                       ₹{product.price}
                     </span>
                   </div>
 
-                  <div className="flex flex-col space-y-2">
+                  <div className="flex items-center gap-2">
                     {cartItems.includes(product.variantId) ? (
                       <button
                         onClick={handleGoToCart}
-                        className="w-full flex items-center cursor-pointer justify-center gap-2 py-2 px-4 border border-gray-300
-                         rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                        aria-label="Go to cart"
+                        title="Go to cart"
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-stone-300 text-stone-700 hover:bg-stone-50 transition-colors cursor-pointer"
                       >
-                        <ShoppingCart size={16} />
-                        Go to Cart
+                        <ShoppingCart size={18} />
                       </button>
                     ) : (
                       <button
                         onClick={() => handleAddToCart(product.variantId)}
-                        className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 
-                        rounded-md text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"
+                        aria-label="Add to cart"
+                        title="Add to cart"
+                        className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-stone-300 text-stone-800 bg-amber-100/80 hover:bg-amber-100 transition-colors cursor-pointer"
                       >
-                        <ShoppingCart size={16} />
-                        Add to Cart
+                        <ShoppingCart size={18} />
                       </button>
                     )}
                     <button
                       onClick={() => router.push(`/product/${product.id}`)}
-                      className="w-full flex items-center justify-center gap-2 py-2 px-4 border 
-                      border-gray-300 text-gray-700 rounded-md cursor-pointer text-sm font-medium hover:bg-gray-50 transition-colors"
+                      aria-label="View details"
+                      title="View details"
+                      className="inline-flex items-center justify-center w-10 h-10 rounded-full border border-stone-300 text-stone-700 hover:bg-stone-50 transition-colors cursor-pointer"
                     >
-                      <Eye size={16} />
-                      View Details
+                      <Eye size={18} />
                     </button>
                   </div>
                 </div>

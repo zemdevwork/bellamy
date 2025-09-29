@@ -4,7 +4,7 @@ import { useState } from "react";
 import UserProfile from "@/components/profile/User-profile";
 import UserSettings from "@/components/settings/Settings";
 import OrderList from "@/components/orders/Order";
-import { LogoutDialog } from "@/components/auth/logout-modal"; 
+import { LogoutDialog } from "@/components/auth/logout-modal";
 import { User, Settings, ShoppingBag, LogOut } from "lucide-react";
 
 export default function ProfilePage() {
@@ -19,14 +19,14 @@ export default function ProfilePage() {
       component: <UserProfile />,
     },
     {
-      id: "orders", 
+      id: "orders",
       label: "My Orders",
       icon: ShoppingBag,
       component: <OrderList />,
     },
     {
       id: "settings",
-      label: "Settings", 
+      label: "Settings",
       icon: Settings,
       component: <UserSettings />,
     },
@@ -36,45 +36,51 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto p-4">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-serif text-gray-900">My Account</h1>
-          <p className="text-gray-600">Manage your profile, orders, and settings</p>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-gray-600 mb-8">
+          <button className="hover:text-gray-900">Home</button>
+          <span>/</span>
+          <span className="text-gray-400 font-serif">My Account</span>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-medium text-gray-900 mb-2">My Account</h1>
+          <p className="text-gray-600">Manage your profile and preferences</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border p-4">
-              <h3 className="font-semibold text-gray-900 mb-4">Navigation</h3>
-              <nav className="space-y-2">
+            <div className="bg-white rounded-lg border">
+              <nav className="p-2">
                 {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded transition-colors ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-1 ${
                         activeTab === tab.id
-                          ? "bg-blue-50 text-blue-700 border border-blue-200"
+                          ? "bg-gray-900 text-white"
                           : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
                       <Icon className="w-5 h-5" />
-                      <span className="font-medium">{tab.label}</span>
+                      <span className="text-sm font-medium">{tab.label}</span>
                     </button>
                   );
                 })}
-                
+
                 {/* Logout Button */}
-                <div className="pt-4 mt-4 border-t border-gray-200">
+                <div className="pt-2 mt-2 border-t">
                   <button
                     onClick={() => setShowLogoutDialog(true)}
-                    className="w-full flex items-center gap-3 p-3 rounded transition-colors text-red-600 hover:bg-red-50"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-red-50 hover:text-red-600"
                   >
                     <LogOut className="w-5 h-5" />
-                    <span className="font-medium">Logout</span>
+                    <span className="text-sm font-medium">Logout</span>
                   </button>
                 </div>
               </nav>
@@ -82,36 +88,16 @@ export default function ProfilePage() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             <div className="bg-white rounded-lg border">
-              {/* Content Header */}
-              <div className="p-4 border-b">
-                <div className="flex items-center gap-3">
-                  {activeTabData && (
-                    <>
-                      <activeTabData.icon className="w-6 h-6 text-gray-700" />
-                      <h2 className="text-xl font-semibold text-gray-900">
-                        {activeTabData.label}
-                      </h2>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-4">
-                {activeTabData?.component}
-              </div>
+              {activeTabData?.component}
             </div>
           </div>
         </div>
       </div>
 
       {/* Logout Dialog */}
-      <LogoutDialog 
-        open={showLogoutDialog} 
-        setOpen={setShowLogoutDialog} 
-      />
+      <LogoutDialog open={showLogoutDialog} setOpen={setShowLogoutDialog} />
     </div>
   );
 }
