@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { updateProductAction, deleteProductAction } from "@/server/actions/product-action";
 
 // GET product by ID
@@ -12,14 +12,72 @@ export async function GET(
 
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { category: true, brand: true, subCategory: true },
+      include: {
+        category: true,
+        brand: true,
+        subCategory: true,
+        variants: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            options: {
+              include: {
+                attribute: true,
+                attributeValue: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json(product);
+    // Shape response for frontend ease of rendering
+    const variants = (product.variants || []).map((v) => ({
+      id: v.id,
+      price: v.price,
+      qty: v.qty,
+      images: v.images,
+      options: v.options.map((o) => ({
+        attributeId: o.attributeId,
+        attributeName: o.attribute.name,
+        valueId: o.valueId,
+        value: o.attributeValue.value,
+      })),
+    }));
+
+    // Build attribute catalog (possible values per attribute across variants)
+    const attributeMap = new Map<string, { attributeId: string; name: string; values: { valueId: string; value: string }[] }>();
+    for (const v of variants) {
+      for (const o of v.options) {
+        const entry = attributeMap.get(o.attributeId) || { attributeId: o.attributeId, name: o.attributeName, values: [] };
+        if (!entry.values.some((vv) => vv.valueId === o.valueId)) {
+          entry.values.push({ valueId: o.valueId, value: o.value });
+        }
+        attributeMap.set(o.attributeId, entry);
+      }
+    }
+
+    const defaultVariant = variants[0] || null;
+
+    const shaped = {
+      id: product.id,
+      name: product.name,
+      description: product.description ?? undefined,
+      image: product.image,
+      brand: product.brand ? { id: product.brand.id, name: product.brand.name } : undefined,
+      category: product.category || undefined,
+      subCategory: product.subCategory || undefined,
+      price: defaultVariant?.price ?? 0,
+      subimage: defaultVariant?.images ?? [],
+      variants,
+      attributesCatalog: Array.from(attributeMap.values()),
+      defaultVariantId: defaultVariant?.id ?? null,
+    };
+
+    return NextResponse.json(shaped);
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });

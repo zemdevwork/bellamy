@@ -16,8 +16,10 @@ export async function GET(request: NextRequest) {
       include: {
         items: {
           include: {
-            product: {
-              select: { id: true, name: true, price: true, image: true },
+            variant: {
+              include: {
+                product: { select: { id: true, name: true, image: true } },
+              },
             },
           },
         },
@@ -40,10 +42,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { productId, quantity } = body;
+    const { variantId, quantity } = body;
 
-    if (!productId) {
-      return NextResponse.json({ error: "Product ID required" }, { status: 400 });
+    if (!variantId) {
+      return NextResponse.json({ error: "Variant ID required" }, { status: 400 });
     }
 
     // ✅ Ensure cart exists
@@ -57,9 +59,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // ✅ Check if product already exists in cart
+    // ✅ Check if variant already exists in cart
     const existingItem = await prisma.cartItem.findFirst({
-      where: { cartId: cart.id, productId },
+      where: { cartId: cart.id, variantId },
     });
 
     if (existingItem) {
@@ -71,7 +73,7 @@ export async function POST(request: NextRequest) {
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,
-          productId,
+          variantId,
           quantity: quantity || 1,
         },
       });

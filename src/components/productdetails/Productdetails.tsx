@@ -14,31 +14,45 @@ const capitalizeWords = (str: string) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-type Attribute = {
-  key: string;
+type VariantOption = {
+  attributeId: string;
+  attributeName: string;
+  valueId: string;
   value: string;
+};
+
+type ProductVariant = {
+  id: string;
+  price: number;
+  qty: number;
+  images: string[];
+  options: VariantOption[];
+};
+
+type AttributeCatalog = {
+  attributeId: string;
+  name: string;
+  values: { valueId: string; value: string }[];
 };
 
 type Product = {
   id: string;
   name: string;
-  price: number;
-  oldPrice?: number;
-  subimage: string[];
+  description?: string;
   image: string;
-  description: string;
-  brand: {
-    id: string;
-    name: string;
-  };
-  attributes: Attribute[];
+  brand?: { id: string; name: string };
+  price: number; // default variant price
+  subimage: string[]; // default variant images
+  variants: ProductVariant[];
+  attributesCatalog: AttributeCatalog[];
+  defaultVariantId: string | null;
 };
 
 export default function ProductDetails({ productId }: { productId: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +62,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
   const router = useRouter();
 
-  type CartItem = {
-    productId: string;
-    quantity: number;
-  };
+  type CartItem = { variant: { id: string } };
 
   useEffect(() => {
     async function fetchProduct() {
@@ -61,22 +72,36 @@ export default function ProductDetails({ productId }: { productId: string }) {
         if (!res.ok) throw new Error("Failed to fetch product");
         const data: Product = await res.json();
 
+        const defaultVariantId = data.defaultVariantId || data.variants[0]?.id || null;
+        const defaultVariant = data.variants.find(v => v.id === defaultVariantId) || data.variants[0] || null;
+
+        const initialAttributes: Record<string, string> = {};
+        if (defaultVariant) {
+          for (const opt of defaultVariant.options) {
+            initialAttributes[opt.attributeId] = opt.valueId;
+          }
+        } else if (data.attributesCatalog) {
+          for (const attr of data.attributesCatalog) {
+            if (attr.values[0]) initialAttributes[attr.attributeId] = attr.values[0].valueId;
+          }
+        }
+
         setProduct(data);
-        setSelectedImage(data.image || data.subimage?.[0] || null);
+        setSelectedVariantId(defaultVariantId);
+        setSelectedAttributes(initialAttributes);
+        setSelectedImage(defaultVariant?.images?.[0] || data.image || data.subimage?.[0] || null);
 
         // ✅ Check cart (server if logged in, local if not)
         if (isLoggedIn()) {
           const cartRes = await fetch("/api/cart");
           if (cartRes.ok) {
             const cartData = await cartRes.json();
-            const exists =
-              cartData &&
-              cartData.items?.some((item: CartItem) => item.productId === data.id);
+            const exists = cartData && cartData.items?.some((item: CartItem) => item.variant?.id === (defaultVariantId || ""));
             setIsInCart(!!exists);
           }
         } else {
           const localCart = getLocalCart();
-          const exists = localCart.some((item) => item.productId === data.id);
+          const exists = localCart.some((item) => item.variantId === (defaultVariantId || ""));
           setIsInCart(exists);
         }
       } catch (err) {
@@ -99,16 +124,13 @@ export default function ProductDetails({ productId }: { productId: string }) {
   if (error) return <p className="p-8 text-red-500 text-lg">{error}</p>;
   if (!product) return <p className="p-8 text-lg">Product not found.</p>;
 
-  const colorAttrs = product.attributes
-    ?.filter((a) => a.key.toLowerCase() === "color")
-    .map((a) => a.value);
-  const sizeAttrs = product.attributes
-    ?.filter((a) => a.key.toLowerCase() === "size")
-    .map((a) => a.value);
+  const selectedVariant = product?.variants.find(v => v.id === selectedVariantId) || null;
+  const price = selectedVariant?.price ?? product?.price ?? 0;
+  const galleryImages = selectedVariant?.images?.length ? selectedVariant.images : [product?.image || "", ...(product?.subimage || [])];
 
   // ✅ Add to cart (server OR local)
 const handleAddToCart = () => {
-  if (!product) return;
+  if (!product || !selectedVariantId) return;
 
   // 🔹 Validation messages
   if (quantity < 1) {
@@ -125,15 +147,13 @@ const handleAddToCart = () => {
       if (isLoggedIn()) {
         // ✅ Logged in → server cart
         await addToCart({
-          productId: product.id,
+          variantId: selectedVariantId,
           quantity,
-          size: selectedSize || undefined,
-          color: selectedColor || undefined,
         });
         toast.success(`✅ Added "${capitalizeWords(product.name)}" to your cart!`);
       } else {
         // ✅ Guest → local cart
-        addLocalCartItem(product.id, quantity);
+        addLocalCartItem(selectedVariantId, quantity);
         toast.success(`🛒 Added "${capitalizeWords(product.name)}" to cart (local)!`);
       }
 
@@ -159,7 +179,7 @@ const handleAddToCart = () => {
       toast.error("Please login to continue with Buy Now");
       return;
     }
-    if (!product) return;
+    if (!product || !selectedVariantId) return;
     setShowCheckout(true);
   };
 
@@ -190,7 +210,7 @@ const handleAddToCart = () => {
           </div>
 
           <div className="flex space-x-4 mt-6 overflow-x-auto">
-            {[product.image, ...product.subimage].map((img, idx) => (
+            {galleryImages.map((img, idx) => (
               <div
                 key={idx}
                 onClick={() => setSelectedImage(img)}
@@ -220,60 +240,41 @@ const handleAddToCart = () => {
 
           {/* Price */}
           <div>
-            {product.oldPrice && (
-              <span className="line-through text-gray-400 mr-3 text-lg">
-                ₹{product.oldPrice}
-              </span>
-            )}
             <span className="text-3xl font-bold text-blue-700">
-              ₹{product.price}
+              ₹{price}
             </span>
             <p className="text-sm text-gray-500 mt-1">Inclusive of taxes</p>
           </div>
-
-          {/* Colors */}
-          {colorAttrs?.length > 0 && (
-            <div>
-              <p className="text-base font-medium text-gray-700 mb-3">Color:</p>
+          {/* Attributes selection */}
+          {product.attributesCatalog?.map((attr) => (
+            <div key={attr.attributeId}>
+              <p className="text-base font-medium text-gray-700 mb-3">{attr.name}:</p>
               <div className="flex gap-3 flex-wrap">
-                {colorAttrs.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-5 py-2 rounded-full border text-sm transition ${
-                      selectedColor === color
-                        ? "bg-black text-white border-black"
-                        : "border-gray-300 hover:bg-gray-100"
-                    }`}
-                  >
-                    {capitalizeWords(color)}
-                  </button>
-                ))}
+                {attr.values.map((val) => {
+                  const isSelected = selectedAttributes[attr.attributeId] === val.valueId;
+                  return (
+                    <button
+                      key={val.valueId}
+                      onClick={() => {
+                        const next = { ...selectedAttributes, [attr.attributeId]: val.valueId };
+                        setSelectedAttributes(next);
+                        const match = product.variants.find((v) =>
+                          v.options.every((o) => next[o.attributeId] === o.valueId)
+                        ) || null;
+                        setSelectedVariantId(match ? match.id : null);
+                        if (match?.images?.[0]) setSelectedImage(match.images[0]);
+                      }}
+                      className={`px-5 py-2 rounded-full border text-sm transition ${
+                        isSelected ? "bg-black text-white border-black" : "border-gray-300 hover:bg-gray-100"
+                      }`}
+                    >
+                      {capitalizeWords(val.value)}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          )}
-
-          {/* Sizes */}
-          {sizeAttrs?.length > 0 && (
-            <div>
-              <p className="text-base font-medium text-gray-700 mb-3">Size:</p>
-              <div className="flex gap-3 flex-wrap">
-                {sizeAttrs.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-5 py-2 rounded-full border text-sm transition ${
-                      selectedSize === size
-                        ? "bg-black text-white border-black"
-                        : "border-gray-300 hover:bg-gray-100"
-                    }`}
-                  >
-                    {size.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
 
           {/* Quantity */}
           <div className="flex items-center gap-4">
@@ -335,14 +336,14 @@ const handleAddToCart = () => {
         <OrderCheckout
           products={[
             {
-              id: product.id,
+              id: selectedVariantId || product.id,
               name: capitalizeWords(product.name),
-              price: product.price,
+              price: price,
               quantity,
-              image: product.image ?? undefined,
+              image: selectedImage ?? product.image ?? undefined,
             },
           ]}
-          total={product.price * quantity}
+          total={price * quantity}
           onClose={() => setShowCheckout(false)}
         />
       )}

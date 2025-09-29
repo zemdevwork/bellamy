@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { createProductAction } from "@/server/actions/product-action";
 
 
@@ -25,26 +25,53 @@ export async function GET(request: Request) {
       whereClause.brandId = { in: brandIdArray };
     }
 
-    // Default order → latest products
-    let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
-
-    if (sort === "price_asc") {
-      orderBy = { price: "asc" };
-    } else if (sort === "price_desc") {
-      orderBy = { price: "desc" };
-    }
-
+    // Always fetch latest products, price sorting handled after mapping (variant-based)
     const products = await prisma.product.findMany({
       where: whereClause,
       include: {
         category: true,
         brand: true,
         subCategory: true,
+        variants: {
+          take: 1,
+          orderBy: { createdAt: "asc" },
+          select: { id: true, price: true },
+        },
       },
-      orderBy,
+      orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(products);
+    // Map to listing DTO expected by frontend (price from first variant)
+    const mapped = products.map((p) => {
+      const defaultVariant = p.variants?.[0] || null;
+      return {
+        id: p.id,
+        name: p.name,
+        description: p.description ?? undefined,
+        image: p.image,
+        brandId: p.brandId ?? undefined,
+        categoryId: p.categoryId ?? undefined,
+        subCategoryId: p.subCategoryId ?? undefined,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        brand: p.brand || undefined,
+        category: p.category || undefined,
+        subCategory: p.subCategory || undefined,
+        price: defaultVariant?.price ?? 0,
+        qty: undefined,
+        subimage: [],
+        defaultVariantId: defaultVariant?.id ?? null,
+      };
+    });
+
+    // Apply price sorting if requested (on mapped array)
+    if (sort === "price_asc") {
+      mapped.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+    } else if (sort === "price_desc") {
+      mapped.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+    }
+
+    return NextResponse.json(mapped);
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(

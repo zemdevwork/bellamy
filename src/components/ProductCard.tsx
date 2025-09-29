@@ -17,6 +17,7 @@ type ProductProps = {
   image: string;
   badge?: string;
   description?: string;
+  variantId?: string; // default variant to add
 };
 
 export default function ProductCard({
@@ -27,6 +28,7 @@ export default function ProductCard({
   image,
   badge,
   description,
+  variantId,
 }: ProductProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -44,13 +46,13 @@ export default function ProductCard({
           const cart = await res.json();
           if (cart?.items) {
             const exists = cart.items.some(
-              (item: { product: { id: string } }) => item.product.id === id
+              (item: { variant: { id: string } }) => !!item.variant && (variantId ? item.variant.id === variantId : false)
             );
             setIsInCart(exists);
           }
         } else {
           const localCart = getLocalCart();
-          const exists = localCart.some((item) => item.productId === id);
+          const exists = localCart.some((item) => (variantId ? item.variantId === variantId : false));
           setIsInCart(exists);
         }
       } catch (error) {
@@ -59,7 +61,7 @@ export default function ProductCard({
     };
 
     if (id) fetchCart();
-  }, [id]);
+  }, [id, variantId]);
 
   const discountPercentage = oldPrice
     ? Math.round(
@@ -72,18 +74,18 @@ export default function ProductCard({
 
   // ✅ Add to cart (server OR local)
   const handleAddToCart = async () => {
-    if (!id) {
-      toast.error("Product ID is missing");
+    if (!variantId) {
+      toast.error("Variant is required");
       return;
     }
 
     startTransition(async () => {
       try {
         if (isLoggedIn()) {
-          await addToCart({ productId: id, quantity: 1 });
+          await addToCart({ variantId, quantity: 1 });
           toast.success(`Added "${name}" to cart!`);
         } else {
-          addLocalCartItem(id, 1);
+          addLocalCartItem(variantId, 1);
           toast.success(`Added "${name}" to cart (Local)!`);
         }
         setIsInCart(true);
@@ -201,7 +203,7 @@ export default function ProductCard({
         <OrderCheckout
           products={[
             {
-              id,
+              id: variantId as string,
               name,
               price: parseFloat(price.replace(/[₹$]/g, "")),
               quantity: 1,

@@ -27,6 +27,12 @@ type Category = {
   name: string;
 };
 
+type SubCategory = {
+  id: string;
+  name: string;
+  categoryId: string;
+};
+
 type Product = {
   id: string;
   name: string;
@@ -42,14 +48,17 @@ type Product = {
   updatedAt: string;
   attributes: ProductAttribute[] | Record<string, unknown>;
   brand?: Brand;
+  defaultVariantId?: string | null;
 };
 
-export default function ShopProductListing({ categoryId }: { categoryId: string }) {
+export default function ShopProductListing({ categoryId, hideCategoryFilter }: { categoryId: string, hideCategoryFilter?: boolean }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryId);
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<string>(""); // 🔹 sorting
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +93,28 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
     };
   }, []);
 
+  // Fetch subcategories when category changes
+  useEffect(() => {
+    let mounted = true;
+    async function fetchSubcategories() {
+      try {
+        if (!selectedCategory) {
+          if (mounted) setSubcategories([]);
+          return;
+        }
+        const response = await fetch(`/api/subcategory?categoryId=${encodeURIComponent(selectedCategory)}`, { cache: "no-store" });
+        if (response.ok) {
+          const data = await response.json();
+          if (mounted && Array.isArray(data)) setSubcategories(data);
+        }
+      } catch (err) {
+        console.error("Error fetching subcategories:", err);
+      }
+    }
+    fetchSubcategories();
+    return () => { mounted = false; };
+  }, [selectedCategory]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -95,6 +126,7 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
       try {
         let productUrl = `/api/product?categoryId=${encodeURIComponent(selectedCategory)}`;
         if (selectedBrand) productUrl += `&brandId=${encodeURIComponent(selectedBrand)}`;
+        if (selectedSubCategory) productUrl += `&subCategoryId=${encodeURIComponent(selectedSubCategory)}`;
         if (sortOrder) productUrl += `&sort=${encodeURIComponent(sortOrder)}`;
 
         const brandUrl = `/api/brand?categoryId=${encodeURIComponent(selectedCategory)}`;
@@ -144,11 +176,12 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
     return () => {
       mounted = false;
     };
-  }, [selectedCategory, selectedBrand, sortOrder]);
+  }, [selectedCategory, selectedBrand, sortOrder, selectedSubCategory]);
 
   const handleCategoryChange = (newCategoryId: string) => {
     setSelectedCategory(newCategoryId);
     setSelectedBrand(""); // Reset brand filter when category changes
+    setSelectedSubCategory("");
     // Update the URL without page refresh
     window.history.pushState({}, '', `/category/${newCategoryId}`);
   };
@@ -179,31 +212,32 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
   return (
     <div>
       {/* 🔹 Filters Row */}
-      {/* 🔹 Filters Row */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
         {/* Category Filter */}
-        <div className="flex flex-col">
-          <span className="text-sm font-medium mb-1 text-gray-600">Category</span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="min-w-[150px] justify-between">
-                {categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel>Select Category</DropdownMenuLabel>
-              {categories.map((category) => (
-                <DropdownMenuItem
-                  key={category.id}
-                  onClick={() => handleCategoryChange(category.id)}
-                  className={selectedCategory === category.id ? "bg-gray-100" : ""}
-                >
-                  {category.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {!hideCategoryFilter && (
+          <div className="flex flex-col">
+            <span className="text-sm font-medium mb-1 text-gray-600">Category</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[150px] justify-between">
+                  {categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Select Category</DropdownMenuLabel>
+                {categories.map((category) => (
+                  <DropdownMenuItem
+                    key={category.id}
+                    onClick={() => handleCategoryChange(category.id)}
+                    className={selectedCategory === category.id ? "bg-gray-100" : ""}
+                  >
+                    {category.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
 
         {/* Brand Filter */}
         <div className="flex flex-col">
@@ -229,6 +263,31 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        {/* Subcategory Filter */}
+        {selectedCategory && (
+          <div className="flex flex-col">
+            <span className="text-sm font-medium mb-1 text-gray-600">Subcategory</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="min-w-[180px] justify-between">
+                  {selectedSubCategory === ""
+                    ? "All Subcategories"
+                    : subcategories.find((s) => s.id === selectedSubCategory)?.name || "Select Subcategory"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Select Subcategory</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setSelectedSubCategory("")}>All Subcategories</DropdownMenuItem>
+                {subcategories.map((sub) => (
+                  <DropdownMenuItem key={sub.id} onClick={() => setSelectedSubCategory(sub.id)}>
+                    {sub.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
 
         {/* Sort Filter */}
         <div className="flex flex-col">
@@ -276,6 +335,7 @@ export default function ShopProductListing({ categoryId }: { categoryId: string 
                 price={`₹${product.price.toFixed(2)}`}
                 image={product.image}
                 description={product.description}
+                variantId={product.defaultVariantId as string}
               />
               <Link
                 href={`/product/${product.id}`}

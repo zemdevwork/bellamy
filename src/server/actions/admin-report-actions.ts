@@ -1,8 +1,6 @@
 'use server';
-
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { getAuthenticatedAdmin } from './admin-user-action';
-const prisma = new PrismaClient();
 
 // Types for filters and responses
 export interface DateRangeFilter {

@@ -122,7 +122,7 @@ export function AdminLoginForm({
                   )}
                 />
                 {errorMessage && (
-                  <div className="text-sm font-medium text-white">
+                  <div className="text-sm font-medium text-red-500">
                     {errorMessage}
                   </div>
                 )}

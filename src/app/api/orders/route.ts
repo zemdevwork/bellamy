@@ -26,7 +26,19 @@ export async function POST(req: NextRequest) {
     // ✅ Fetch user cart
     const cart = await prisma.cart.findUnique({
       where: { userId: user.id },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: {
+                  select: { id: true, name: true, image: true },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -34,7 +46,7 @@ export async function POST(req: NextRequest) {
     }
 
     const totalAmount = cart.items.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
+      (sum, item) => sum + (item.variant?.price || 0) * item.quantity,
       0
     );
 
@@ -52,19 +64,29 @@ export async function POST(req: NextRequest) {
         pincode,
         items: {
           create: cart.items.map((item) => ({
-            productId: item.productId,
+            variantId: item.variantId,
             quantity: item.quantity,
-            price: item.product.price,
+            price: item.variant?.price || 0,
           })),
         },
       },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: { select: { id: true, name: true, image: true } },
+              },
+            },
+          },
+        },
+      },
     });
 
     // ✅ Update product stock
     for (const item of cart.items) {
-      await prisma.product.update({
-        where: { id: item.productId },
+      await prisma.productVariant.update({
+        where: { id: item.variantId },
         data: { qty: { decrement: item.quantity } },
       });
     }
@@ -94,11 +116,35 @@ export async function GET(req: NextRequest) {
 
     const orders = await prisma.order.findMany({
       where: { userId: user.id },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: {
+          include: {
+            variant: {
+              include: {
+                product: { select: { id: true, name: true, image: true } },
+              },
+            },
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ orders });
+    // ✅ Transform data to match frontend expectations
+    const transformedOrders = orders.map(order => ({
+      ...order,
+      items: order.items.map(item => ({
+        productId: item.variant.product.id,
+        quantity: item.quantity,
+        price: item.price,
+        product: {
+          name: item.variant.product.name,
+          image: item.variant.product.image,
+        }
+      }))
+    }));
+
+    return NextResponse.json(transformedOrders);
   } catch (err) {
     console.error("Fetch orders error:", err);
     return NextResponse.json(

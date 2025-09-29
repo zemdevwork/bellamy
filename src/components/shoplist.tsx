@@ -27,6 +27,12 @@ type Category = {
   name: string;
 };
 
+type SubCategory = {
+  id: string;
+  name: string;
+  categoryId: string;
+};
+
 type Product = {
   id: string;
   name: string;
@@ -42,14 +48,17 @@ type Product = {
   updatedAt: string;
   attributes: ProductAttribute[] | Record<string, unknown>;
   brand?: Brand;
+  defaultVariantId?: string | null;
 };
 
 export default function ShopList() {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<SubCategory[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>(""); // Default to empty for "All Categories"
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +86,27 @@ export default function ShopList() {
       mounted = false;
     };
   }, []);
+
+  // Fetch subcategories (all when no category selected, filtered when selected)
+  useEffect(() => {
+    let mounted = true;
+    async function fetchSubcategories() {
+      try {
+        const url = selectedCategory
+          ? `/api/subcategory?categoryId=${encodeURIComponent(selectedCategory)}`
+          : '/api/subcategory';
+        const response = await fetch(url, { cache: "no-store" });
+        if (response.ok) {
+          const data = await response.json();
+          if (mounted && Array.isArray(data)) setSubcategories(data);
+        }
+      } catch (err) {
+        console.error("Error fetching subcategories:", err);
+      }
+    }
+    fetchSubcategories();
+    return () => { mounted = false; };
+  }, [selectedCategory]);
 
   // Fetch all brands when no category is selected
   useEffect(() => {
@@ -118,6 +148,9 @@ export default function ShopList() {
         
         if (selectedCategory) {
           params.append('categoryId', selectedCategory);
+        }
+        if (selectedSubCategory) {
+          params.append('subCategoryId', selectedSubCategory);
         }
         if (selectedBrand) {
           params.append('brandId', selectedBrand);
@@ -184,11 +217,12 @@ export default function ShopList() {
     return () => {
       mounted = false;
     };
-  }, [selectedCategory, selectedBrand, sortOrder]);
+  }, [selectedCategory, selectedBrand, sortOrder, selectedSubCategory]);
 
   const handleCategoryChange = (newCategoryId: string) => {
     setSelectedCategory(newCategoryId);
     setSelectedBrand(""); // Reset brand filter when category changes
+    setSelectedSubCategory("");
     // Note: No URL change here unlike the original component
   };
 
@@ -276,6 +310,38 @@ export default function ShopList() {
           </DropdownMenu>
         </div>
 
+        {/* Subcategory Filter */}
+        <div className="flex flex-col">
+          <span className="text-sm font-medium mb-1 text-gray-600">Subcategory</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-[180px] justify-between">
+                {selectedSubCategory === ""
+                  ? "All Subcategories"
+                  : subcategories.find((s) => s.id === selectedSubCategory)?.name || "Select Subcategory"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Select Subcategory</DropdownMenuLabel>
+              <DropdownMenuItem 
+                onClick={() => setSelectedSubCategory("")}
+                className={selectedSubCategory === "" ? "bg-gray-100" : ""}
+              >
+                All Subcategories
+              </DropdownMenuItem>
+              {subcategories.map((sub) => (
+                <DropdownMenuItem 
+                  key={sub.id} 
+                  onClick={() => setSelectedSubCategory(sub.id)}
+                  className={selectedSubCategory === sub.id ? "bg-gray-100" : ""}
+                >
+                  {sub.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         {/* Sort Filter */}
         <div className="flex flex-col">
           <span className="text-sm font-medium mb-1 text-gray-600">Sort</span>
@@ -326,6 +392,7 @@ export default function ShopList() {
                 price={`₹${product.price.toFixed(2)}`}
                 image={product.image}
                 description={product.description}
+                variantId={product.defaultVariantId as string}
               />
               <Link
                 href={`/product/${product.id}`}

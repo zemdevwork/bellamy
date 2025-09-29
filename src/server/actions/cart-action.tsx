@@ -52,17 +52,18 @@ export async function addToCart(data: unknown) {
     }
 
     const parsed = addToCartSchema.parse(data);
-    const { productId, quantity } = parsed;
+    const { variantId, quantity } = parsed;
     console.log('✅ Data parsed:', parsed);
 
-    // 1. Get product and check stock
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
+    // 1. Get variant and check stock
+    const variant = await prisma.productVariant.findUnique({
+      where: { id: variantId },
+      include: { product: true },
     });
 
-    if (!product) {
-      console.log('❌ Product not found:', productId);
-      throw new Error('Product not found');
+    if (!variant) {
+      console.log('❌ Variant not found:', variantId);
+      throw new Error('Variant not found');
     }
     
     // 2. Find or create user's cart
@@ -81,9 +82,9 @@ export async function addToCart(data: unknown) {
       console.log('✅ Existing cart found:', cart.id);
     }
 
-    // 3. Find existing cart item for the product
+    // 3. Find existing cart item for the variant
     const existingItem = cart.items.find(
-      (item) => item.productId === productId
+      (item) => item.variantId === variantId
     );
 
     const quantityToAdd = quantity;
@@ -91,14 +92,14 @@ export async function addToCart(data: unknown) {
     const newTotalQuantity = currentQuantityInCart + quantityToAdd;
     
     // 4. Perform the stock check
-    if (newTotalQuantity > product.qty) {
+    if (newTotalQuantity > variant.qty) {
       console.log('❌ Insufficient stock:', {
         requested: newTotalQuantity,
-        available: product.qty,
+        available: variant.qty,
       });
       // Return a specific error message to be handled by the client
       throw new Error(
-        `Insufficient stock. Only ${product.qty} left, you have ${currentQuantityInCart} in your cart.`
+        `Insufficient stock. Only ${variant.qty} left, you have ${currentQuantityInCart} in your cart.`
       );
     }
     
@@ -115,7 +116,7 @@ export async function addToCart(data: unknown) {
       const newItem = await prisma.cartItem.create({
         data: {
           cartId: cart.id,
-          productId: productId,
+          variantId: variantId,
           quantity: quantityToAdd,
         },
       });
@@ -163,48 +164,49 @@ export async function addToCartAsBundle(data: unknown) {
 
     // Process each item in the array sequentially
     for (const item of parsedItems) {
-      const { productId, quantity } = item;
+      const { variantId, quantity } = item;
 
       // 1. Get product and check stock
-      const product = await prisma.product.findUnique({
-        where: { id: productId },
+      const variant = await prisma.productVariant.findUnique({
+        where: { id: variantId },
+        include: { product: true },
       });
 
-      if (!product) {
-        console.log(`❌ Product not found: ${productId}`);
-        throw new Error(`Product not found: ${productId}`);
+      if (!variant) {
+        console.log(`❌ Variant not found: ${variantId}`);
+        throw new Error(`Variant not found: ${variantId}`);
       }
 
       // 2. Find existing cart item for the product
-      const existingItem = cart.items.find((i) => i.productId === productId);
+      const existingItem = cart.items.find((i) => i.variantId === variantId);
       const currentQuantityInCart = existingItem?.quantity || 0;
       const newTotalQuantity = currentQuantityInCart + quantity;
 
       // 3. Perform the stock check
-      if (newTotalQuantity > product.qty) {
+      if (newTotalQuantity > variant.qty) {
         console.log('❌ Insufficient stock:', {
           requested: newTotalQuantity,
-          available: product.qty,
+          available: variant.qty,
         });
         throw new Error(
-          `Insufficient stock. Only ${product.qty} of ${product.name} are left. You currently have ${currentQuantityInCart} in your cart.`
+          `Insufficient stock. Only ${variant.qty} of ${variant.product.name} are left. You currently have ${currentQuantityInCart} in your cart.`
         );
       }
 
       // 4. Update or create the cart item
       if (existingItem) {
-        console.log(`📦 Updating existing item quantity for product ${productId}`);
+        console.log(`📦 Updating existing item quantity for variant ${variantId}`);
         await prisma.cartItem.update({
           where: { id: existingItem.id },
           data: { quantity: newTotalQuantity },
         });
         console.log('✅ Item quantity updated');
       } else {
-        console.log(`📦 Creating new cart item for product ${productId}`);
+        console.log(`📦 Creating new cart item for variant ${variantId}`);
         const newItem = await prisma.cartItem.create({
           data: {
             cartId: cart.id,
-            productId: productId,
+            variantId: variantId,
             quantity: quantity,
           },
         });
@@ -234,12 +236,11 @@ export async function getUserCart() {
       include: {
         items: {
           include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                image: true,
+            variant: {
+              include: {
+                product: {
+                  select: { id: true, name: true, image: true },
+                },
               },
             },
           },
@@ -273,7 +274,7 @@ export async function updateCartItem(data: unknown) {
 
     if (!cart) throw new Error("Cart not found");
 
-    const item = cart.items.find((i) => i.productId === parsed.productId);
+    const item = cart.items.find((i) => i.variantId === parsed.variantId);
     if (!item) throw new Error("Item not found in cart");
 
     await prisma.cartItem.update({
@@ -306,7 +307,7 @@ export async function removeFromCart(data: unknown) {
 
     if (!cart) throw new Error("Cart not found");
 
-    const item = cart.items.find((i) => i.productId === parsed.productId);
+    const item = cart.items.find((i) => i.variantId === parsed.variantId);
     if (!item) throw new Error("Item not found in cart");
 
     await prisma.cartItem.delete({
@@ -327,28 +328,31 @@ export async function removeFromCart(data: unknown) {
 export async function dummyCart(data: unknown) {
   try {
     const parsed = addToCartBundleInput.parse(data);
-    const productIds = parsed.map(item => item.productId);
-    const products = await prisma.product.findMany({
+    const variantIds = parsed.map(item => item.variantId);
+    const variants = await prisma.productVariant.findMany({
       where: {
         id: {
-          in: productIds,
+          in: variantIds,
         },
       },
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        image: true,
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
       },
     });
 
     const cartItemsWithDetails = parsed.map(cartItem => {
-      const productDetails = products.find(
-        (product) => product.id === cartItem.productId
-      );
+      const variant = variants.find(v => v.id === cartItem.variantId);
       return {
-        ...cartItem,
-        ...productDetails, 
+        variantId: cartItem.variantId,
+        quantity: cartItem.quantity,
+        price: variant?.price ?? 0,
+        product: variant?.product ?? null,
       };
     });
 

@@ -19,13 +19,16 @@ type Cart = {
   id: string;
   items: {
     id: string;
-    productId: string;
+    variantId: string;
     quantity: number;
-    product: {
+    variant: {
       id: string;
-      name: string;
       price: number;
-      image: string | null;
+      product: {
+        id: string;
+        name: string;
+        image: string | null;
+      };
     };
   }[];
 };
@@ -47,11 +50,11 @@ export default function CartComponent() {
     fetchCart();
   }, []);
 
-  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = (variantId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     startTransition(async () => {
       try {
-        await updateCartItem({ productId, quantity: newQuantity });
+        await updateCartItem({ variantId, quantity: newQuantity });
         fetchCart();
       } catch {
         toast.error("Failed to update cart");
@@ -59,10 +62,10 @@ export default function CartComponent() {
     });
   };
 
-  const handleRemove = (productId: string) => {
+  const handleRemove = (variantId: string) => {
     startTransition(async () => {
       try {
-        await removeFromCart({ productId });
+        await removeFromCart({ variantId });
         toast.success("Item removed");
         fetchCart();
       } catch {
@@ -73,7 +76,7 @@ export default function CartComponent() {
 
   const total =
     cart?.items?.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
+      (sum, item) => sum + (item.variant?.price || 0) * item.quantity,
       0
     ) || 0;
 
@@ -128,21 +131,19 @@ export default function CartComponent() {
             className="grid grid-cols-12 items-center border-b pb-6"
           >
             {/* Product */}
-            <div onClick={() => router.push(`/product/${item.productId}`)} className="col-span-6 flex items-center gap-4">
-              {item.product.image && (
+            <div onClick={() => router.push(`/product/${item.variant.product.id}`)} className="col-span-6 flex items-center gap-4">
+              {item.variant.product.image && (
                 <Image
-                  src={item.product.image}
-                  alt={item.product.name}
+                  src={item.variant.product.image}
+                  alt={item.variant.product.name}
                   width={100}
                   height={100}
                   className="rounded-md object-cover w-24 h-24"
                 />
               )}
               <div>
-                <h3 className="text-lg font-medium">{item.product.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Rs. {item.product.price}
-                </p>
+                <h3 className="text-lg font-medium">{item.variant.product.name}</h3>
+                <p className="text-sm text-muted-foreground">Rs. {item.variant.price}</p>
               </div>
             </div>
 
@@ -153,7 +154,7 @@ export default function CartComponent() {
                   variant="ghost"
                   size="icon"
                   onClick={() =>
-                    handleUpdateQuantity(item.productId, item.quantity - 1)
+                    handleUpdateQuantity(item.variantId, item.quantity - 1)
                   }
                   disabled={isPending || item.quantity <= 1}
                 >
@@ -164,7 +165,7 @@ export default function CartComponent() {
                   variant="ghost"
                   size="icon"
                   onClick={() =>
-                    handleUpdateQuantity(item.productId, item.quantity + 1)
+                    handleUpdateQuantity(item.variantId, item.quantity + 1)
                   }
                   disabled={isPending}
                 >
@@ -175,7 +176,7 @@ export default function CartComponent() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleRemove(item.productId)}
+                onClick={() => handleRemove(item.variantId)}
                 disabled={isPending}
                 className="ml-4 text-destructive"
               >
@@ -185,7 +186,7 @@ export default function CartComponent() {
 
             {/* Total */}
             <div className="col-span-3 text-right font-medium">
-              Rs. {(item.product.price * item.quantity).toFixed(2)}
+              Rs. {((item.variant?.price || 0) * item.quantity).toFixed(2)}
             </div>
           </div>
         ))}
@@ -215,11 +216,11 @@ export default function CartComponent() {
       {showCheckout && (
         <OrderCheckout
           products={cart.items.map((item) => ({
-            id: item.product.id,
-            name: item.product.name,
-            price: item.product.price,
+            id: item.variant.product.id,
+            name: item.variant.product.name,
+            price: item.variant.price,
             quantity: item.quantity,
-            image: item.product.image ?? undefined,
+            image: item.variant.product.image ?? undefined,
           }))}
           total={total}
           onClose={() => setShowCheckout(false)}

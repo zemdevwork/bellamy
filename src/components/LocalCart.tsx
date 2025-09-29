@@ -10,17 +10,19 @@ import { dummyCart } from "@/server/actions/cart-action";
 import { getLocalCart } from "@/lib/local-cart";
 
 type CartItem = {
-  productId: string;
+  variantId: string;
   quantity: number;
 };
 
 type ProductWithDetails = {
-  id: string;
-  name: string;
-  price: number;
-  image: string | null;
-  productId: string;
+  variantId: string;
   quantity: number;
+  price: number;
+  product: {
+    id: string;
+    name: string;
+    image: string | null;
+  } | null;
 };
 
 type DummyCartResponse = {
@@ -81,7 +83,7 @@ export default function LocalCart() {
     startTransition(async () => {
       try {
         const updatedCart = cartItems.map(item => 
-          item.productId === productId 
+          item.variantId === productId 
             ? { ...item, quantity: newQuantity }
             : item
         );
@@ -90,7 +92,7 @@ export default function LocalCart() {
         // Update the products with details
         setProductsWithDetails(prev => 
           prev.map(product => 
-            product.productId === productId 
+            product.variantId === productId 
               ? { ...product, quantity: newQuantity }
               : product
           )
@@ -107,12 +109,12 @@ export default function LocalCart() {
   const handleRemove = (productId: string) => {
     startTransition(async () => {
       try {
-        const updatedCart = cartItems.filter(item => item.productId !== productId);
+        const updatedCart = cartItems.filter(item => item.variantId !== productId);
         updateLocalStorage(updatedCart);
         
         // Remove from products with details
         setProductsWithDetails(prev => 
-          prev.filter(product => product.productId !== productId)
+          prev.filter(product => product.variantId !== productId)
         );
         
         toast.success("Item removed");
@@ -182,22 +184,22 @@ export default function LocalCart() {
       <div className="space-y-6">
         {productsWithDetails.map((item) => (
           <div
-            key={item.productId}
+            key={item.variantId}
             className="grid grid-cols-12 items-center border-b pb-6"
           >
             {/* Product */}
-            <div onClick={() => router.push(`/product/${item.productId}`)} className="col-span-6 flex items-center gap-4">
-              {item.image && (
+            <div onClick={() => item.product && router.push(`/product/${item.product.id}`)} className="col-span-6 flex items-center gap-4">
+              {item.product?.image && (
                 <Image
-                  src={item.image}
-                  alt={item.name}
+                  src={item.product.image}
+                  alt={item.product.name}
                   width={100}
                   height={100}
                   className="rounded-md object-cover w-24 h-24"
                 />
               )}
               <div>
-                <h3 className="text-lg font-medium">{item.name}</h3>
+                <h3 className="text-lg font-medium">{item.product?.name}</h3>
                 <p className="text-sm text-muted-foreground">
                   Rs. {item.price}
                 </p>
@@ -211,7 +213,7 @@ export default function LocalCart() {
                   variant="ghost"
                   size="icon"
                   onClick={() =>
-                    handleUpdateQuantity(item.productId, item.quantity - 1)
+                    handleUpdateQuantity(item.variantId, item.quantity - 1)
                   }
                   disabled={isPending || item.quantity <= 1}
                 >
@@ -222,7 +224,7 @@ export default function LocalCart() {
                   variant="ghost"
                   size="icon"
                   onClick={() =>
-                    handleUpdateQuantity(item.productId, item.quantity + 1)
+                    handleUpdateQuantity(item.variantId, item.quantity + 1)
                   }
                   disabled={isPending}
                 >
@@ -233,7 +235,7 @@ export default function LocalCart() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => handleRemove(item.productId)}
+                onClick={() => handleRemove(item.variantId)}
                 disabled={isPending}
                 className="ml-4 text-destructive"
               >

@@ -22,14 +22,14 @@ export function getLocalCart(): CartItem[] {
 }
 
 // ✅ Add item to localStorage cart
-export function addLocalCartItem(productId: string, quantity: number = 1) {
+export function addLocalCartItem(variantId: string, quantity: number = 1) {
   const cart = getLocalCart();
 
-  const existing = cart.find((item) => item.productId === productId);
+  const existing = cart.find((item) => item.variantId === variantId);
   if (existing) {
     existing.quantity += quantity;
   } else {
-    cart.push({ productId, quantity });
+    cart.push({ variantId, quantity });
   }
 
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
