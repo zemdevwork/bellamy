@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useTransition, useEffect } from "react";
-import { addToCart } from "@/server/actions/cart-action";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";

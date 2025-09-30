@@ -241,7 +241,7 @@ export default function ShopProductListing({ categoryId, hideCategoryFilter }: {
               <Link href="/shop" className="mt-4 inline-block text-blue-500 hover:underline">Browse all categories</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {products.map((p) => (
                 <ProductCard
                   key={p.id}
