@@ -1,4 +1,3 @@
-// app/product/[id]/page.tsx
 import ProductDetails from "@/components/productdetails/Productdetails";
 
 type Props = {

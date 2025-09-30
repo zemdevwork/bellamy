@@ -110,7 +110,7 @@ export async function GET() {
     );
 
     // Step 7: Take top 5 products
-    const top5Products = sortedProducts.slice(0, 5);
+    const top5Products = sortedProducts.slice(0, 10);
 
     // Step 8: Format the response
     const formattedBestsellers: FormattedBestsellers[] = top5Products.map(

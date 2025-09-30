@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { removeFromWishlist } from "@/server/actions/wishlist-action";
 import { toast } from "sonner";
-import { Heart, ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2 } from "lucide-react";
 
 type WishlistItemProps = {
   variantId: string;
@@ -45,8 +45,8 @@ export default function WishlistCard({ variantId, product, onRemoved }: Wishlist
   };
 
   return (
-    <div className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
-      <div className="flex gap-4">
+    <div className="border rounded-xl p-4 sm:p-5 hover:shadow-sm transition-shadow bg-white">
+      <div className="flex items-center gap-4 sm:gap-6">
         {/* Product Image */}
         <div
           onClick={() => router.push(`/product/${product.id}`)}
@@ -58,61 +58,57 @@ export default function WishlistCard({ variantId, product, onRemoved }: Wishlist
               alt={product.name}
               width={100}
               height={100}
-              className="rounded-lg object-cover w-24 h-24"
+              className="rounded-lg object-cover w-20 h-20 sm:w-24 sm:h-24"
             />
           ) : (
-            <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
-              <Heart className="w-8 h-8 text-gray-400" />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+              <ShoppingCart className="w-8 h-8" />
             </div>
           )}
         </div>
 
-        {/* Product Details */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex-1">
-            <h3
-              onClick={() => router.push(`/product/${product.id}`)}
-              className="font-medium text-gray-900 cursor-pointer hover:text-gray-700 mb-1"
-            >
-              {product.name}
-            </h3>
-            {product.price && (
-              <p className="text-sm text-gray-600 mb-2">
-                ₹{product.price.toFixed(2)}
-              </p>
-            )}
-          </div>
+        {/* Product Info */}
+        <div className="flex-1 min-w-0">
+          <h3
+            onClick={() => router.push(`/product/${product.id}`)}
+            className="font-medium text-gray-900 cursor-pointer hover:text-gray-700 truncate"
+          >
+            {product.name}
+          </h3>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 mt-auto">
+          {product.price && (
+            <p className="text-sm text-gray-600 mt-1">₹{product.price.toFixed(2)}</p>
+          )}
+        </div>
+
+        {/* Actions + Price */}
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          {product.price && (
+            <p className="font-medium text-gray-900 hidden sm:block">
+              ₹{product.price.toFixed(2)}
+            </p>
+          )}
+
+          <div className="flex gap-2">
             <button
               onClick={handleAddToCart}
               disabled={isPending}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <ShoppingCart className="w-4 h-4" />
-              <span>Add to Cart</span>
+              <span>Add</span>
             </button>
 
             <button
               onClick={handleRemove}
               disabled={isPending}
-              className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors border border-transparent hover:border-red-100"
+              className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
               aria-label="Remove from wishlist"
             >
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
         </div>
-
-        {/* Price on Right (Desktop) */}
-        {product.price && (
-          <div className="text-right hidden sm:block flex-shrink-0">
-            <p className="font-medium text-gray-900">
-              ₹{product.price.toFixed(2)}
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

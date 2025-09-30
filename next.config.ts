@@ -11,15 +11,25 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "i.pinimg.com",
-        pathname: "/**",
-      }
+        pathname: "/**", // allow all images from Pinterest
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**", // allow all images from Unsplash
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/**", // allow all images from Pexels
+      },
     ],
   },
-  experimental:{
-    serverActions:{
+  experimental: {
+    serverActions: {
       bodySizeLimit: "5mb",
-    }
-  }
+    },
+  },
 };
 
 export default nextConfig;

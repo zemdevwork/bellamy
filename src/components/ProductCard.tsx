@@ -8,6 +8,7 @@ import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
 import { Eye, ShoppingCart } from "lucide-react";
+import { useCart } from "@/context/cartContext";
 
 type ProductProps = {
   id: string;
@@ -39,6 +40,7 @@ export default function ProductCard({
   const [isInCart, setIsInCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const router = useRouter();
+  const { updateCartCount } = useCart();
 
   // Check if product already in cart on mount
   useEffect(() => {
@@ -96,9 +98,11 @@ export default function ProductCard({
             body: JSON.stringify({ variantId, quantity: 1 }),
           });
           if (!res.ok) throw new Error("Failed to add to cart");
+          await updateCartCount();
           toast.success(`Added "${name}" to cart!`);
         } else {
           addLocalCartItem(variantId, 1);
+          await updateCartCount();
           toast.success(`Added "${name}" to cart (Local)!`);
         }
         setIsInCart(true);

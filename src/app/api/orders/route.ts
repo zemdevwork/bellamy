@@ -23,19 +23,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ✅ Determine source: direct items (Buy Now) vs cart
-    let orderItems: { variantId: string; quantity: number; price: number }[] = [];
-    let totalAmount = 0;
+    // ✅ Define type for items
+    type OrderItemInput = {
+      variantId: string;
+      quantity: number;
+    };
 
-    if (Array.isArray(items) && items.length > 0) {
+    // ✅ Determine source: direct items (Buy Now) vs cart
+    const orderItems: { variantId: string; quantity: number; price: number }[] = [];
+    let totalAmount = 0;
+    let isDirectBuyNow = true; // Track if this is a direct buy
+
+    if (Array.isArray(items) && items.length > 1) {
       // Direct Buy Now using provided items (with variantId)
-      const variantIds = items.map((i: any) => i.variantId);
+      isDirectBuyNow = false;
+      const variantIds = (items as OrderItemInput[]).map((i) => i.variantId);
       const variants = await prisma.productVariant.findMany({
         where: { id: { in: variantIds } },
         select: { id: true, price: true, qty: true },
       });
 
-      for (const it of items) {
+      for (const it of items as OrderItemInput[]) {
         const v = variants.find((vv) => vv.id === it.variantId);
         if (!v) return NextResponse.json({ error: `Variant not found: ${it.variantId}` }, { status: 400 });
         if (it.quantity < 1) return NextResponse.json({ error: `Invalid quantity for ${it.variantId}` }, { status: 400 });
@@ -64,10 +72,6 @@ export async function POST(req: NextRequest) {
         orderItems.push({ variantId: ci.variantId, quantity: ci.quantity, price: ci.variant.price });
         totalAmount += ci.variant.price * ci.quantity;
       }
-
-      // ✅ Clear cart after placing order (done after we create order)
-      // will execute post creation
-      // we'll decrement stock for these items below
     }
 
     // ✅ Create order with address snapshot
@@ -111,10 +115,12 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // ✅ Clear cart after placing order when using cart source
-    if (!Array.isArray(items) || items.length === 0) {
+    // ✅ Clear cart only if order was placed from cart (not direct buy)
+    if (!isDirectBuyNow) {
       const cart = await prisma.cart.findUnique({ where: { userId: user.id } });
-      if (cart) await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      if (cart) {
+        await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+      }
     }
 
     return NextResponse.json({ success: true, order }, { status: 201 });

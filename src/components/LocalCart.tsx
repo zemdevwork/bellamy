@@ -50,7 +50,7 @@ export default function LocalCart() {
     }
 
     try {
-      const response = await dummyCart(localCart) as DummyCartResponse;
+      const response = (await dummyCart(localCart)) as DummyCartResponse;
       if (response.success && response.data) {
         setProductsWithDetails(response.data);
       } else {
@@ -79,25 +79,22 @@ export default function LocalCart() {
 
   const handleUpdateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
-    
+
     startTransition(async () => {
       try {
-        const updatedCart = cartItems.map(item => 
-          item.variantId === productId 
-            ? { ...item, quantity: newQuantity }
-            : item
+        const updatedCart = cartItems.map((item) =>
+          item.variantId === productId ? { ...item, quantity: newQuantity } : item
         );
         updateLocalStorage(updatedCart);
-        
-        // Update the products with details
-        setProductsWithDetails(prev => 
-          prev.map(product => 
-            product.variantId === productId 
+
+        setProductsWithDetails((prev) =>
+          prev.map((product) =>
+            product.variantId === productId
               ? { ...product, quantity: newQuantity }
               : product
           )
         );
-        
+
         toast.success("Cart updated");
       } catch (error) {
         console.error("Error updating quantity:", error);
@@ -109,14 +106,13 @@ export default function LocalCart() {
   const handleRemove = (productId: string) => {
     startTransition(async () => {
       try {
-        const updatedCart = cartItems.filter(item => item.variantId !== productId);
+        const updatedCart = cartItems.filter((item) => item.variantId !== productId);
         updateLocalStorage(updatedCart);
-        
-        // Remove from products with details
-        setProductsWithDetails(prev => 
-          prev.filter(product => product.variantId !== productId)
+
+        setProductsWithDetails((prev) =>
+          prev.filter((product) => product.variantId !== productId)
         );
-        
+
         toast.success("Item removed");
       } catch (error) {
         console.error("Error removing item:", error);
@@ -136,7 +132,7 @@ export default function LocalCart() {
 
   if (loading) {
     return (
-      <div className="text-center py-10">
+      <div className="page-wrap text-center">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         <p className="mt-2">Loading Cart...</p>
       </div>
@@ -145,7 +141,7 @@ export default function LocalCart() {
 
   if (productsWithDetails.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
+      <div className="page-wrap flex flex-col items-center justify-center">
         <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
         <p className="text-lg font-medium">Your cart is empty</p>
         <p className="text-sm text-muted-foreground">
@@ -160,109 +156,164 @@ export default function LocalCart() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
-      <Button
-        variant="ghost"
-        className="mb-6 flex items-center"
-        onClick={() => router.push("/")}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Home
-      </Button>
-
+    <div className="page-wrap">
       {/* Title */}
-      <h1 className="text-3xl font-serif mb-8">Your cart</h1>
+      <h1 className="page-title mb-6 md:mb-8">Your cart</h1>
 
-      {/* Header row */}
-      <div className="grid grid-cols-12 items-center border-b pb-4 mb-6 text-sm font-medium text-muted-foreground">
+      {/* Desktop Header row */}
+      <div className="hidden md:grid grid-cols-12 items-center border-b pb-4 mb-6 text-sm font-medium text-muted-foreground">
         <div className="col-span-6">PRODUCT</div>
         <div className="col-span-3 text-center">QUANTITY</div>
         <div className="col-span-3 text-right">TOTAL</div>
       </div>
 
       {/* Cart Items */}
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         {productsWithDetails.map((item) => (
-          <div
-            key={item.variantId}
-            className="grid grid-cols-12 items-center border-b pb-6"
-          >
-            {/* Product */}
-            <div onClick={() => item.product && router.push(`/product/${item.product.id}`)} className="col-span-6 flex items-center gap-4">
-              {item.product?.image && (
-                <Image
-                  src={item.product.image}
-                  alt={item.product.name}
-                  width={100}
-                  height={100}
-                  className="rounded-md object-cover w-24 h-24"
-                />
-              )}
-              <div>
-                <h3 className="text-lg font-medium">{item.product?.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  Rs. {item.price}
-                </p>
-              </div>
-            </div>
+          <div key={item.variantId} className="border-b pb-4 md:pb-6">
+            {/* Mobile Layout */}
+            <div className="md:hidden space-y-3">
+              <div className="flex gap-3">
+                {item.product?.image && (
+                  <div
+                    onClick={() => item.product && router.push(`/product/${item.product.id}`)}
+                    className="cursor-pointer flex-shrink-0"
+                  >
+                    <Image
+                      src={item.product.image}
+                      alt={item.product.name}
+                      width={80}
+                      height={80}
+                      className="rounded-md object-cover w-20 h-20"
+                    />
+                  </div>
+                )}
 
-            {/* Quantity */}
-            <div className="col-span-3 flex items-center justify-center">
-              <div className="flex items-center border rounded-md">
+                <div className="flex-1 min-w-0">
+                  <h3
+                    onClick={() => item.product && router.push(`/product/${item.product.id}`)}
+                    className="font-medium text-sm sm:text-base line-clamp-2 cursor-pointer"
+                  >
+                    {item.product?.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Rs. {item.price}
+                  </p>
+                  <p className="text-sm font-medium mt-2">
+                    Total: Rs. {(item.price * item.quantity).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quantity Controls - Mobile */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center border rounded-md">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleUpdateQuantity(item.variantId, item.quantity - 1)}
+                    disabled={isPending || item.quantity <= 1}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <span className="px-3 text-sm">{item.quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleUpdateQuantity(item.variantId, item.quantity + 1)}
+                    disabled={isPending}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+
                 <Button
                   variant="ghost"
-                  size="icon"
-                  onClick={() =>
-                    handleUpdateQuantity(item.variantId, item.quantity - 1)
-                  }
-                  disabled={isPending || item.quantity <= 1}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="px-4">{item.quantity}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() =>
-                    handleUpdateQuantity(item.variantId, item.quantity + 1)
-                  }
+                  size="sm"
+                  onClick={() => handleRemove(item.variantId)}
                   disabled={isPending}
+                  className="text-destructive h-8 w-8 p-0"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Desktop Layout */}
+            <div className="hidden md:grid grid-cols-12 items-center">
+              <div
+                onClick={() => item.product && router.push(`/product/${item.product.id}`)}
+                className="col-span-6 flex items-center gap-4 cursor-pointer"
+              >
+                {item.product?.image && (
+                  <Image
+                    src={item.product.image}
+                    alt={item.product.name}
+                    width={100}
+                    height={100}
+                    className="rounded-md object-cover w-24 h-24"
+                  />
+                )}
+                <div>
+                  <h3 className="text-lg font-medium">{item.product?.name}</h3>
+                  <p className="text-sm text-muted-foreground">Rs. {item.price}</p>
+                </div>
+              </div>
+
+              <div className="col-span-3 flex items-center justify-center">
+                <div className="flex items-center border rounded-md">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleUpdateQuantity(item.variantId, item.quantity - 1)}
+                    disabled={isPending || item.quantity <= 1}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="px-4">{item.quantity}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleUpdateQuantity(item.variantId, item.quantity + 1)}
+                    disabled={isPending}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleRemove(item.variantId)}
+                  disabled={isPending}
+                  className="ml-4 text-destructive"
+                >
+                  <Trash2 className="h-5 w-5" />
                 </Button>
               </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleRemove(item.variantId)}
-                disabled={isPending}
-                className="ml-4 text-destructive"
-              >
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Total */}
-            <div className="col-span-3 text-right font-medium">
-              Rs. {(item.price * item.quantity).toFixed(2)}
+              <div className="col-span-3 text-right font-medium">
+                Rs. {(item.price * item.quantity).toFixed(2)}
+              </div>
             </div>
           </div>
         ))}
       </div>
 
       {/* Cart Total */}
-      <div className="flex justify-end mt-10">
-        <div className="w-full max-w-md space-y-4 border-t pt-6">
-          <div className="flex justify-between text-lg">
+      <div className="flex justify-end mt-6 md:mt-10">
+        <div className="w-full md:max-w-md space-y-3 md:space-y-4 border-t pt-4 md:pt-6">
+          <div className="flex justify-between text-base md:text-lg">
             <span>Estimated total</span>
             <span className="font-semibold">Rs. {total.toFixed(2)}</span>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs md:text-sm text-muted-foreground">
             Taxes included. Discounts and shipping calculated at checkout.
           </p>
           <Button
-            className="w-full h-12 text-lg font-medium"
+            className="w-full h-11 md:h-12 text-base md:text-lg font-medium"
             onClick={handleBuyNow}
             disabled={isPending}
           >

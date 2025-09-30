@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Package, ShoppingBag } from "lucide-react";
 
@@ -83,6 +84,7 @@ const ProductImage = ({
 };
 
 export default function OrderList() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -112,7 +114,9 @@ export default function OrderList() {
     });
   };
 
-  const handleCancelOrder = async (orderId: string) => {
+  const handleCancelOrder = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation when clicking cancel
+    
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
@@ -136,6 +140,10 @@ export default function OrderList() {
       console.error("Cancel order failed:", err);
       toast.error("Something went wrong");
     }
+  };
+
+  const handleViewOrder = (orderId: string) => {
+    router.push(`/order/${orderId}`);
   };
 
   if (loading) {
@@ -188,10 +196,11 @@ export default function OrderList() {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="border rounded-lg overflow-hidden hover:shadow-sm transition-shadow"
+              className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleViewOrder(order.id)}
             >
               {/* Order Header */}
-              <div className="p-6 border-b bg-gray-50">
+              <div className="p-6 border-b bg-gray-50 hover:bg-gray-100 transition-colors">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border">
@@ -257,7 +266,10 @@ export default function OrderList() {
                 <div className="px-6 py-4 bg-gray-50 border-t">
                   <div className="flex items-center justify-end gap-3">
                     {order.status.toUpperCase() === "DELIVERED" && (
-                      <button className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-white transition-colors">
+                      <button 
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-white transition-colors"
+                      >
                         Reorder
                       </button>
                     )}
@@ -265,7 +277,7 @@ export default function OrderList() {
                       order.status.toUpperCase()
                     ) && (
                       <button
-                        onClick={() => handleCancelOrder(order.id)}
+                        onClick={(e) => handleCancelOrder(order.id, e)}
                         className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
                       >
                         Cancel Order

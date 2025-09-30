@@ -2,13 +2,13 @@
 import { useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { addToCart } from "@/server/actions/cart-action";
 import { addToWishlist } from "@/server/actions/wishlist-action";
 import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
+import { Heart, Share2 } from "lucide-react";
+import { useCart } from '@/context/cartContext';
 
 const capitalizeWords = (str: string) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
@@ -53,7 +53,6 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
-  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isInCart, setIsInCart] = useState(false);
@@ -61,6 +60,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [isWishPending, startWishTransition] = useTransition();
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const { updateCartCount } = useCart();
 
   const router = useRouter();
 
@@ -138,17 +138,9 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const price = selectedVariant?.price ?? product?.price ?? 0;
   const galleryImages = selectedVariant?.images?.length ? selectedVariant.images : [product?.image || "", ...(product?.subimage || [])];
 
+  
   const handleAddToCart = () => {
     if (!product || !selectedVariantId) return;
-
-    if (quantity < 1) {
-      toast.error("❌ Quantity must be at least 1");
-      return;
-    }
-    if (quantity > 10) {
-      toast.error("❌ Cannot add more than 10 items at once");
-      return;
-    }
 
     startTransition(async () => {
       try {
@@ -156,12 +148,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
           const res = await fetch("/api/cart", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ variantId: selectedVariantId, quantity }),
+            body: JSON.stringify({ variantId: selectedVariantId, quantity: 1 }),
           });
           if (!res.ok) throw new Error("Failed to add to cart");
+          await updateCartCount();
           toast.success(`✅ Added "${capitalizeWords(product.name)}" to your cart!`);
         } else {
-          addLocalCartItem(selectedVariantId, quantity);
+          addLocalCartItem(selectedVariantId, 1);
+          await updateCartCount();
           toast.success(`🛒 Added "${capitalizeWords(product.name)}" to cart (local)!`);
         }
 
@@ -409,11 +403,11 @@ export default function ProductDetails({ productId }: { productId: string }) {
               id: selectedVariantId || product.id,
               name: capitalizeWords(product.name),
               price: price,
-              quantity,
+              quantity: 1,
               image: selectedImage ?? product.image ?? undefined,
             },
           ]}
-          total={price * quantity}
+          total={price * 1}
           onClose={() => setShowCheckout(false)}
         />
       )}
