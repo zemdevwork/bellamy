@@ -9,6 +9,8 @@ import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
 import { Heart, Share2 } from "lucide-react";
 import { useCart } from '@/context/cartContext';
+import ShareButton from "../common/Share";
+import { brand } from "@/constants/values";
 
 const capitalizeWords = (str: string) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
@@ -138,7 +140,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const price = selectedVariant?.price ?? product?.price ?? 0;
   const galleryImages = selectedVariant?.images?.length ? selectedVariant.images : [product?.image || "", ...(product?.subimage || [])];
 
-  
+
   const handleAddToCart = () => {
     if (!product || !selectedVariantId) return;
 
@@ -236,9 +238,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
               <div
                 key={idx}
                 onClick={() => setSelectedImage(img)}
-                className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition ${
-                  selectedImage === img ? "border-gray-900" : "border-transparent"
-                }`}
+                className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition ${selectedImage === img ? "border-gray-900" : "border-transparent"
+                  }`}
                 style={{ aspectRatio: "3/4" }}
               >
                 <Image src={img} alt="Thumbnail" fill className="object-cover" />
@@ -251,15 +252,16 @@ export default function ProductDetails({ productId }: { productId: string }) {
         <div className="space-y-6">
           {/* Icons */}
           <div className="flex justify-end gap-3">
-            <button className="p-2 border border-gray-300 rounded-full hover:bg-gray-50">
-              <Share2 size={18} />
-            </button>
-            <button 
+            <ShareButton url={`${window.location.origin}/product/${productId}`} />
+            <button
               onClick={handleAddToWishlist}
-              disabled={isWishPending || isInWishlist}
               className="p-2 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50"
             >
-              <Heart size={18} fill={isInWishlist ? "currentColor" : "none"} />
+              <Heart
+                size={18}
+                className={isInWishlist ? "text-rose-900" : "text-gray-700"}
+                fill={isInWishlist ? brand.primary : "none"}
+              />
             </button>
           </div>
 
@@ -304,11 +306,10 @@ export default function ProductDetails({ productId }: { productId: string }) {
                         setSelectedVariantId(match ? match.id : null);
                         if (match?.images?.[0]) setSelectedImage(match.images[0]);
                       }}
-                      className={`px-4 py-2 text-sm border rounded transition ${
-                        isSelected
+                      className={`px-4 py-2 text-sm border rounded transition ${isSelected
                           ? "bg-gray-900 text-white border-gray-900"
                           : "bg-white text-gray-900 border-gray-300 hover:border-gray-900"
-                      }`}
+                        }`}
                     >
                       {capitalizeWords(val.value)}
                     </button>

@@ -72,18 +72,18 @@ export default function ProductCard({
 
   const discountPercentage = oldPrice
     ? Math.round(
-        ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
-          parseFloat(price.replace(/[₹$]/g, ""))) /
-          parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
-          100
-      )
+      ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
+        parseFloat(price.replace(/[₹$]/g, ""))) /
+        parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
+      100
+    )
     : 0;
 
   // Add to cart handler
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!variantId) {
       toast.error("Variant is required");
       return;
@@ -131,7 +131,18 @@ export default function ProductCard({
         onClick={() => router.push(`/product/${id}`)}
         className="cursor-pointer"
       >
-        <div className="rounded-xl overflow-hidden border bg-white" style={{ borderColor: "#E9D8DD" }}>
+        <div
+    className="
+      bg-white 
+      transition-all duration-500
+      hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]
+      p-2
+      pb-6
+      md:rounded-tr-xl md:rounded-bl-xl
+      lg:rounded-tr-2xl lg:rounded-bl-2xl
+      overflow-hidden
+    "
+  >
           {/* Badges */}
           {(badge || discountPercentage > 0) && (
             <div className="absolute z-10 inset-x-0 top-0 flex justify-between p-3">
@@ -151,7 +162,7 @@ export default function ProductCard({
           )}
 
           {/* Image */}
-          <div className="aspect-[3/4] overflow-hidden bg-[#F9F6F7] relative">
+          <div className="relative aspect-[3/4] overflow-hidden bg-[#F9F6F7] md:rounded-tr-md md:rounded-bl-md lg:rounded-tr-lg lg:rounded-bl-lg">
             <Image
               src={image}
               alt={name}
@@ -160,68 +171,41 @@ export default function ProductCard({
               onLoad={() => setImageLoaded(true)}
             />
             {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
-            
-            {/* Action Buttons - Bottom right on mobile, center overlay on desktop hover */}
-            <div className="absolute bottom-3 right-3 flex gap-2 md:hidden">
+
+            {/* Action Buttons - Always visible, bottom center */}
+            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-5">
+              {/* Already in cart */}
               {isInCart ? (
                 <button
                   onClick={handleGoToCart}
                   aria-label="Go to cart"
                   title="Go to cart"
-                  className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg"
+                  className="inline-flex hover:w-24 items-center justify-center w-15 h-10 rounded-full cursor-pointer 
+               bg-amber-50 text-stone-700 hover:opacity-80 transition-all shadow-lg"
                 >
                   <ShoppingCart size={18} />
                 </button>
               ) : (
+                // Add to cart
                 <button
                   onClick={handleAddToCart}
                   disabled={isPending}
                   aria-label="Add to cart"
                   title="Add to cart"
-                  className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white text-stone-800 hover:bg-amber-100 transition-all disabled:opacity-50 shadow-lg"
+                  className="inline-flex items-center hover:w-24 justify-center w-15 h-10 rounded-full cursor-pointer 
+               bg-stone-200 text-stone-800 hover:bg-amber-50 transition-all disabled:opacity-50 shadow-lg"
                 >
                   <ShoppingCart size={18} />
                 </button>
               )}
+
               <button
                 onClick={handleViewDetails}
                 aria-label="View details"
                 title="View details"
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg"
+                className="inline-flex items-center justify-center w-15 h-10 rounded-full hover:w-24 cursor-pointer bg-white/80 text-stone-700 hover:bg-stone-50 transition-all shadow-lg"
               >
                 <Eye size={18} />
-              </button>
-            </div>
-
-            {/* Desktop hover overlay */}
-            <div className="hidden md:flex absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-              {isInCart ? (
-                <button
-                  onClick={handleGoToCart}
-                  aria-label="Go to cart"
-                  title="Go to cart"
-                  className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg transform translate-y-2 group-hover:translate-y-0"
-                >
-                  <ShoppingCart size={20} />
-                </button>
-              ) : (
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isPending}
-                  aria-label="Add to cart"
-                  title="Add to cart"
-                  className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-stone-800 hover:bg-amber-100 transition-all disabled:opacity-50 shadow-lg transform translate-y-2 group-hover:translate-y-0"
-                >
-                  <ShoppingCart size={20} />
-                </button>
-              )}
-              <button
-                onClick={handleViewDetails}
-                aria-label="View details"
-                title="View details"
-                className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-stone-700 hover:bg-stone-50 transition-all shadow-lg transform translate-y-2 group-hover:translate-y-0"
-              >
-                <Eye size={20} />
               </button>
             </div>
           </div>

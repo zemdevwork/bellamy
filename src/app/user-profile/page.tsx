@@ -38,61 +38,58 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <div className="page-wrap">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-8">
+        <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
           <button className="hover:text-gray-900">Home</button>
           <span>/</span>
           <span className="text-gray-400 font-serif">My Account</span>
         </div>
 
         {/* Page Title */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="page-title text-gray-900 mb-2">My Account</h1>
           <p className="text-gray-600">Manage your profile and preferences</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border">
-              <nav className="p-2">
-                {tabs.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-1 ${
-                        activeTab === tab.id
-                          ? "bg-gray-900 text-white"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="text-sm font-medium">{tab.label}</span>
-                    </button>
-                  );
-                })}
-
-                {/* Logout Button */}
-                <div className="pt-2 mt-2 border-t">
+        {/* Horizontal Tabs */}
+        <div className="bg-white rounded-lg border mb-6">
+          <div className="flex items-center justify-between border-b">
+            <nav className="flex">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
                   <button
-                    onClick={() => setShowLogoutDialog(true)}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-red-50 hover:text-red-600"
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors relative ${activeTab === tab.id
+                        ? "text-gray-900"
+                        : "text-gray-600 hover:text-gray-900"
+                      }`}
                   >
-                    <LogOut className="w-5 h-5" />
-                    <span className="text-sm font-medium">Logout</span>
+                    <Icon className="w-5 h-5" />
+                    <span className="hidden sm:inline">{tab.label}</span> {/* Hide on small screens */}
+                    {activeTab === tab.id && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900" />
+                    )}
                   </button>
-                </div>
-              </nav>
-            </div>
-          </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-4">
-            <div className="bg-white rounded-lg border">
-              {activeTabData?.component}
-            </div>
+                );
+              })}
+            </nav>
+
+            {/* Logout Button */}
+            <button
+              onClick={() => setShowLogoutDialog(true)}
+              className="flex items-center gap-2 px-6 py-4 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
           </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="bg-white rounded-lg border overflow-hidden">
+          {activeTabData?.component}
         </div>
       </div>
 

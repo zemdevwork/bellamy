@@ -125,9 +125,9 @@ export default function UserProfileComponent() {
   if (isEditing) {
     return (
       <div className="p-8">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="space-y-6">
           {/* Profile Image Upload */}
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex justify-center mb-8">
             <div className="relative">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100">
                 {imagePreview ? (
@@ -217,61 +217,59 @@ export default function UserProfileComponent() {
 
   return (
     <div className="p-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header with Edit Button */}
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h2 className="text-2xl font-medium text-gray-900 mb-1">Profile Information</h2>
-            <p className="text-gray-600 text-sm">Manage your personal details</p>
+      {/* Header with Edit Button */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h2 className="text-2xl font-medium text-gray-900 mb-1">Profile Information</h2>
+          <p className="text-gray-600 text-sm">Manage your personal details</p>
+        </div>
+        <button
+          onClick={() => setIsEditing(true)}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
+        >
+          <Edit2 className="w-4 h-4" />
+          Edit
+        </button>
+      </div>
+
+      {/* Profile Display */}
+      <div className="space-y-6">
+        {/* Avatar and Name */}
+        <div className="flex items-center gap-6 pb-6 border-b">
+          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100">
+            {user.image ? (
+              <Image src={user.image} alt={user.name} width={80} height={80} className="object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User className="w-10 h-10 text-gray-400" />
+              </div>
+            )}
           </div>
-          <button
-            onClick={() => setIsEditing(true)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm font-medium"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit
-          </button>
+          <div>
+            <h3 className="text-xl font-medium text-gray-900">{user.name}</h3>
+            <p className="text-gray-600 text-sm mt-1">Member since {new Date().getFullYear()}</p>
+          </div>
         </div>
 
-        {/* Profile Display */}
-        <div className="space-y-6">
-          {/* Avatar and Name */}
-          <div className="flex items-center gap-6 pb-6 border-b">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100">
-              {user.image ? (
-                <Image src={user.image} alt={user.name} width={80} height={80} className="object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <User className="w-10 h-10 text-gray-400" />
-                </div>
-              )}
-            </div>
-            <div>
-              <h3 className="text-xl font-medium text-gray-900">{user.name}</h3>
-              <p className="text-gray-600 text-sm mt-1">Member since {new Date().getFullYear()}</p>
+        {/* Contact Details */}
+        <div className="space-y-4">
+          <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+            <Mail className="w-5 h-5 text-gray-500 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 mb-1">Email Address</p>
+              <p className="text-gray-900 font-medium">{user.email}</p>
             </div>
           </div>
 
-          {/* Contact Details */}
-          <div className="space-y-4">
-            <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-              <Mail className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-gray-600 mb-1">Email Address</p>
-                <p className="text-gray-900 font-medium">{user.email}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-              <Phone className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm text-gray-600 mb-1">Phone Number</p>
-                <p className="text-gray-900 font-medium">{user.phone || "Not provided"}</p>
-              </div>
-            </div>
+          <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+            <Phone className="w-5 h-5 text-gray-500 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 mb-1">Phone Number</p>
+              <p className="text-gray-900 font-medium">{user.phone || "Not provided"}</p>
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

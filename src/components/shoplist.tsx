@@ -165,21 +165,26 @@ export default function ShopList() {
   const brandTheme = { primary: "#8B1D3F" };
 
   return (
-    <div className="w-full px-4">
+    <div className="w-full">
       <div className="grid grid-cols-15 gap-4 w-full">
-        <aside className="col-span-15 md:col-span-3">
-          <div className="rounded-2xl border" style={{ borderColor: "#E9D8DD", backgroundColor: "#fff" }}>
+        <aside className="col-span-15 md:col-span-3 mb-6 md:mb-0">
+          <div
+            className="rounded-2xl w-full border p-4 md:w-auto md:sticky md:top-44"
+            style={{ borderColor: "#E9D8DD", backgroundColor: "#fff" }}
+          >
             <div className="p-4 border-b" style={{ borderColor: "#F0E5E9" }}>
               <h3 className="font-serif text-lg" style={{ color: brandTheme.primary }}>Filter By</h3>
             </div>
-            <div className="p-4 space-y-6">
-              <div>
+            <div className="py-4 space-y-6">
+              <div className="w-full">
                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Category</div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">{selectedCategory === "" ? "All Categories" : categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}</Button>
+                    <Button variant="outline" className="w-full justify-between">
+                      {selectedCategory === "" ? "All Categories" : categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}
+                    </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[220px]">
+                  <DropdownMenuContent className="w-full min-w-[180px]">
                     <DropdownMenuLabel>Select Category</DropdownMenuLabel>
                     <DropdownMenuItem onClick={() => handleCategoryChange("")} className={selectedCategory === "" ? "bg-gray-100" : ""}>All Categories</DropdownMenuItem>
                     {categories.map((category) => (
@@ -187,6 +192,7 @@ export default function ShopList() {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+
               </div>
               <div>
                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Brand</div>
@@ -222,22 +228,31 @@ export default function ShopList() {
           </div>
         </aside>
 
-        <main className="col-span-15 md:col-span-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-serif text-xl" style={{ color: brandTheme.primary }}>{products.length} Products Found</h2>
+        <main className="col-span-15 md:col-span-12 md:px-8">
+          <div className="flex items-center justify-center md:justify-end mb-6">
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">Sort</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="min-w-[180px] justify-between">{sortOrder === "price_asc" ? "Price: Low to High" : sortOrder === "price_desc" ? "Price: High to Low" : "Newest"}</Button>
+                  <Button
+                    variant="outline"
+                    className="min-w-[180px] w-full justify-between"
+                  >
+                    {sortOrder === "price_asc"
+                      ? "Price: Low to High"
+                      : sortOrder === "price_desc"
+                        ? "Price: High to Low"
+                        : "Newest"}
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="w-full">
                   <DropdownMenuLabel>Sort by</DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => setSortOrder("")}>Newest</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setSortOrder("price_asc")}>Price: Low to High</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setSortOrder("price_desc")}>Price: High to Low</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+
             </div>
           </div>
 
@@ -249,7 +264,7 @@ export default function ShopList() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 lg:gap-4">
               {products.map((p) => (
                 <div key={p.id} className="group">
                   <ProductCard

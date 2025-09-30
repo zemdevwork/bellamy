@@ -73,68 +73,33 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// PATCH /api/user-profile
 export async function PATCH(request: NextRequest) {
   try {
-    // Authenticate
     const session = await auth.api.getSession({ headers: request.headers });
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const formData = await request.formData();
-    const name = formData.get("name")?.toString();
-    const email = formData.get("email")?.toString();
-    let phone = formData.get("phone")?.toString();
-    const photoFile = formData.get("photoFile") as File | null;
+    const body = await request.json();
+    const { name, email, phone, image } = body;
 
-    if (phone?.trim() === "") phone = undefined;
+    const validatedData = updateProfileSchema.parse({ name, email, phone, image });
 
-    // Validate the data using the schema
-    const validationData: Record<string, unknown> = {};
-    if (name) validationData.name = name;
-    if (email) validationData.email = email;
-    if (phone) validationData.phone = phone;
-
-    const validatedData = updateProfileSchema.parse(validationData);
-
-    // Upload to Cloudinary if photoFile exists
-    let image: string | undefined = undefined;
-    if (photoFile) {
-      const buffer = Buffer.from(await photoFile.arrayBuffer());
-      const uploadResult = await new Promise<CloudinaryUploadResult>((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream({ folder: 'users' }, (err, res) => {
-          if (err) reject(err);
-          else if (res) resolve(res);
-          else reject(new Error('Upload failed'));
-        });
-        stream.end(buffer);
-      });
-      image = uploadResult.secure_url;
-    }
-
-    // Prepare update data
-    const updateData: UserUpdateData = {};
-    if (validatedData.name) updateData.name = validatedData.name;
-    if (validatedData.email) updateData.email = validatedData.email;
-    if (validatedData.phone) updateData.phone = validatedData.phone;
-    if (image) updateData.image = image;
-
-    // Update user
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
-      data: updateData,
+      data: validatedData,
     });
 
     return NextResponse.json({ success: true, data: updatedUser });
   } catch (error) {
     console.error('Error updating profile:', error);
-    
-    // Handle Zod validation errors
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { brand } from "@/constants/values";
 import { useState } from "react";
 
 export default function ContactForm() {
@@ -85,7 +86,8 @@ export default function ContactForm() {
         <div className="flex justify-start">
           <button
             type="submit"
-            className="bg-green-800 hover:bg-green-900 text-white px-8 py-3 font-medium transition-colors duration-200"
+            style={{ backgroundColor: brand.primary }}
+            className="text-white px-8 py-3 cursor-pointer font-medium transition-colors duration-200"
           >
             Send
           </button>

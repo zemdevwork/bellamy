@@ -1,10 +1,11 @@
+import { brand } from "@/constants/values";
 import Footer from "../../components/Footer";
 
 export default function OurStoryPage() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-900 to-blue-800 text-white py-20">
+      <section style={{ backgroundColor: brand.primary }} className="text-white py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h1 className="text-5xl font-serif mb-6">Our Story</h1>
           <p className="text-xl text-blue-100 leading-relaxed">

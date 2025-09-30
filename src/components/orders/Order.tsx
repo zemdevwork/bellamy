@@ -115,7 +115,7 @@ export default function OrderList() {
   };
 
   const handleCancelOrder = async (orderId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent navigation when clicking cancel
+    e.stopPropagation();
     
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -158,23 +158,21 @@ export default function OrderList() {
   if (orders.length === 0) {
     return (
       <div className="p-8">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <h2 className="text-2xl font-medium text-gray-900 mb-1">My Orders</h2>
-            <p className="text-gray-600 text-sm">View and manage your orders</p>
-          </div>
+        <div className="mb-8">
+          <h2 className="text-2xl font-medium text-gray-900 mb-1">My Orders</h2>
+          <p className="text-gray-600 text-sm">View and manage your orders</p>
+        </div>
 
-          <div className="text-center py-12">
-            <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <ShoppingBag className="w-10 h-10 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No orders yet
-            </h3>
-            <p className="text-gray-600 text-sm">
-              When you place your first order, it will appear here
-            </p>
+        <div className="text-center py-12">
+          <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <ShoppingBag className="w-10 h-10 text-gray-400" />
           </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No orders yet
+          </h3>
+          <p className="text-gray-600 text-sm">
+            When you place your first order, it will appear here
+          </p>
         </div>
       </div>
     );
@@ -182,113 +180,111 @@ export default function OrderList() {
 
   return (
     <div className="p-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-medium text-gray-900 mb-1">My Orders</h2>
-          <p className="text-gray-600 text-sm">
-            {orders.length} {orders.length === 1 ? "order" : "orders"} in total
-          </p>
-        </div>
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-medium text-gray-900 mb-1">My Orders</h2>
+        <p className="text-gray-600 text-sm">
+          {orders.length} {orders.length === 1 ? "order" : "orders"} in total
+        </p>
+      </div>
 
-        {/* Orders List */}
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => handleViewOrder(order.id)}
-            >
-              {/* Order Header */}
-              <div className="p-6 border-b bg-gray-50 hover:bg-gray-100 transition-colors">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border">
-                      <Package className="w-5 h-5 text-gray-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        Order #{order.id.slice(-8).toUpperCase()}
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-0.5">
-                        {formatDate(order.createdAt)}
-                      </p>
-                    </div>
+      {/* Orders List */}
+      <div className="space-y-6">
+        {orders.map((order) => (
+          <div
+            key={order.id}
+            className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => handleViewOrder(order.id)}
+          >
+            {/* Order Header */}
+            <div className="p-6 border-b bg-gray-50 hover:bg-gray-100 transition-colors">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border">
+                    <Package className="w-5 h-5 text-gray-600" />
                   </div>
-                  <div className="text-right">
-                    <StatusBadge status={order.status} />
-                    <p className="text-lg font-medium text-gray-900 mt-2">
-                      ₹{order.totalAmount.toFixed(2)}
+                  <div>
+                    <h3 className="font-medium text-gray-900">
+                      Order #{order.id.slice(-8).toUpperCase()}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-0.5">
+                      {formatDate(order.createdAt)}
                     </p>
                   </div>
                 </div>
+                <div className="text-right">
+                  <StatusBadge status={order.status} />
+                  <p className="text-lg font-medium text-gray-900 mt-2">
+                    ₹{order.totalAmount.toFixed(2)}
+                  </p>
+                </div>
               </div>
+            </div>
 
-              {/* Order Items */}
-              <div className="p-6">
-                <div className="space-y-3">
-                  {order.items.map((item, index) => (
-                    <div
-                      key={`${item.productId}-${index}`}
-                      className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
-                    >
-                      <ProductImage
-                        src={item.product?.image}
-                        alt={item.product?.name || "Product"}
-                        name={item.product?.name || "Product"}
-                      />
+            {/* Order Items */}
+            <div className="p-6">
+              <div className="space-y-3">
+                {order.items.map((item, index) => (
+                  <div
+                    key={`${item.productId}-${index}`}
+                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                  >
+                    <ProductImage
+                      src={item.product?.image}
+                      alt={item.product?.name || "Product"}
+                      name={item.product?.name || "Product"}
+                    />
 
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 truncate">
-                          {item.product?.name || "Unknown Product"}
-                        </h4>
-                        <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
-                          <span>Qty: {item.quantity}</span>
-                          <span>•</span>
-                          <span>₹{item.price.toFixed(2)} each</span>
-                        </div>
-                      </div>
-
-                      <div className="text-right">
-                        <p className="font-medium text-gray-900">
-                          ₹{(item.price * item.quantity).toFixed(2)}
-                        </p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 truncate">
+                        {item.product?.name || "Unknown Product"}
+                      </h4>
+                      <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
+                        <span>Qty: {item.quantity}</span>
+                        <span>•</span>
+                        <span>₹{item.price.toFixed(2)} each</span>
                       </div>
                     </div>
-                  ))}
+
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">
+                        ₹{(item.price * item.quantity).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Order Actions */}
+            {["PENDING", "PROCESSING", "DELIVERED"].includes(
+              order.status.toUpperCase()
+            ) && (
+              <div className="px-6 py-4 bg-gray-50 border-t">
+                <div className="flex items-center justify-end gap-3">
+                  {order.status.toUpperCase() === "DELIVERED" && (
+                    <button 
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-white transition-colors"
+                    >
+                      Reorder
+                    </button>
+                  )}
+                  {["PENDING", "PROCESSING"].includes(
+                    order.status.toUpperCase()
+                  ) && (
+                    <button
+                      onClick={(e) => handleCancelOrder(order.id, e)}
+                      className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                 </div>
               </div>
-
-              {/* Order Actions */}
-              {["PENDING", "PROCESSING", "DELIVERED"].includes(
-                order.status.toUpperCase()
-              ) && (
-                <div className="px-6 py-4 bg-gray-50 border-t">
-                  <div className="flex items-center justify-end gap-3">
-                    {order.status.toUpperCase() === "DELIVERED" && (
-                      <button 
-                        onClick={(e) => e.stopPropagation()}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-white transition-colors"
-                      >
-                        Reorder
-                      </button>
-                    )}
-                    {["PENDING", "PROCESSING"].includes(
-                      order.status.toUpperCase()
-                    ) && (
-                      <button
-                        onClick={(e) => handleCancelOrder(order.id, e)}
-                        className="px-4 py-2 text-sm font-medium text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-                      >
-                        Cancel Order
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

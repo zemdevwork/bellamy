@@ -99,9 +99,9 @@ export default function UserSettings() {
 
     try {
       setPasswordLoading(true);
-      const res = await fetch("/api/user-profile/password", {
+      const res = await fetch("/api/user-profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           password: passwordData.currentPassword,
           newPassword: passwordData.newPassword,
@@ -153,10 +153,9 @@ export default function UserSettings() {
     passwordData.confirmPassword;
 
   return (
-    <div className="p-8">
-      <div className="max-w-2xl mx-auto space-y-8">
+      <div className="p-8 space-y-8 w-full">
         {/* Header */}
-        <div>
+        <div className="w-full">
           <h2 className="text-2xl font-medium text-gray-900 mb-1">Settings</h2>
           <p className="text-gray-600 text-sm">
             Manage your account security and preferences
@@ -164,7 +163,7 @@ export default function UserSettings() {
         </div>
 
         {/* Profile Overview */}
-        <div className="border rounded-lg p-6">
+        <div className="border rounded-lg p-6 w-full">
           <div className="flex items-center gap-2 mb-4">
             <User className="w-5 h-5 text-gray-600" />
             <h3 className="text-lg font-medium text-gray-900">
@@ -199,7 +198,7 @@ export default function UserSettings() {
         </div>
 
         {/* Change Password Section */}
-        <div className="border rounded-lg p-6">
+        <div className="border rounded-lg p-6 w-full">
           <div className="flex items-center gap-2 mb-6">
             <Shield className="w-5 h-5 text-gray-600" />
             <h3 className="text-lg font-medium text-gray-900">
@@ -209,7 +208,7 @@ export default function UserSettings() {
 
           <div className="space-y-4">
             {/* Current Password */}
-            <div>
+            <div className="w-full">
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Current Password
               </label>
@@ -238,7 +237,7 @@ export default function UserSettings() {
             </div>
 
             {/* New Password */}
-            <div>
+            <div className="w-full">
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 New Password
               </label>
@@ -267,7 +266,7 @@ export default function UserSettings() {
 
               {/* Password Requirements */}
               {passwordData.newPassword && (
-                <div className="mt-3 p-3 bg-gray-50 rounded-lg border">
+                <div className="mt-3 p-3 bg-gray-50 rounded-lg border w-full">
                   <p className="text-xs font-medium text-gray-700 mb-2">
                     Password Requirements:
                   </p>
@@ -297,7 +296,7 @@ export default function UserSettings() {
             </div>
 
             {/* Confirm Password */}
-            <div>
+            <div className="w-full">
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Confirm New Password
               </label>
@@ -325,7 +324,7 @@ export default function UserSettings() {
               </div>
 
               {passwordData.confirmPassword && (
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex items-center gap-2 w-full">
                   {passwordData.newPassword ===
                   passwordData.confirmPassword ? (
                     <>
@@ -347,7 +346,7 @@ export default function UserSettings() {
             </div>
 
             {/* Submit Button */}
-            <div className="pt-2">
+            <div className="pt-2 w-full">
               <button
                 type="button"
                 onClick={handlePasswordReset}
@@ -370,6 +369,5 @@ export default function UserSettings() {
           </div>
         </div>
       </div>
-    </div>
   );
 }

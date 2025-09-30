@@ -149,29 +149,39 @@ export default function ShopProductListing({ categoryId, hideCategoryFilter }: {
     );
   }
 
-  const brand = { primary: "#8B1D3F", bgSoft: "#F7ECEF" };
+  const brandTheme = { primary: "#8B1D3F" };
 
   return (
-    <div className="w-full px-4">
-      <div className="grid grid-cols-12 gap-8">
-        {/* Sidebar Filters */}
-        <aside className="col-span-12 md:col-span-3">
-          <div className="rounded-2xl border" style={{ borderColor: "#E9D8DD", backgroundColor: "#fff" }}>
+    <div className="w-full">
+      <div className="grid grid-cols-15 gap-4 w-full">
+        <aside className="col-span-15 md:col-span-3 mb-6 md:mb-0">
+          <div
+            className="rounded-2xl w-full border p-4 md:w-auto md:sticky md:top-44"
+            style={{ borderColor: "#E9D8DD", backgroundColor: "#fff" }}
+          >
             <div className="p-4 border-b" style={{ borderColor: "#F0E5E9" }}>
-              <h3 className="font-serif text-lg" style={{ color: brand.primary }}>Filter By</h3>
+              <h3 className="font-serif text-lg" style={{ color: brandTheme.primary }}>Filter By</h3>
             </div>
-            <div className="p-4 space-y-6">
+            <div className="py-4 space-y-6">
               {!hideCategoryFilter && (
-                <div>
+                <div className="w-full">
                   <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Category</div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">{categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}</Button>
+                      <Button variant="outline" className="w-full justify-between">
+                        {categories.find((c) => c.id === selectedCategory)?.name || "Select Category"}
+                      </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[220px]">
+                    <DropdownMenuContent className="w-full min-w-[180px]">
                       <DropdownMenuLabel>Select Category</DropdownMenuLabel>
                       {categories.map((category) => (
-                        <DropdownMenuItem key={category.id} onClick={() => handleCategoryChange(category.id)} className={selectedCategory === category.id ? "bg-gray-100" : ""}>{category.name}</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          key={category.id} 
+                          onClick={() => handleCategoryChange(category.id)} 
+                          className={selectedCategory === category.id ? "bg-gray-100" : ""}
+                        >
+                          {category.name}
+                        </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -182,7 +192,9 @@ export default function ShopProductListing({ categoryId, hideCategoryFilter }: {
                 <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Brand</div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">{selectedBrand ? brands.find((b) => b.id === selectedBrand)?.name : "All Brands"}</Button>
+                    <Button variant="outline" className="w-full justify-between">
+                      {selectedBrand ? brands.find((b) => b.id === selectedBrand)?.name : "All Brands"}
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-[220px]">
                     <DropdownMenuLabel>Select Brand</DropdownMenuLabel>
@@ -194,38 +206,45 @@ export default function ShopProductListing({ categoryId, hideCategoryFilter }: {
                 </DropdownMenu>
               </div>
 
-              {selectedCategory && (
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Subcategory</div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">{selectedSubCategory === "" ? "All Subcategories" : subcategories.find((s) => s.id === selectedSubCategory)?.name || "Select Subcategory"}</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[240px]">
-                      <DropdownMenuLabel>Select Subcategory</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => setSelectedSubCategory("")}>All Subcategories</DropdownMenuItem>
-                      {subcategories.map((sub) => (
-                        <DropdownMenuItem key={sub.id} onClick={() => setSelectedSubCategory(sub.id)}>{sub.name}</DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
+              <div>
+                <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Subcategory</div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      {selectedSubCategory === "" ? "All Subcategories" : subcategories.find((s) => s.id === selectedSubCategory)?.name || "Select Subcategory"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[240px]">
+                    <DropdownMenuLabel>Select Subcategory</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => setSelectedSubCategory("")}>All Subcategories</DropdownMenuItem>
+                    {subcategories.map((sub) => (
+                      <DropdownMenuItem key={sub.id} onClick={() => setSelectedSubCategory(sub.id)}>{sub.name}</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </aside>
 
-        {/* Content */}
-        <main className="col-span-12 md:col-span-9">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-serif text-xl" style={{ color: brand.primary }}>{products.length} Products Found</h2>
+        <main className="col-span-15 md:col-span-12 md:px-8">
+          <div className="flex items-center justify-center md:justify-end mb-6">
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-600">Sort</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="min-w-[180px] justify-between">{sortOrder === "price_asc" ? "Price: Low to High" : sortOrder === "price_desc" ? "Price: High to Low" : "Newest"}</Button>
+                  <Button
+                    variant="outline"
+                    className="min-w-[180px] w-full justify-between"
+                  >
+                    {sortOrder === "price_asc"
+                      ? "Price: Low to High"
+                      : sortOrder === "price_desc"
+                        ? "Price: High to Low"
+                        : "Newest"}
+                  </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="w-full">
                   <DropdownMenuLabel>Sort by</DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => setSortOrder("")}>Newest</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setSortOrder("price_asc")}>Price: Low to High</DropdownMenuItem>
@@ -241,18 +260,19 @@ export default function ShopProductListing({ categoryId, hideCategoryFilter }: {
               <Link href="/shop" className="mt-4 inline-block text-blue-500 hover:underline">Browse all categories</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 lg:gap-4">
               {products.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  id={p.id}
-                  name={p.name}
-                  price={`₹${p.price.toFixed(2)}`}
-                  image={p.image}
-                  description={p.description}
-                  variantId={p.defaultVariantId || undefined}
-                  brandName={p.brand?.name}
-                />
+                <div key={p.id} className="group">
+                  <ProductCard
+                    id={p.id}
+                    name={p.name}
+                    price={`₹${p.price.toFixed(2)}`}
+                    image={p.image}
+                    description={p.description}
+                    variantId={p.defaultVariantId as string}
+                    brandName={p.brand?.name}
+                  />
+                </div>
               ))}
             </div>
           )}
