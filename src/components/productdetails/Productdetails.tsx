@@ -63,6 +63,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const { updateCartCount } = useCart();
+  const [quantity, setQuantity] = useState(1); // ✅ Added quantity state
 
   const router = useRouter();
 
@@ -150,13 +151,15 @@ export default function ProductDetails({ productId }: { productId: string }) {
           const res = await fetch("/api/cart", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ variantId: selectedVariantId, quantity: 1 }),
+            // body: JSON.stringify({ variantId: selectedVariantId, quantity: 1 }),
+            body: JSON.stringify({ variantId: selectedVariantId, quantity }), // ✅ Updated
           });
           if (!res.ok) throw new Error("Failed to add to cart");
           await updateCartCount();
           toast.success(`✅ Added "${capitalizeWords(product.name)}" to your cart!`);
         } else {
-          addLocalCartItem(selectedVariantId, 1);
+          // addLocalCartItem(selectedVariantId, 1);
+          addLocalCartItem(selectedVariantId, quantity); // ✅ Updated
           await updateCartCount();
           toast.success(`🛒 Added "${capitalizeWords(product.name)}" to cart (local)!`);
         }
@@ -318,6 +321,22 @@ export default function ProductDetails({ productId }: { productId: string }) {
               </div>
             </div>
           ))}
+          {/* ✅ Quantity Selector */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              className="px-3 py-1 border rounded"
+            >
+              -
+            </button>
+            <span className="w-6 text-center">{quantity}</span>
+            <button
+              onClick={() => setQuantity((q) => q + 1)}
+              className="px-3 py-1 border rounded"
+            >
+              +
+            </button>
+          </div>
 
           {/* Action Buttons */}
           <div className="space-y-3 pt-4">
@@ -404,11 +423,12 @@ export default function ProductDetails({ productId }: { productId: string }) {
               id: selectedVariantId || product.id,
               name: capitalizeWords(product.name),
               price: price,
-              quantity: 1,
+              quantity, // ✅ Updated
               image: selectedImage ?? product.image ?? undefined,
             },
           ]}
-          total={price * 1}
+          // total={price * 1}
+          total={price * quantity} // ✅ Updated
           onClose={() => setShowCheckout(false)}
         />
       )}

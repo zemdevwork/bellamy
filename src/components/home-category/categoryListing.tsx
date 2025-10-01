@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
+
 
 type Category = {
   id: string;
@@ -46,21 +48,25 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
       <div className="flex items-end justify-between mb-6">
         <h2 className="text-2xl md:text-3xl font-serif text-stone-800 tracking-tight">Shop By Occasion</h2>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+
         {categories.map((category) => (
           <div
             key={category.id}
             onClick={() => onCategorySelect?.(category)}
             className="group cursor-pointer"
           >
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-md ring-1 ring-stone-200/60 bg-white transition-transform duration-300 group-hover:scale-[1.02]">
+            <div className="relative w-full aspect-[5/4] rounded-2xl overflow-hidden shadow-md ring-1 ring-stone-200/60 bg-white transition-transform duration-300 group-hover:scale-[1.02]">
               {/* Category Image */}
               <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300">
                 {category.image ? (
-                  <img
+                  
+                  <Image
                     src={category.image}
                     alt={category.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
