@@ -8,19 +8,20 @@ import {
   TrendingUp,
   DollarSign,
   Activity,
-  AlertTriangle
+  AlertTriangle,
+  Box
 } from "lucide-react";
 import Link from "next/link";
 import { 
   getSalesMetrics, 
   getOrdersWithPaymentStatus,
   getLowStockProducts,
-  getFilterOptions  
+  getFilterOptions,
+  getTotalProductsCount,
+  getTotalVariantsCount
 } from "@/server/actions/admin-report-actions";
 import { Suspense } from "react";
-import { getProductInventory } from "@/server/actions/admin-report-actions";
 
-// $
 // Loading component for individual stat cards
 function StatCardSkeleton() {
   return (
@@ -45,11 +46,20 @@ async function DashboardStats() {
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-    const [currentMetrics, lastMonthMetrics, filterOptions, lowStockProducts] = await Promise.all([
+    const [
+      currentMetrics, 
+      lastMonthMetrics, 
+      filterOptions, 
+      lowStockProducts,
+      totalProductsCount,
+      totalVariantsCount
+    ] = await Promise.all([
       getSalesMetrics({ startDate: currentMonth, endDate: now }),
       getSalesMetrics({ startDate: lastMonth, endDate: lastMonthEnd }),
       getFilterOptions(),
-      getLowStockProducts(10)
+      getLowStockProducts(10),
+      getTotalProductsCount(),
+      getTotalVariantsCount()
     ]);
 
     const calculatePercentageChange = (current: number, previous: number) => {
@@ -60,15 +70,19 @@ async function DashboardStats() {
     const revenueChange = calculatePercentageChange(currentMetrics.totalRevenue, lastMonthMetrics.totalRevenue);
     const ordersChange = calculatePercentageChange(currentMetrics.totalOrders, lastMonthMetrics.totalOrders);
     
-    const totalProducts = await getProductInventory({});
-    const totalProductsCount = totalProducts.length;
-    
     const stats = [
       {
         title: "Total Products",
         value: totalProductsCount.toLocaleString(),
-        description: `${lowStockProducts.length} low stock items`,
+        description: `${totalVariantsCount} total variants`,
         icon: Package,
+        trend: "neutral" as const
+      },
+      {
+        title: "Low Stock Variants",
+        value: lowStockProducts.length.toLocaleString(),
+        description: "Variants need restocking",
+        icon: AlertTriangle,
         trend: lowStockProducts.length > 5 ? "down" : "neutral" as const,
         alert: lowStockProducts.length > 5
       },
@@ -106,11 +120,18 @@ async function DashboardStats() {
         description: "Average order value",
         icon: TrendingUp,
         trend: "neutral" as const
+      },
+      {
+        title: "Product Variants",
+        value: totalVariantsCount.toLocaleString(),
+        description: "Total SKUs in inventory",
+        icon: Box,
+        trend: "neutral" as const
       }
     ];
 
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -147,7 +168,7 @@ async function DashboardStats() {
   } catch (error) {
     console.error('Error loading dashboard stats:', error);
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <p className="text-sm text-red-600">Error loading dashboard statistics</p>
@@ -182,7 +203,7 @@ async function RecentOrders() {
               latestOrders.map((order) => (
                 <div key={order.id} className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">{order.id.slice(-8)}</p>
+                    <p className="text-sm font-medium">#{order.id.slice(-8)}</p>
                     <p className="text-xs text-muted-foreground">{order.userName}</p>
                   </div>
                   <div className="text-right">
@@ -243,24 +264,27 @@ async function LowStockAlert() {
             <span>Stock Alerts</span>
           </CardTitle>
           <CardDescription>
-            Products running low on inventory
+            Product variants running low on inventory
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {lowStockProducts.length === 0 ? (
               <p className="text-sm text-green-600 text-center py-4">
-                ✅ All products are well stocked
+                ✅ All variants are well stocked
               </p>
             ) : (
               <>
-                {lowStockProducts.slice(0, 3).map((product) => (
-                  <div key={product.id} className="flex items-center justify-between">
-                    <div className="flex-1">
+                {lowStockProducts.slice(0, 5).map((product) => (
+                  <div key={product.id} className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {product.variantOptions || 'Default Variant'} • SKU: {product.sku}
+                      </p>
                       <p className="text-xs text-muted-foreground">{product.brand || 'No Brand'}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <p className={`text-sm font-medium ${
                         product.currentStock === 0 ? 'text-red-600' :
                         product.currentStock <= 5 ? 'text-orange-600' :
@@ -271,13 +295,13 @@ async function LowStockAlert() {
                     </div>
                   </div>
                 ))}
-                {lowStockProducts.length > 3 && (
+                {lowStockProducts.length > 5 && (
                   <div className="mt-4 pt-4 border-t">
                     <Link 
-                      href="/admin/products?filter=lowstock" 
+                      href="/admin/inventory?filter=lowstock" 
                       className="text-sm text-primary hover:underline"
                     >
-                      View all {lowStockProducts.length} low stock items →
+                      View all {lowStockProducts.length} low stock variants →
                     </Link>
                   </div>
                 )}
@@ -318,8 +342,8 @@ export default function AdminDashboard() {
 
           <Suspense 
             fallback={
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {Array(6).fill(0).map((_, i) => <StatCardSkeleton key={i} />)}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {Array(8).fill(0).map((_, i) => <StatCardSkeleton key={i} />)}
               </div>
             }
           >
