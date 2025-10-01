@@ -2,12 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { BannerImages } from "@/constants/values";
 import Link from "next/link";
 
 export default function Banner() {
-  const router = useRouter();
   const [index, setIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
   const touchStartX = useRef<number | null>(null);

@@ -18,7 +18,7 @@ export interface ProductFilter {
   brandId?: string;
   categoryId?: string;
   subCategoryId?: string;
-  lowStock?: number; // Products with qty <= this value
+  lowStock?: number; // Variants with qty <= this value
   minPrice?: number;
   maxPrice?: number;
   searchTerm?: string;
@@ -33,24 +33,30 @@ export interface SalesMetrics {
 
 export interface TopSellingProduct {
   id: string;
+  variantId: string;
   name: string;
+  sku: string;
   totalQuantitySold: number;
   totalRevenue: number;
   currentStock: number;
   brand?: string;
   category?: string;
   image: string;
+  variantOptions: string; // e.g., "Red - Large"
 }
 
 export interface ProductInventory {
   id: string;
+  productId: string;
   name: string;
+  sku: string;
   currentStock: number;
   price: number;
   brand?: string;
   category?: string;
   subCategory?: string;
-  image: string;
+  images: string[];
+  variantOptions: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,8 +74,15 @@ export interface OrderSummary {
   createdAt: Date;
   itemCount: number;
   phoneNumber: string;
+  street: string;
   city: string;
   state: string;
+  pincode: string;
+}
+
+// Helper function to format variant options
+function formatVariantOptions(options: Array<{ attribute: { name: string }; attributeValue: { value: string } }>): string {
+  return options.map(opt => `${opt.attribute.name}: ${opt.attributeValue.value}`).join(', ');
 }
 
 // Sales Metrics Server Action
@@ -78,7 +91,6 @@ export async function getSalesMetrics(filter: SalesMetricsFilter = {}): Promise<
     await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
-    // Date range filter
     if (filter.startDate || filter.endDate) {
       whereClause.createdAt = {};
       if (filter.startDate) {
@@ -89,28 +101,23 @@ export async function getSalesMetrics(filter: SalesMetricsFilter = {}): Promise<
       }
     }
 
-    // Status filter
     if (filter.status) {
       whereClause.status = filter.status;
     }
 
-    // Payment method filter
     if (filter.paymentMethod) {
       whereClause.paymentMethod = filter.paymentMethod;
     }
 
-    // User filter
     if (filter.userId) {
       whereClause.userId = filter.userId;
     }
 
     const [totalSales, salesAggregation] = await Promise.all([
-      // Count total orders
       prisma.order.count({
         where: whereClause,
       }),
       
-      // Calculate revenue and average
       prisma.order.aggregate({
         where: whereClause,
         _sum: {
@@ -134,7 +141,7 @@ export async function getSalesMetrics(filter: SalesMetricsFilter = {}): Promise<
   }
 }
 
-// Top Selling Products Server Action
+// Top Selling Products Server Action (now based on variants)
 export async function getTopSellingProducts(
   limit: number = 10,
   filter: DateRangeFilter = {}
@@ -143,7 +150,6 @@ export async function getTopSellingProducts(
     await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
-    // Date range filter for orders
     if (filter.startDate || filter.endDate) {
       whereClause.order = {
         createdAt: {}
@@ -156,8 +162,8 @@ export async function getTopSellingProducts(
       }
     }
 
-    const topProducts = await prisma.orderItem.groupBy({
-      by: ['productId'],
+    const topVariants = await prisma.orderItem.groupBy({
+      by: ['variantId'],
       where: whereClause,
       _sum: {
         quantity: true,
@@ -171,60 +177,93 @@ export async function getTopSellingProducts(
       take: limit,
     });
 
-    // Get detailed product information
-    const productsWithDetails = await Promise.all(
-      topProducts.map(async (item) => {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
+    const variantsWithDetails = await Promise.all(
+      topVariants.map(async (item) => {
+        const variant = await prisma.productVariant.findUnique({
+          where: { id: item.variantId },
           include: {
-            brand: true,
-            category: true,
+            product: {
+              include: {
+                brand: true,
+                category: true,
+              },
+            },
+            options: {
+              include: {
+                attribute: true,
+                attributeValue: true,
+              },
+            },
           },
         });
 
-        if (!product) {
-          throw new Error(`Product not found: ${item.productId}`);
+        if (!variant) {
+          throw new Error(`Variant not found: ${item.variantId}`);
         }
 
         return {
-          id: product.id,
-          name: product.name,
+          id: variant.product.id,
+          variantId: variant.id,
+          name: variant.product.name,
+          sku: variant.sku,
           totalQuantitySold: item._sum.quantity || 0,
           totalRevenue: item._sum.price || 0,
-          currentStock: product.qty,
-          brand: product.brand?.name,
-          category: product.category?.name,
-          image: product.image,
+          currentStock: variant.qty,
+          brand: variant.product.brand?.name,
+          category: variant.product.category?.name,
+          image: variant.images[0] || variant.product.image,
+          variantOptions: formatVariantOptions(variant.options),
         };
       })
     );
 
-    return productsWithDetails;
+    return variantsWithDetails;
   } catch (error) {
     console.error('Error fetching top selling products:', error);
     throw new Error('Failed to fetch top selling products');
   }
 }
 
-// Product Inventory Report Server Action
+// Product Inventory Report Server Action (now based on variants)
 export async function getProductInventory(filter: ProductFilter = {}): Promise<ProductInventory[]> {
   try {
     await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
-    // Brand filter
+    // Build where clause for the product
+    const productWhere: Record<string, unknown> = {};
+
     if (filter.brandId) {
-      whereClause.brandId = filter.brandId;
+      productWhere.brandId = filter.brandId;
     }
 
-    // Category filter
     if (filter.categoryId) {
-      whereClause.categoryId = filter.categoryId;
+      productWhere.categoryId = filter.categoryId;
     }
 
-    // Subcategory filter
     if (filter.subCategoryId) {
-      whereClause.subCategoryId = filter.subCategoryId;
+      productWhere.subCategoryId = filter.subCategoryId;
+    }
+
+    if (filter.searchTerm) {
+      productWhere.OR = [
+        {
+          name: {
+            contains: filter.searchTerm,
+            mode: 'insensitive',
+          },
+        },
+        {
+          description: {
+            contains: filter.searchTerm,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    if (Object.keys(productWhere).length > 0) {
+      whereClause.product = productWhere;
     }
 
     // Low stock filter
@@ -245,47 +284,42 @@ export async function getProductInventory(filter: ProductFilter = {}): Promise<P
       }
     }
 
-    // Search term filter
-    if (filter.searchTerm) {
-      whereClause.OR = [
-        {
-          name: {
-            contains: filter.searchTerm,
-            mode: 'insensitive',
-          },
-        },
-        {
-          description: {
-            contains: filter.searchTerm,
-            mode: 'insensitive',
-          },
-        },
-      ];
-    }
-
-    const products = await prisma.product.findMany({
+    const variants = await prisma.productVariant.findMany({
       where: whereClause,
       include: {
-        brand: true,
-        category: true,
-        subCategory: true,
+        product: {
+          include: {
+            brand: true,
+            category: true,
+            subCategory: true,
+          },
+        },
+        options: {
+          include: {
+            attribute: true,
+            attributeValue: true,
+          },
+        },
       },
       orderBy: {
-        qty: 'asc', // Show low stock items first
+        qty: 'asc',
       },
     });
 
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      currentStock: product.qty,
-      price: product.price,
-      brand: product.brand?.name,
-      category: product.category?.name,
-      subCategory: product.subCategory?.name,
-      image: product.image,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
+    return variants.map((variant) => ({
+      id: variant.id,
+      productId: variant.product.id,
+      name: variant.product.name,
+      sku: variant.sku,
+      currentStock: variant.qty,
+      price: variant.price,
+      brand: variant.product.brand?.name,
+      category: variant.product.category?.name,
+      subCategory: variant.product.subCategory?.name,
+      images: variant.images,
+      variantOptions: formatVariantOptions(variant.options),
+      createdAt: variant.createdAt,
+      updatedAt: variant.updatedAt,
     }));
   } catch (error) {
     console.error('Error fetching product inventory:', error);
@@ -301,7 +335,6 @@ export async function getOrdersWithPaymentStatus(
     await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
-    // Date range filter
     if (filter.startDate || filter.endDate) {
       whereClause.createdAt = {};
       if (filter.startDate) {
@@ -312,17 +345,14 @@ export async function getOrdersWithPaymentStatus(
       }
     }
 
-    // Status filter
     if (filter.status) {
       whereClause.status = filter.status;
     }
 
-    // Payment method filter
     if (filter.paymentMethod) {
       whereClause.paymentMethod = filter.paymentMethod;
     }
 
-    // User filter
     if (filter.userId) {
       whereClause.userId = filter.userId;
     }
@@ -360,8 +390,10 @@ export async function getOrdersWithPaymentStatus(
       createdAt: order.createdAt,
       itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
       phoneNumber: order.phoneNumber,
+      street: order.street,
       city: order.city,
       state: order.state,
+      pincode: order.pincode,
     }));
   } catch (error) {
     console.error('Error fetching orders with payment status:', error);
@@ -389,7 +421,6 @@ export async function getSalesByDateRange(
     await getAuthenticatedAdmin();
     const whereClause: Record<string, unknown> = {};
 
-    // Date range filter
     if (filter.startDate || filter.endDate) {
       whereClause.createdAt = {};
       if (filter.startDate) {
@@ -411,9 +442,8 @@ export async function getSalesByDateRange(
       },
     });
 
-    // Group by date
     const salesByDate = orders.reduce((acc: Record<string, { sales: number; orders: number }>, order) => {
-      const date = order.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const date = order.createdAt.toISOString().split('T')[0];
       
       if (!acc[date]) {
         acc[date] = { sales: 0, orders: 0 };
@@ -493,11 +523,14 @@ export async function getOrderDetails(orderId: string): Promise<{
   order: OrderSummary & {
     items: Array<{
       id: string;
+      variantId: string;
       productId: string;
       productName: string;
+      sku: string;
+      variantOptions: string;
       quantity: number;
       price: number;
-      productImage: string;
+      productImages: string[];
     }>;
   };
 } | null> {
@@ -514,10 +547,21 @@ export async function getOrderDetails(orderId: string): Promise<{
         },
         items: {
           include: {
-            product: {
-              select: {
-                name: true,
-                image: true,
+            variant: {
+              include: {
+                product: {
+                  select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                  },
+                },
+                options: {
+                  include: {
+                    attribute: true,
+                    attributeValue: true,
+                  },
+                },
               },
             },
           },
@@ -543,20 +587,49 @@ export async function getOrderDetails(orderId: string): Promise<{
         createdAt: order.createdAt,
         itemCount: order.items.reduce((sum, item) => sum + item.quantity, 0),
         phoneNumber: order.phoneNumber,
+        street: order.street,
         city: order.city,
         state: order.state,
+        pincode: order.pincode,
         items: order.items.map((item) => ({
           id: item.id,
-          productId: item.productId,
-          productName: item.product.name,
+          variantId: item.variant.id,
+          productId: item.variant.product.id,
+          productName: item.variant.product.name,
+          sku: item.variant.sku,
+          variantOptions: formatVariantOptions(item.variant.options),
           quantity: item.quantity,
           price: item.price,
-          productImage: item.product.image,
+          productImages: item.variant.images,
         })),
       },
     };
   } catch (error) {
     console.error('Error fetching order details:', error);
     throw new Error('Failed to fetch order details');
+  }
+}
+
+// Get total products count (counting unique products, not variants)
+export async function getTotalProductsCount(): Promise<number> {
+  try {
+    await getAuthenticatedAdmin();
+    const count = await prisma.product.count();
+    return count;
+  } catch (error) {
+    console.error('Error fetching total products count:', error);
+    throw new Error('Failed to fetch total products count');
+  }
+}
+
+// Get total variants count
+export async function getTotalVariantsCount(): Promise<number> {
+  try {
+    await getAuthenticatedAdmin();
+    const count = await prisma.productVariant.count();
+    return count;
+  } catch (error) {
+    console.error('Error fetching total variants count:', error);
+    throw new Error('Failed to fetch total variants count');
   }
 }
