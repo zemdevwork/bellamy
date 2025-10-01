@@ -321,22 +321,23 @@ export default function ProductDetails({ productId }: { productId: string }) {
               </div>
             </div>
           ))}
-          {/* ✅ Quantity Selector */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="px-3 py-1 border rounded"
-            >
-              -
-            </button>
-            <span className="w-6 text-center">{quantity}</span>
-            <button
-              onClick={() => setQuantity((q) => q + 1)}
-              className="px-3 py-1 border rounded"
-            >
-              +
-            </button>
-          </div>
+         {!isInCart && (
+  <div className="flex items-center gap-3">
+    <button
+      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+      className="px-3 py-1 border rounded"
+    >
+      -
+    </button>
+    <span className="w-6 text-center">{quantity}</span>
+    <button
+      onClick={() => setQuantity((q) => q + 1)}
+      className="px-3 py-1 border rounded"
+    >
+      +
+    </button>
+  </div>
+)}
 
           {/* Action Buttons */}
           <div className="space-y-3 pt-4">
