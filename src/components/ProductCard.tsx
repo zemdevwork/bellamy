@@ -131,18 +131,23 @@ export default function ProductCard({
         onClick={() => router.push(`/product/${id}`)}
         className="cursor-pointer"
       >
-        <div
-    className="
-      bg-white 
-      transition-all duration-500
-      hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]
-      p-2
-      pb-6
-      md:rounded-tr-xl md:rounded-bl-xl
-      lg:rounded-tr-2xl lg:rounded-bl-2xl
-      overflow-hidden
-    "
-  >
+       <div
+          className="
+    bg-white 
+    transition-all duration-500
+    hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]
+    p-4
+    md:rounded-tr-xl md:rounded-bl-xl
+    lg:rounded-tr-2xl lg:rounded-bl-2xl
+    overflow-hidden
+    w-[360px] 
+    min-h-[580px]
+    flex
+    flex-col
+  "
+        >
+
+
           {/* Badges */}
           {(badge || discountPercentage > 0) && (
             <div className="absolute z-10 inset-x-0 top-0 flex justify-between p-3">
@@ -162,12 +167,12 @@ export default function ProductCard({
           )}
 
           {/* Image */}
-          <div className="relative aspect-[3/4] overflow-hidden bg-[#F9F6F7] md:rounded-tr-md md:rounded-bl-md lg:rounded-tr-lg lg:rounded-bl-lg">
+          <div className="relative w-full h-[420px] overflow-hidden bg-[#F9F6F7] md:rounded-tr-md md:rounded-bl-md lg:rounded-tr-lg lg:rounded-bl-lg">
             <Image
               src={image}
               alt={name}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
               onLoad={() => setImageLoaded(true)}
             />
             {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
@@ -211,19 +216,21 @@ export default function ProductCard({
           </div>
 
           {/* Product Info */}
-          <div className="p-4">
-            <div className="text-xs text-gray-500 mb-1">{brandName || " "}</div>
-            <h3 className="font-serif text-base text-gray-900 line-clamp-2">{name}</h3>
-            <div className="mt-2 flex items-center gap-2">
+          <div className="pt-3 flex flex-col gap-1">
+            <div className="text-xs text-gray-500 h-4">{brandName || ""}</div>
+            <h3 className="font-serif text-sm text-gray-900 line-clamp-2 h-10">{name}</h3>
+            <div className="flex items-center gap-2">
               {oldPrice && (
-                <span className="text-sm text-gray-400 line-through">{oldPrice}</span>
+                <span className="text-xs text-gray-400 line-through">{oldPrice}</span>
               )}
-              <div className="font-semibold" style={{ color: brandThemePrimary }}>
+              <div className="font-semibold text-base" style={{ color: brandThemePrimary }}>
                 {price}
               </div>
             </div>
-            {description && (
-              <p className="text-xs text-gray-600 mt-2 line-clamp-2">{description}</p>
+            {description ? (
+              <p className="text-xs text-gray-600 line-clamp-2 h-8">{description}</p>
+            ) : (
+              <div className="h-8"></div>
             )}
           </div>
         </div>

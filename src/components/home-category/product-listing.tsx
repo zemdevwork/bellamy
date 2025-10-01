@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
+
 
 type Product = {
   id: string;
@@ -74,10 +76,12 @@ export default function ProductListing({ categoryId, categoryName }: ProductList
                 {/* Product Image */}
                 <div className="w-full h-full">
                   {product.image ? (
-                    <img
+                     <Image
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
