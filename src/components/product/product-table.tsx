@@ -53,7 +53,7 @@ interface Brand {
 }
 
 interface ApiResponse {
-  data: Product[];
+  data: AdminProduct[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -65,7 +65,7 @@ interface ApiResponse {
 }
 
 interface ProductTableProps {
-  columns: ColumnDef<Product>[];
+  columns: ColumnDef<AdminProduct>[];
 }
 
 // Debounce hook
