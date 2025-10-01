@@ -130,7 +130,7 @@ export const InventoryForm: FC<InventoryFormProps> = ({
 
   const onSubmit = async (values: z.infer<typeof inventoryUpdateSchema>) => {
     if (!productId) {
-      toast.error("Product ID is required");
+      toast.error("Variant ID is required");
       return;
     }
 
@@ -142,7 +142,7 @@ export const InventoryForm: FC<InventoryFormProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          productId,
+          variantId: productId,
           qty: values.qty,
         }),
       });
@@ -152,14 +152,14 @@ export const InventoryForm: FC<InventoryFormProps> = ({
         throw new Error(error.error || 'Failed to update inventory');
       }
 
-      const updatedProduct = await response.json();
+      const updatedVariant = await response.json();
       
       toast.success(
-        `Inventory updated successfully. New quantity: ${updatedProduct.qty}`,
+        `Inventory updated successfully. New quantity: ${updatedVariant.qty}`,
         {
-          description: updatedProduct.qty <= 10 && updatedProduct.qty > 0
+          description: updatedVariant.qty <= 10 && updatedVariant.qty > 0
             ? "⚠️ This product is now low on stock"
-            : updatedProduct.qty === 0
+            : updatedVariant.qty === 0
             ? "⚠️ This product is now out of stock"
             : undefined
         }

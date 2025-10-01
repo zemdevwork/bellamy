@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Product } from "@/types/product";
+import { AdminProduct } from "@/types/product";
 
 interface Category {
   id: string;
@@ -86,7 +86,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function ProductTable({ columns }: ProductTableProps) {
-  const [data, setData] = useState<Product[]>([]);
+  const [data, setData] = useState<AdminProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -318,14 +318,19 @@ export default function ProductTable({ columns }: ProductTableProps) {
         </CardHeader>
         <CardContent>
           {/* Search */}
-          <div className="relative mb-4">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search products..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
+          <div className="relative mb-4 flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search products..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" size="sm" onClick={() => fetchProducts()} disabled={loading}>
+              {loading ? "Refreshing..." : "Refresh"}
+            </Button>
           </div>
 
           {/* Filters Section */}

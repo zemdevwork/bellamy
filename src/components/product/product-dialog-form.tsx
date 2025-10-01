@@ -35,15 +35,15 @@ import { useAction } from "next-safe-action/hooks";
 import { createProductAction, updateProductAction } from "@/server/actions/product-action";
 import { getBrandlistForDropdown } from "@/server/actions/brand-actions";
 import { getCategorylistForDropdown } from "@/server/actions/category-actions";
-import { getSubCategorylistForDropdown } from "@/server/actions/subcategory-actions";
-import { Product } from "@/types/product";
+import { getSubCategorylistByCategory } from "@/server/actions/subcategory-actions";
+import { AdminProduct } from "@/types/product";
 
 export const ProductFormDialog = ({
   product,
   open,
   openChange,
 }: {
-  product?: Product;
+  product?: AdminProduct;
   open?: boolean;
   openChange?: (open: boolean) => void;
 }) => {
@@ -91,14 +91,12 @@ export const ProductFormDialog = ({
     defaultValues: {
       name: product?.name || "",
       description: product?.description || "",
-      price: product?.price?.toString() || "", // Convert to string
-      qty: product?.qty?.toString() || "", // Convert to string
+      // price/qty handled by variants now
       brandId: product?.brandId || "",
       categoryId: product?.categoryId || "",
       subcategoryId: product?.subCategoryId || "",
       image: undefined,
-      subimage: undefined,
-      attributes: (product?.attributes as { key?: string; value?: string }[] | undefined) || [],
+      // removed subimage/attributes in new model
     },
   });
   
@@ -106,7 +104,7 @@ export const ProductFormDialog = ({
   useEffect(() => {
     if (product) {
       setPreview(product.image || null);
-      setSubPreviews(product.subimage || []);
+      setSubPreviews([]);
     } else {
       setPreview(null);
       setSubPreviews([]);
@@ -118,15 +116,45 @@ export const ProductFormDialog = ({
     const fetchOptions = async () => {
       const brandRes = await getBrandlistForDropdown();
       const categoryRes = await getCategorylistForDropdown();
-      const subCategoryRes = await getSubCategorylistForDropdown();
       setBrands(brandRes);
       setCategories(categoryRes);
-      setSubcategories(subCategoryRes);
+      // Load subcategories if editing and a category is set
+      const currentCategory = form.getValues("categoryId");
+      if (currentCategory) {
+        const subRes = await getSubCategorylistByCategory(currentCategory);
+        setSubcategories(subRes);
+      }
     };
     fetchOptions();
   }, []);
 
-  // ✅ UPDATED: Simplified onSubmit - let the action handlers deal with success/error
+  // Filter subcategories whenever category changes
+  useEffect(() => {
+    const loadSubcategories = async () => {
+      const categoryId = form.watch("categoryId");
+      if (categoryId) {
+        const subRes = await getSubCategorylistByCategory(categoryId);
+        setSubcategories(subRes);
+        // Clear subcategory if it no longer belongs
+        const currentSub = form.getValues("subcategoryId");
+        if (currentSub && !subRes.find(s => s.id === currentSub)) {
+          form.setValue("subcategoryId", "");
+        }
+      } else {
+        setSubcategories([]);
+        form.setValue("subcategoryId", "");
+      }
+    };
+
+    const subscription = form.watch((_value, { name }) => {
+      if (name === "categoryId") {
+        loadSubcategories();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  // ✅ UPDATED: Simplified onSubmit - base product only
   const onSubmit = async (formValues: CreateProductFormValues) => {
     if (product) {
       // For updates, only validate required fields if image/subimage are provided
@@ -134,15 +162,11 @@ export const ProductFormDialog = ({
         id: product.id,
         name: formValues.name,
         description: formValues.description,
-        price: formValues.price,
-        qty: formValues.qty,
         brandId: formValues.brandId,
         categoryId: formValues.categoryId,
         subcategoryId: formValues.subcategoryId,
-        attributes: formValues.attributes,
         // Only include image/subimage if new files are uploaded
         ...(formValues.image && { image: formValues.image }),
-        ...(formValues.subimage && formValues.subimage.length > 0 && { subimage: formValues.subimage }),
       };
       
       updateProduct(updateData);
@@ -156,37 +180,17 @@ export const ProductFormDialog = ({
       const createData = {
         name: formValues.name,
         description: formValues.description || "",
-        price: formValues.price,
-        qty: formValues.qty,
         brandId: formValues.brandId,
         categoryId: formValues.categoryId,
         subcategoryId: formValues.subcategoryId,
         image: formValues.image,
-        subimage: formValues.subimage || [],
-        attributes: formValues.attributes || [],
       };
       
       createProduct(createData);
     }
   };
 
-  // Helper functions for attributes
-  const addAttribute = () => {
-    const currentAttributes = form.getValues("attributes") || [];
-    form.setValue("attributes", [...currentAttributes, { key: "", value: "" }]);
-  };
-
-  const removeAttribute = (index: number) => {
-    const currentAttributes = form.getValues("attributes") || [];
-    form.setValue("attributes", currentAttributes.filter((_, i) => i !== index));
-  };
-
-  const updateAttribute = (index: number, field: "key" | "value", value: string) => {
-    const currentAttributes = form.getValues("attributes") || [];
-    const updatedAttributes = [...currentAttributes];
-    updatedAttributes[index] = { ...updatedAttributes[index], [field]: value };
-    form.setValue("attributes", updatedAttributes);
-  };
+  // Attributes removed in new model; variants hold options
 
   return (
     <FormDialog
@@ -242,44 +246,7 @@ export const ProductFormDialog = ({
           )}
         />
 
-        {/* Price & Qty */}
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    step="0.01"
-                    {...field}
-                    placeholder="0.00"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="qty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Stock Qty</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field}
-                    placeholder="0"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        {/* Price & Qty moved to variants */}
 
         {/* Brand */}
         <FormField
@@ -359,61 +326,7 @@ export const ProductFormDialog = ({
           )}
         />
 
-        {/* Attributes */}
-        <FormField
-          control={form.control}
-          name="attributes"
-          render={() => (
-            <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel>Product Attributes</FormLabel>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addAttribute}
-                >
-                  <Plus className="size-4 mr-1" />
-                  Add Attribute
-                </Button>
-              </div>
-              <div className="space-y-3">
-                {form.watch("attributes")?.map((attr, index) => (
-                  <div key={index} className="flex gap-2 items-start">
-                    <div className="flex-1">
-                      <Input
-                        placeholder="Attribute name (e.g., Color, Size)"
-                        value={attr.key || ""}
-                        onChange={(e) => updateAttribute(index, "key", e.target.value)}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Input
-                        placeholder="Attribute value (e.g., Red, Large)"
-                        value={attr.value || ""}
-                        onChange={(e) => updateAttribute(index, "value", e.target.value)}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeAttribute(index)}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-                {(!form.watch("attributes") || form.watch("attributes")?.length === 0) && (
-                  <p className="text-sm text-muted-foreground">
-                    No attributes added. Click &quot;Add Attribute&quot; to add product specifications.
-                  </p>
-                )}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Attributes removed. Use variant options in variant modal. */}
 
         {/* Image */}
         <FormField
@@ -451,56 +364,7 @@ export const ProductFormDialog = ({
           )}
         />
 
-        {/* Sub Images */}
-        <FormField
-          control={form.control}
-          name="subimage"
-          render={({ field: { onChange } }) => (
-            <FormItem>
-              <FormLabel>
-                Sub Images (max 3)
-                {product && <span className="text-sm text-muted-foreground ml-2">(Leave empty to keep current)</span>}
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    onChange(files);
-                    setSubPreviews(files.map((f) => URL.createObjectURL(f)));
-                  }}
-                />
-              </FormControl>
-              <div className="mt-2 flex gap-2 flex-wrap">
-                {subPreviews.map((src, idx) => (
-                  <div
-                    key={idx}
-                    className="relative h-20 w-20 rounded-md border overflow-hidden"
-                  >
-                    <Image src={src} alt={`Sub ${idx}`} fill className="object-cover" />
-                    <button
-                      type="button"
-                      className="absolute top-0 right-0 bg-black/50 text-white p-1"
-                      onClick={() => {
-                        const newPreviews = subPreviews.filter((_, i) => i !== idx);
-                        setSubPreviews(newPreviews);
-                        form.setValue(
-                          "subimage",
-                          (form.getValues("subimage") || []).filter((_, i) => i !== idx)
-                        );
-                      }}
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Sub Images removed; variant images live on variants */}
 
         <FormDialogFooter>
           <DialogClose asChild>

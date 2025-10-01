@@ -11,31 +11,37 @@ export interface OrderItem {
     price: number;
     createdAt: Date;
     updatedAt: Date;
-    product: {
+    variant: {
       id: string;
-      name: string;
-      description: string | null;
-      attributes: JsonValue;
+      sku: string;
+      price: number;
       qty: number;
-      image: string;
-      subimage: string[];
-      createdAt: Date;
-      updatedAt: Date;
-      brand: {
+      product: {
         id: string;
         name: string;
-      } | null;
-      category: {
-        id: string;
-        name: string;
+        description: string | null;
         image: string;
-      } | null;
-      subCategory: {
-        id: string;
-        name: string;
-      } | null;
+        createdAt: Date;
+        updatedAt: Date;
+        brand: {
+          id: string;
+          name: string;
+        } | null;
+        category: {
+          id: string;
+          name: string;
+        } | null;
+        subCategory: {
+          id: string;
+          name: string;
+        } | null;
+      };
+      options: Array<{
+        attribute: { name: string };
+        attributeValue: { value: string };
+      }>;
     };
-  }
+}
 
 export interface OrderDetailed {
   id: string;

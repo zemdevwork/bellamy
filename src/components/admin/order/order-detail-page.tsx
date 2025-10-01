@@ -185,15 +185,21 @@ export default function OrderDetail({ order }: OrderDetailProps) {
                 <CardContent className="pt-6">
                   <div className="flex justify-between items-start">
                     <div className="space-y-2">
-                      <h4 className="font-semibold text-lg">{item.product.name}</h4>
-                      {item.product.brand && (
+                      <h4 className="font-semibold text-lg">{item.variant.product.name}</h4>
+                      <p className="text-sm text-muted-foreground">SKU: {item.variant.sku}</p>
+                      {item.variant.options && item.variant.options.length > 0 && (
                         <p className="text-sm text-muted-foreground">
-                          Brand: {item.product.brand.name}
+                          {item.variant.options.map((o: any) => `${o.attribute.name}: ${o.attributeValue.value}`).join(', ')}
                         </p>
                       )}
-                      {item.product.category && (
+                      {item.variant.product.brand && (
                         <p className="text-sm text-muted-foreground">
-                          Category: {item.product.category.name}
+                          Brand: {item.variant.product.brand.name}
+                        </p>
+                      )}
+                      {item.variant.product.category && (
+                        <p className="text-sm text-muted-foreground">
+                          Category: {item.variant.product.category.name}
                         </p>
                       )}
                     </div>

@@ -30,8 +30,17 @@ export const createSubCategoryAction = actionClient
 
 export const getSubCategorylistForDropdown = async () => {
   return await prisma.subCategory.findMany({
+    select: { id: true, name: true, categoryId: true },
+  });
+};
+
+export const getSubCategorylistByCategory = async (categoryId: string) => {
+  if (!categoryId) return [] as { id: string; name: string }[];
+  const list = await prisma.subCategory.findMany({
+    where: { categoryId },
     select: { id: true, name: true },
   });
+  return list;
 };
 
 // ✅ UPDATE SubCategory

@@ -56,27 +56,14 @@ export async function GET(request: Request) {
       ];
     }
 
-    // Sorting logic
+    // Sorting logic (price/stock are now variant-derived; keep supported sorts only)
     let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
-
     switch (sort) {
-      case "price_asc":
-        orderBy = { price: "asc" };
-        break;
-      case "price_desc":
-        orderBy = { price: "desc" };
-        break;
       case "name_asc":
         orderBy = { name: "asc" };
         break;
       case "name_desc":
         orderBy = { name: "desc" };
-        break;
-      case "stock_asc":
-        orderBy = { qty: "asc" };
-        break;
-      case "stock_desc":
-        orderBy = { qty: "desc" };
         break;
       case "created_asc":
         orderBy = { createdAt: "asc" };
@@ -115,6 +102,15 @@ export async function GET(request: Request) {
             name: true,
           }
         },
+        variants: {
+          select: {
+            id: true,
+            price: true,
+            qty: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
       orderBy,
       skip,
@@ -126,9 +122,31 @@ export async function GET(request: Request) {
     const hasNextPage = page < totalPages;
     const hasPreviousPage = page > 1;
 
+    // Map to admin list shape with computed price and qty
+    const mapped = products.map((p) => {
+      const firstVariant = p.variants[0];
+      const totalQty = p.variants.reduce((acc, v) => acc + (v.qty || 0), 0);
+      return {
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        image: p.image,
+        brandId: p.brandId ?? null,
+        categoryId: p.categoryId ?? null,
+        subCategoryId: p.subCategoryId ?? null,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+        price: firstVariant ? firstVariant.price : 0,
+        qty: totalQty,
+        brand: p.brand ?? null,
+        category: p.category ?? null,
+        subCategory: p.subCategory ?? null,
+      };
+    });
+
     return NextResponse.json({
       success: true,
-      data: products,
+      data: mapped,
       pagination: {
         currentPage: page,
         totalPages,

@@ -2,6 +2,7 @@
 
 import { Product } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
+import type { ProductWithRelations } from "./inventory-table";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,13 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import InventoryDialogForm from "./inventory-dialog-form";
 
-// Extended Product type with relations
-type ProductWithRelations = Product & {
-  brand: { id: string; name: string } | null;
-  category: { id: string; name: string } | null;
-  subCategory: { id: string; name: string } | null;
-  isLowStock: boolean;
-};
+// Uses ProductWithRelations exported from inventory-table to avoid type mismatches
 
 // Format currency
 const formatCurrency = (amount: number | null | undefined) => {
@@ -69,12 +64,12 @@ function ActionCell({ row }: { row: Row<ProductWithRelations> }) {
       </DropdownMenu>
 
        <InventoryDialogForm
-                productId={product.id}
-                productName={product.name}
-                currentQty={product.qty}
-                open={openInventory}
-                onOpenChange={setOpenInventory}
-            />
+          productId={product.id}
+          productName={`${product.name} (${product.sku})`}
+          currentQty={product.qty}
+          open={openInventory}
+          onOpenChange={setOpenInventory}
+        />
     </div>
   );
 }
@@ -106,9 +101,12 @@ export const inventoryColumns: ColumnDef<ProductWithRelations>[] = [
             const product = row.original;
             return (
                 <div className="flex items-center space-x-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
                     <div>
                         <div className="font-medium">{product.name}</div>
+                        <div className="text-xs text-muted-foreground">{product.sku}</div>
+                        {product.options && (
+                          <div className="text-xs text-muted-foreground">{product.options}</div>
+                        )}
                     </div>
                 </div>
             );
