@@ -26,7 +26,12 @@ export default function AdminOrdersPage() {
   }, []);
 
   if (loading) {
-    return <p className="p-4">Loading orders...</p>;
+    return (
+      <div className="container w-full h-screen text-center flex flex-col items-center justify-center"> 
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+        <p className="text-gray-600">Loading orders...</p>
+      </div>
+    )
   }
 
   return (

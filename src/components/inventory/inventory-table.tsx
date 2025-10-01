@@ -386,7 +386,7 @@ export default function InvenotryTable({
                 ) : error ? (
                   <span className="text-destructive">{error}</span>
                 ) : (
-                  `Showing ${data.length} of ${meta.total} products`
+                  `Showing ${data.length} variants of ${meta.total} products`
                 )}
               </CardDescription>
             </div>

@@ -42,6 +42,7 @@ const navigation: NavItem[] = [
   { title: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { title: "Customers", href: "/admin/customers", icon: Users },
   { title: "Inventory", href: "/admin/inventory", icon: Boxes },
+  { title: "Variations", href: "/admin/variations", icon: Layers },
   { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { title: "Settings", href: "/admin/settings", icon: Settings },
 ];

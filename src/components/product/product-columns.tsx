@@ -1,6 +1,6 @@
 "use client";
 
-import { Product } from "@/types/product";
+import { AdminProduct } from "@/types/product";
 import { ProductFormDialog } from "./product-dialog-form";
 import { ProductDeleteDialog } from "./delete-product-dialog";
 
@@ -18,15 +18,16 @@ import {
   Edit2,
   Eye,
   MoreHorizontal,
+  Plus,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 
-export const productColumns: ColumnDef<Product>[] = [
+export const productColumns: ColumnDef<AdminProduct>[] = [
   {
     accessorKey: "image",
     header: "Image",
@@ -75,11 +76,9 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Description",
     cell: ({ row }) => {
       const desc = row.getValue("description") as string | null;
-      return (
-        <div className="truncate max-w-xs text-muted-foreground">
-          {desc || "-"}
-        </div>
-      );
+      const text = desc || "-";
+      const truncated = text.length > 60 ? `${text.slice(0, 60)}…` : text;
+      return <div className="max-w-sm text-muted-foreground">{truncated}</div>;
     },
   },
   {
@@ -121,26 +120,7 @@ export const productColumns: ColumnDef<Product>[] = [
     header: "Subcategory",
     cell: ({ row }) => row.original.subCategory?.name || "-",
   },
-  {
-    accessorKey: "attributes",
-    header: "Attributes",
-    cell: ({ row }) => {
-      const attrs = row.getValue("attributes") as { key: string; value: string }[] | undefined;
-      if (!attrs || attrs.length === 0) return <span>-</span>;
-      return (
-        <div className="flex flex-col gap-1">
-          {attrs.slice(0, 2).map((attr, i) => (
-            <span key={i} className="text-xs text-muted-foreground">
-              {attr.key}: {attr.value}
-            </span>
-          ))}
-          {attrs.length > 2 && (
-            <span className="text-xs text-blue-500">+{attrs.length - 2} more</span>
-          )}
-        </div>
-      );
-    },
-  },
+  // Removed attributes column due to variant model
   {
     id: "action",
     cell: ({ row }) => {
@@ -149,9 +129,10 @@ export const productColumns: ColumnDef<Product>[] = [
   },
 ];
 
-export const ProductDropdownMenu = ({ product }: { product: Product }) => {
+export const ProductDropdownMenu = ({ product }: { product: AdminProduct }) => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
+  const [openAddVariant, setOpenAddVariant] = useState(false);
   const router = useRouter();
 
   const handleEditClick = () => {
@@ -160,6 +141,9 @@ export const ProductDropdownMenu = ({ product }: { product: Product }) => {
 
   const handleDeleteClick = () => {
     setOpenDelete(true);
+  };
+  const handleAddVariantClick = () => {
+    setOpenAddVariant(true);
   };
 
   const handleViewClick = () => {
@@ -187,6 +171,10 @@ export const ProductDropdownMenu = ({ product }: { product: Product }) => {
             <Edit2 className="size-4 mr-2" />
             Edit Product
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleAddVariantClick}>
+            <Plus className="size-4 mr-2" />
+            Add Variant
+          </DropdownMenuItem>
 
           <DropdownMenuItem
             className="text-destructive"
@@ -211,6 +199,80 @@ export const ProductDropdownMenu = ({ product }: { product: Product }) => {
         open={openDelete}
         setOpen={setOpenDelete}
       />
+      {openAddVariant && <InlineAddVariant productId={product.id} onClose={() => setOpenAddVariant(false)} />}
     </div>
   );
 };
+
+import { useAction } from "next-safe-action/hooks";
+import { createVariantAction } from "@/server/actions/variant-actions";
+import { Input } from "@/components/ui/input";
+
+function InlineAddVariant({ productId, onClose }: { productId: string; onClose: () => void }) {
+  const [price, setPrice] = useState("");
+  const [qty, setQty] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [attributes, setAttributes] = useState<{ id: string; name: string; values: { id: string; value: string }[] }[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<{ attributeId: string; valueId: string }[]>([]);
+  const { execute, isExecuting } = useAction(createVariantAction, {
+    onSuccess: () => { onClose(); },
+  });
+
+  useEffect(() => {
+    (async () => {
+      const res = await fetch('/api/attributes');
+      const data = await res.json();
+      setAttributes(data || []);
+    })();
+  }, []);
+
+  const setOption = (attributeId: string, valueId: string) => {
+    setSelectedOptions((prev) => {
+      const without = prev.filter(o => o.attributeId !== attributeId);
+      return [...without, { attributeId, valueId }];
+    });
+  };
+
+  const submit = async () => {
+    const form = new FormData();
+    form.append("productId", productId);
+    form.append("price", price);
+    form.append("qty", qty);
+    files.forEach((f) => form.append("images", f));
+    form.append("options", JSON.stringify(selectedOptions));
+    await execute(form as any);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-md p-4 w-full max-w-md space-y-3">
+        <div className="font-semibold">Add Variant</div>
+        <div className="space-y-2">
+          {attributes.map(attr => (
+            <div key={attr.id} className="flex items-center gap-2">
+              <div className="w-28 text-sm text-muted-foreground">{attr.name}</div>
+              <select className="border rounded px-2 py-1 text-sm flex-1"
+                onChange={(e) => setOption(attr.id, e.target.value)}
+                value={selectedOptions.find(o => o.attributeId === attr.id)?.valueId || ''}
+              >
+                <option value="">Select</option>
+                {attr.values.map(v => (
+                  <option key={v.id} value={v.id}>{v.value}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+        <Input type="number" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
+        <Input type="number" placeholder="Qty" value={qty} onChange={(e) => setQty(e.target.value)} />
+        <Input type="file" multiple accept="image/*" onChange={(e) => setFiles(Array.from(e.target.files || []))} />
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={submit} disabled={isExecuting || !price || !qty || files.length === 0}>
+            {isExecuting ? "Saving..." : "Save Variant"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

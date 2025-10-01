@@ -12,7 +12,16 @@ export async function getAllOrders() {
     const orders = await prisma.order.findMany({
       include: {
         user: { select: { id: true, name: true, email: true } },
-        items: { include: { product: true } },
+        items: { 
+          include: { 
+            variant: { 
+              include: { 
+                product: true,
+                options: { include: { attribute: true, attributeValue: true } },
+              }
+            }
+          } 
+        },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -64,11 +73,10 @@ export async function getOrderByID(orderId: string) {
         },
         items: {
           include: {
-            product: {
+            variant: {
               include: {
-                brand: true,
-                category: true,
-                subCategory: true,
+                product: { include: { brand: true, category: true, subCategory: true } },
+                options: { include: { attribute: true, attributeValue: true } },
               },
             },
           },

@@ -61,6 +61,7 @@ const adminNavigation: AdminNavItem[] = [
   { title: "Customers", href: "/admin/customers", icon: Users },
   { title: "Inventory", href: "/admin/inventory", icon: Boxes },
   { title: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { title: "Variations", href: "/admin/variations", icon: Layers },
   { title: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

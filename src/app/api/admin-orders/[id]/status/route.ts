@@ -10,8 +10,8 @@ export async function POST(
     const { id } = await params; // ← Need to await params in Next.js 15
     const { status } = await req.json();
     
-    // Allowed statuses for admin
-    const allowedStatuses = ["CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
+    // Allowed statuses for admin — align with schema
+    const allowedStatuses = ["PENDING","PAID","FAILED","SHIPPED","DELIVERED","CANCELLED"];
     if (!allowedStatuses.includes(status)) {
       return NextResponse.json(
         { error: "Invalid status" },

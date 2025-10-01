@@ -17,13 +17,14 @@ import {
   Pencil, 
   Trash2, 
   Loader2, 
-  Tag, 
   Boxes, 
   IndianRupee,
   Info,
   ImageIcon
 } from 'lucide-react';
-import { Product } from '@/types/product';
+import { deleteVariantAction, updateVariantAction } from '@/server/actions/variant-actions';
+import { useAction } from 'next-safe-action/hooks';
+import { AdminProduct } from '@/types/product';
 import { toast } from 'sonner';
 
 interface ProductDetailProps {
@@ -31,7 +32,7 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetailPage({ id }: ProductDetailProps) {
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -52,9 +53,6 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
         }
         setProduct(fetchedProduct.data);
         setSelectedImage(fetchedProduct.data.image);
-        if (fetchedProduct.data.attributes && Array.isArray(fetchedProduct.data.attributes)) {
-          setAttributes(fetchedProduct.data.attributes as { key: string; value: string }[]);
-        }
       } catch (error) {
         console.error('Failed to fetch product:', error);
         toast.error('Failed to load product');
@@ -87,7 +85,9 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
     return null;
   }
 
-  const stockStatus = getStockStatus(product.qty);
+  const totalQty = (product.variants || []).reduce((acc: number, v: any) => acc + (v.qty || 0), 0);
+  const firstVariantPrice = product.variants?.[0]?.price ?? 0;
+  const stockStatus = getStockStatus(totalQty);
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -147,7 +147,7 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
                 </button>
                 
                 {/* Sub images thumbnails */}
-                {product.subimage.map((img, index) => (
+                {product.subimage.map((img: string, index: number) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(img)}
@@ -216,7 +216,7 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="text-3xl font-bold">₹{product.price.toFixed(2)}</p>
+                  <p className="text-3xl font-bold">₹{firstVariantPrice.toFixed(2)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Stock Status</p>
@@ -229,35 +229,33 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
               <div className="flex items-center gap-2">
                 <Boxes className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">
-                  <strong>{product.qty}</strong> units available
+                  <strong>{totalQty}</strong> units available
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          {/* Specifications Card */}
-          {attributes && attributes.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Tag className="h-5 w-5" />
-                  Specifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {attributes.map((attribute, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b border-muted last:border-b-0">
-                      <span className="font-medium text-sm">{attribute.key}</span>
-                      <span className="text-sm text-muted-foreground">{attribute.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Variants List */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Boxes className="h-5 w-5" /> Variants
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {(product.variants || []).map((v: any) => (
+                  <VariantRow key={v.id} variant={v} />
+                ))}
+                {(!product.variants || product.variants.length === 0) && (
+                  <div className="text-sm text-muted-foreground">No variants yet.</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
+      
       
       {/* Modals for Update and Delete */}
       <ProductFormDialog
@@ -270,6 +268,101 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}
       />
+    </div>
+  );
+}
+
+function VariantRow({ variant }: { variant: any }) {
+  const [price, setPrice] = useState(String(variant.price));
+  const [qty, setQty] = useState(String(variant.qty));
+  const [editingOptions, setEditingOptions] = useState(false);
+  const [attributes, setAttributes] = useState<{ id: string; name: string; values: { id: string; value: string }[] }[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<{ attributeId: string; valueId: string }[]>([]);
+  const { execute: update, isExecuting: updating } = useAction(updateVariantAction);
+  const { execute: del, isExecuting: deleting } = useAction(deleteVariantAction);
+
+  useEffect(() => {
+    const current = (variant.options || []).map((o: any) => ({ attributeId: o.attributeId, valueId: o.valueId }));
+    setSelectedOptions(current);
+  }, [variant]);
+
+  useEffect(() => {
+    if (editingOptions) {
+      (async () => {
+        const res = await fetch('/api/attributes');
+        const data = await res.json();
+        setAttributes(data || []);
+      })();
+    }
+  }, [editingOptions]);
+
+  const saveBasic = async () => {
+    const form = new FormData();
+    form.append("id", variant.id);
+    form.append("price", price);
+    form.append("qty", qty);
+    await update(form as any);
+  };
+
+  const saveOptions = async () => {
+    const form = new FormData();
+    form.append("id", variant.id);
+    form.append("options", JSON.stringify(selectedOptions));
+    await update(form as any);
+    setEditingOptions(false);
+  };
+
+  const remove = async () => {
+    await del({ id: variant.id } as any);
+  };
+
+  const setOption = (attributeId: string, valueId: string) => {
+    setSelectedOptions((prev) => {
+      const without = prev.filter(o => o.attributeId !== attributeId);
+      return [...without, { attributeId, valueId }];
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-2 border-b last:border-0 py-2">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium truncate">{variant.sku}</div>
+          <div className="text-xs text-muted-foreground truncate">
+            {variant.options?.map((o: any) => `${o.attribute?.name}: ${o.attributeValue?.value}`).join(", ")}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <input className="w-24 border rounded px-2 py-1 text-sm" value={price} onChange={(e) => setPrice(e.target.value)} />
+          <input className="w-16 border rounded px-2 py-1 text-sm" value={qty} onChange={(e) => setQty(e.target.value)} />
+          <Button variant="outline" size="sm" onClick={saveBasic} disabled={updating}>Save</Button>
+          <Button variant="secondary" size="sm" onClick={() => setEditingOptions((s) => !s)}>Edit Options</Button>
+          <Button variant="destructive" size="sm" onClick={remove} disabled={deleting}>Delete</Button>
+        </div>
+      </div>
+
+      {editingOptions && (
+        <div className="bg-muted/30 rounded p-3 space-y-2">
+          {attributes.map(attr => (
+            <div key={attr.id} className="flex items-center gap-2">
+              <div className="w-28 text-sm text-muted-foreground">{attr.name}</div>
+              <select className="border rounded px-2 py-1 text-sm flex-1"
+                onChange={(e) => setOption(attr.id, e.target.value)}
+                value={selectedOptions.find(o => o.attributeId === attr.id)?.valueId || ''}
+              >
+                <option value="">Select</option>
+                {attr.values.map(v => (
+                  <option key={v.id} value={v.id}>{v.value}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => setEditingOptions(false)}>Cancel</Button>
+            <Button size="sm" onClick={saveOptions} disabled={updating}>Save Options</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

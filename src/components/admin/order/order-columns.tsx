@@ -48,26 +48,30 @@ export type Order = {
 };
 
 // Status options with icons
+// Align with order-status schema and server actions
 const statusOptions = [
-  { value: "pending", label: "Pending", icon: Clock, color: "text-yellow-600" },
-  { value: "processing", label: "Processing", icon: Package, color: "text-blue-600" },
-  { value: "shipped", label: "Shipped", icon: Truck, color: "text-purple-600" },
-  { value: "delivered", label: "Delivered", icon: CheckCircle, color: "text-green-600" },
-  { value: "cancelled", label: "Cancelled", icon: XCircle, color: "text-red-600" },
+  { value: "PENDING", label: "Pending", icon: Clock, color: "text-yellow-600" },
+  { value: "PAID", label: "Paid", icon: Package, color: "text-blue-600" },
+  { value: "FAILED", label: "Failed", icon: XCircle, color: "text-red-600" },
+  { value: "SHIPPED", label: "Shipped", icon: Truck, color: "text-purple-600" },
+  { value: "DELIVERED", label: "Delivered", icon: CheckCircle, color: "text-green-600" },
+  { value: "CANCELLED", label: "Cancelled", icon: XCircle, color: "text-red-600" },
 ];
 
 // Get status badge variant
 const getStatusVariant = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "pending":
+  switch (status.toUpperCase()) {
+    case "PENDING":
       return "secondary";
-    case "processing":
+    case "PAID":
       return "default";
-    case "shipped":
+    case "FAILED":
+      return "destructive";
+    case "SHIPPED":
       return "outline";
-    case "delivered":
+    case "DELIVERED":
       return "default";
-    case "cancelled":
+    case "CANCELLED":
       return "destructive";
     default:
       return "secondary";
@@ -95,16 +99,14 @@ function StatusUpdateDialog({
 
     setIsLoading(true);
     try {
-      
-      console.log(`Updating order ${order.id} status to ${selectedStatus}`);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Refresh the page or update the data
-      window.location.reload(); 
-      
+      const res = await fetch(`/api/admin-orders/${order.id}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: selectedStatus }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
       onOpenChange(false);
+      window.location.reload();
     } catch (error) {
       console.error("Failed to update order status:", error);
       // Handle error (show toast notification, etc.)
@@ -135,7 +137,7 @@ function StatusUpdateDialog({
           
           <div className="space-y-2">
             <label className="text-sm font-medium">New Status</label>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -242,14 +244,14 @@ export const columns: ColumnDef<Order>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.status;
-      const statusOption = statusOptions.find(option => option.value === status.toLowerCase());
+      const statusOption = statusOptions.find(option => option.value === status.toUpperCase());
       const Icon = statusOption?.icon || Package;
       
       return (
         <div className="flex items-center space-x-2">
           <Icon className={`h-4 w-4 ${statusOption?.color || 'text-gray-600'}`} />
-          <Badge variant={getStatusVariant(status)} className="capitalize">
-            {status.toLowerCase()}
+          <Badge variant={getStatusVariant(status)} className="uppercase">
+            {status}
           </Badge>
         </div>
       );

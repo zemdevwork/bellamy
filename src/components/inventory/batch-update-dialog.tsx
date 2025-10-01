@@ -48,7 +48,7 @@ export const BatchUpdateDialog: React.FC<BatchUpdateDialogProps> = ({
     setIsUpdating(true);
     
     try {
-      const productIds = selectedProducts.map(product => product.id);
+      const variantIds = selectedProducts.map(product => product.id);
       
       const response = await fetch('/api/inventory', {
         method: 'PATCH',
@@ -56,7 +56,7 @@ export const BatchUpdateDialog: React.FC<BatchUpdateDialogProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          productIds,
+          variantIds,
           qty: values.quantity,
         }),
       });

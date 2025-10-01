@@ -481,7 +481,7 @@ function AnalyticsPage() {
                         >
                           <div className="flex items-center space-x-3">
                             <Image
-                              src={product.image}
+                              src={product.images[0]}
                               alt={product.name}
                               height={48}
                               width={48}

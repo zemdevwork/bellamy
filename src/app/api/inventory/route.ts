@@ -67,35 +67,40 @@ export async function GET(req: Request) {
         where,
         skip: (pageNum - 1) * pageSize,
         take: pageSize,
-        orderBy,
+        orderBy: { createdAt: orderBy.createdAt ?? 'desc' },
         include: {
-          brand: {
-            select: {
-              id: true,
-              name: true,
+          brand: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true } },
+          subCategory: { select: { id: true, name: true } },
+          variants: {
+            include: {
+              options: { include: { attribute: true, attributeValue: true } },
             },
-          },
-          category: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          subCategory: {
-            select: {
-              id: true,
-              name: true,
-            },
+            orderBy: { createdAt: 'asc' },
           },
         },
       }),
       prisma.product.count({ where }),
     ]);
 
-    const results = products.map((p) => ({
-      ...p,
-      isLowStock: p.qty <= 10,
-    }));
+    // Flatten to variant rows for inventory management
+    const results = products.flatMap((p) =>
+      p.variants.map((v) => ({
+        id: v.id,
+        productId: p.id,
+        name: p.name,
+        sku: v.sku,
+        options: v.options.map((o) => `${o.attribute.name}: ${o.attributeValue.value}`).join(', '),
+        price: v.price,
+        qty: v.qty,
+        brand: p.brand,
+        category: p.category,
+        subCategory: p.subCategory,
+        createdAt: v.createdAt,
+        updatedAt: v.updatedAt,
+        isLowStock: v.qty <= 10,
+      }))
+    );
 
     return NextResponse.json({
       data: results,
@@ -117,12 +122,12 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { productIds, qty } = body;
+    const { variantIds, qty } = body;
     
     // Validate input
-    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+    if (!variantIds || !Array.isArray(variantIds) || variantIds.length === 0) {
       return NextResponse.json({ 
-        error: "productIds array is required and must not be empty." 
+        error: "variantIds array is required and must not be empty." 
       }, { status: 400 });
     }
     
@@ -140,33 +145,34 @@ export async function PATCH(req: Request) {
       }, { status: 400 });
     }
 
-    const updatedProducts = [];
+    const updatedVariants = [] as any[];
     const notifications = [];
     const failedUpdates = [];
 
     // Process each product update
-    for (const productId of productIds) {
-      if (!productId || typeof productId !== 'string') {
+    for (const variantId of variantIds) {
+      if (!variantId || typeof variantId !== 'string') {
         failedUpdates.push({
-          productId: productId || 'undefined',
-          error: 'Invalid product ID'
+          variantId: variantId || 'undefined',
+          error: 'Invalid variant ID'
         });
         continue;
       }
 
       try {
-        const product = await prisma.product.update({
-          where: { id: productId },
+        const variant = await prisma.productVariant.update({
+          where: { id: variantId },
           data: { qty: quantity },
+          include: { product: true },
         });
 
-        updatedProducts.push(product);
+        updatedVariants.push(variant);
 
-        // Check if low stock notification needed
-        if (product.qty <= 10) {
+        // Check if low stock notification needed for parent product
+        if (variant.qty <= 10) {
           const exists = await prisma.notification.findFirst({
             where: { 
-              productId: product.id, 
+              productId: variant.productId, 
               seen: false,
               message: { contains: "low on stock" }
             },
@@ -175,32 +181,32 @@ export async function PATCH(req: Request) {
           if (!exists) {
             const notification = await prisma.notification.create({
               data: {
-                productId: product.id,
-                message: `${product.name} is low on stock (${product.qty} left).`,
+                productId: variant.productId,
+                message: `${variant.product.name} (${variant.sku}) is low on stock (${variant.qty} left).`,
               },
             });
             notifications.push(notification);
           }
         }
       } catch (error) {
-        console.error(`Error updating product ${productId}:`, error);
+        console.error(`Error updating variant ${variantId}:`, error);
         failedUpdates.push({
-          productId,
-          error: 'Product not found or update failed'
+          variantId,
+          error: 'Variant not found or update failed'
         });
       }
     }
 
     // Prepare response
     const response = {
-      message: `Updated ${updatedProducts.length} out of ${productIds.length} products with quantity ${quantity}.`,
+      message: `Updated ${updatedVariants.length} out of ${variantIds.length} variants with quantity ${quantity}.`,
       summary: {
-        total: productIds.length,
-        successful: updatedProducts.length,
+        total: variantIds.length,
+        successful: updatedVariants.length,
         failed: failedUpdates.length,
         notificationsCreated: notifications.length,
       },
-      updatedProducts,
+      updatedVariants,
       ...(failedUpdates.length > 0 && { failedUpdates }),
     };
 
