@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import { User } from "lucide-react";
 
 import { LogoutDialog } from "./auth/logout-modal";
 import CartIcon from "@/components/common/CartIcon";
@@ -207,19 +208,14 @@ export default function Header() {
                   <button
                     onClick={toggleProfileMenu}
                     aria-label="Account"
-                    className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-white border"
+                    className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 cursor-pointer md:h-10 flex items-center justify-center rounded-full bg-white border transition-all duration-300 hover:scale-110 hover:shadow-md"
                     style={{ borderColor: brand.primary }}
                   >
-                    <svg
-                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke={brand.primary}
+                    <User
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:h-5 md:w-5"
                       strokeWidth={1.8}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                      color={brand.primary}
+                    />
                   </button>
                   
                   {/* Profile dropdown - visible on mobile click OR desktop hover */}
@@ -270,7 +266,7 @@ export default function Header() {
                 <Link
                   href="/login"
                   aria-label="Login"
-                  className="font-serif px-3 py-1 rounded-2xl border flex items-center justify-center"
+                  className="font-serif px-3 py-1 rounded-2xl border flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md"
                   style={{ borderColor: brand.primary }}
                 >
                   Login

@@ -4,13 +4,14 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { orderStatusSchema } from "@/schema/order-schema";
 import { getAuthenticatedAdmin } from "./admin-user-action";
+import { Prisma } from "@prisma/client";
 
 // 🔹 Get all orders (admin)
 export async function getAllOrders(page = 1, limit = 10, status?: string, search?: string) {
   try {
     await getAuthenticatedAdmin();
 
-    const where: any = {};
+    const where: Prisma.OrderWhereInput = {};
     if (status) where.status = status.toUpperCase();
     if (search && search.trim()) {
       where.OR = [

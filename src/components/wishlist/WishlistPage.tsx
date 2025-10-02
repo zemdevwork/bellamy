@@ -40,7 +40,6 @@ function WishlistPage() {
   if (items.length === 0) {
     return (
       <div className="page-wrap">
-        <div className="max-w-md mx-auto text-center py-20">
           <div className="w-20 h-20 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
             <Heart className="w-10 h-10 text-gray-400" />
           </div>
@@ -54,17 +53,15 @@ function WishlistPage() {
           >
             Start Shopping
           </button>
-        </div>
       </div>
     );
   }
 
   return (
     <div className="page-wrap">
-      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-1">
+        <h1 className="page-title mb-6 md:mb-8">
             My Wishlist
           </h1>
           <p className="text-gray-600 text-sm">
@@ -86,7 +83,6 @@ function WishlistPage() {
               }
             />
           ))}
-        </div>
       </div>
     </div>
   );

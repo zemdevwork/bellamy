@@ -197,7 +197,11 @@ export async function fetchUserDetails(userId: string) {
           include: {
             items: {
               include: {
-                product: true,
+                variant: {
+                  include: {
+                    product: true,
+                  },
+                },
               },
             },
           },

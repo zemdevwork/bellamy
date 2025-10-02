@@ -36,7 +36,7 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
 
   if (loading) {
     return (
-      <div className="text-center py-10">
+      <div className="text-center page-wrap py-10">
         <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
         <p className="mt-2">Loading Categories...</p>
       </div>
@@ -44,11 +44,11 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-end justify-between mb-6">
-        <h2 className="text-2xl md:text-3xl font-serif text-stone-800 tracking-tight">Shop By Occasion</h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+    <div className="page-wrap">
+        <div className="flex justify-between items-center mb-8">
+            <h2 className="page-title">Shop by Category</h2>
+          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
 
         {categories.map((category) => (
           <div

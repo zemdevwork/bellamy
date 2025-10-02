@@ -77,7 +77,7 @@ export async function getUserWishlist() {
     },
   });
 
-  return wishlist ?? { id: '', userId: user.id, createdAt: new Date(), updatedAt: new Date(), items: [] } as any;
+  return wishlist ?? { id: '', userId: user.id, createdAt: new Date(), updatedAt: new Date(), items: [] };
 }
 
 

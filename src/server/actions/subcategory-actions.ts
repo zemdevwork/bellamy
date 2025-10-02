@@ -8,12 +8,15 @@ import {
   updateSubCategorySchema, 
   deleteSubCategorySchema 
 } from "@/schema/subcategory-schema";
+import { getAuthenticatedAdmin } from "./admin-user-action";
 
 // ✅ CREATE SubCategory
 export const createSubCategoryAction = actionClient
   .inputSchema(createSubCategorySchema)
   .action(async ({ parsedInput }) => {
     try {
+            await getAuthenticatedAdmin()
+      
       const subcategory = await prisma.subCategory.create({
         data: {
           name: parsedInput.name,
@@ -49,6 +52,7 @@ export const updateSubCategoryAction = actionClient
   .action(async ({ parsedInput }) => {
     const { id, ...data } = parsedInput;
     try {
+            await getAuthenticatedAdmin()
       const updated = await prisma.subCategory.update({
         where: { id },
         data: {
@@ -69,6 +73,7 @@ export const deleteSubCategoryAction = actionClient
   .inputSchema(deleteSubCategorySchema)
   .action(async ({ parsedInput }) => {
     try {
+            await getAuthenticatedAdmin()
       // Optional: check if any product is using this subcategory
       const productUsingSubCategory = await prisma.product.findFirst({
         where: { subCategoryId: parsedInput.id },

@@ -26,21 +26,6 @@ const updateProfileSchema = z.object({
     .optional(),
 });
 
-// Types for Cloudinary upload result
-interface CloudinaryUploadResult {
-  secure_url: string;
-  public_id: string;
-  [key: string]: unknown;
-}
-
-// Type for update data
-interface UserUpdateData {
-  name?: string;
-  email?: string;
-  phone?: string;
-  image?: string;
-}
-
 // GET /api/user-profile
 export async function GET(request: NextRequest) {
   try {

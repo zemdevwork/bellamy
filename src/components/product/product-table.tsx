@@ -33,7 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AdminProduct } from "@/types/product";
+import { ProductDetail } from "@/types/product";
 
 interface Category {
   id: string;
@@ -53,7 +53,7 @@ interface Brand {
 }
 
 interface ApiResponse {
-  data: AdminProduct[];
+  data: ProductDetail[];
   pagination: {
     currentPage: number;
     totalPages: number;
@@ -65,7 +65,7 @@ interface ApiResponse {
 }
 
 interface ProductTableProps {
-  columns: ColumnDef<AdminProduct>[];
+  columns: ColumnDef<ProductDetail>[];
 }
 
 // Debounce hook
@@ -86,7 +86,7 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export default function ProductTable({ columns }: ProductTableProps) {
-  const [data, setData] = useState<AdminProduct[]>([]);
+  const [data, setData] = useState<ProductDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAuthenticatedAdmin } from "@/server/actions/admin-user-action";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -11,12 +12,16 @@ export async function GET(request: Request) {
     const status = searchParams.get("status") || undefined;
     const search = searchParams.get("search") || undefined;
 
-    const where: any = {};
-    if (status) where.status = status.toUpperCase();
+    const where: Prisma.OrderWhereInput = {};
+
+    if (status) {
+      where.status = status.toUpperCase();
+    }
+
     if (search && search.trim()) {
       where.OR = [
-        { id: { contains: search.trim(), mode: 'insensitive' } },
-        { user: { name: { contains: search.trim(), mode: 'insensitive' } } },
+        { id: { contains: search.trim(), mode: "insensitive" } },
+        { user: { name: { contains: search.trim(), mode: "insensitive" } } },
       ];
     }
 

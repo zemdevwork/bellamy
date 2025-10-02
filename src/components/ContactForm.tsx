@@ -28,7 +28,7 @@ export default function ContactForm() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-serif text-gray-800 text-center mb-12">
+      <h1 className="page-title">
         Contact
       </h1>
       

@@ -56,7 +56,7 @@ export default function Banner() {
 
   return (
     <section
-      className="relative w-full h-screen overflow-hidden"
+      className="relative w-full h-screen overflow-hidden mb-3 sm:mb-6 md:mb-12 lg:mb-16"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >

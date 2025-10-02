@@ -29,21 +29,21 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createProductFormSchema, CreateProductFormValues } from "@/schema/product-schema";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Plus} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { createProductAction, updateProductAction } from "@/server/actions/product-action";
 import { getBrandlistForDropdown } from "@/server/actions/brand-actions";
 import { getCategorylistForDropdown } from "@/server/actions/category-actions";
 import { getSubCategorylistByCategory } from "@/server/actions/subcategory-actions";
-import { AdminProduct } from "@/types/product";
+import { ProductDetail } from "@/types/product";
 
 export const ProductFormDialog = ({
   product,
   open,
   openChange,
 }: {
-  product?: AdminProduct;
+  product?: ProductDetail;
   open?: boolean;
   openChange?: (open: boolean) => void;
 }) => {
@@ -51,7 +51,6 @@ export const ProductFormDialog = ({
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [subcategories, setSubcategories] = useState<{ id: string; name: string }[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
-  const [subPreviews, setSubPreviews] = useState<string[]>([]);
   const router = useRouter();
 
   // ✅ UPDATED: Added result handlers to close modal after completion
@@ -60,7 +59,6 @@ export const ProductFormDialog = ({
       toast.success("Product created successfully!");
       form.reset();
       setPreview(null);
-      setSubPreviews([]);
       router.refresh();
       openChange?.(false); // Close modal on success
     },
@@ -75,7 +73,6 @@ export const ProductFormDialog = ({
       toast.success("Product updated successfully!");
       form.reset();
       setPreview(null);
-      setSubPreviews([]);
       router.refresh();
       openChange?.(false); // Close modal on success
     },
@@ -104,10 +101,8 @@ export const ProductFormDialog = ({
   useEffect(() => {
     if (product) {
       setPreview(product.image || null);
-      setSubPreviews([]);
     } else {
       setPreview(null);
-      setSubPreviews([]);
     }
   }, [product]);
   
@@ -126,7 +121,7 @@ export const ProductFormDialog = ({
       }
     };
     fetchOptions();
-  }, []);
+  }, [form]);
 
   // Filter subcategories whenever category changes
   useEffect(() => {

@@ -7,6 +7,7 @@ import uploadPhoto from "@/lib/upload";
 import cloudinary from "@/lib/cloudinary";
 import { zfd } from "zod-form-data";
 import { z } from "zod";
+import { getAuthenticatedAdmin } from "./admin-user-action";
 
 
 
@@ -31,6 +32,8 @@ export const createCategoryAction = actionClient
   .inputSchema(createCategorySchema)
   .action(async ({ parsedInput }) => {
     try {
+            await getAuthenticatedAdmin()
+      
       let photoUrl: string = "";
       if (parsedInput.image && parsedInput.image.size > 0) {
         photoUrl = await uploadPhoto(parsedInput.image);
@@ -63,6 +66,8 @@ export const updateCategoryAction = actionClient
   .inputSchema(updateCategorySchema)
   .action(async ({ parsedInput }) => {
     try {
+            await getAuthenticatedAdmin()
+
       let photoUrl: string | undefined;
       if (parsedInput.image && parsedInput.image.size > 0) {
         photoUrl = await uploadPhoto(parsedInput.image);
@@ -89,6 +94,8 @@ export const deleteCategoryAction = actionClient
   .inputSchema(deleteCategorySchema)
   .action(async ({ parsedInput }) => {
     try {
+            await getAuthenticatedAdmin()
+
       const category = await prisma.category.findUnique({
         where: { id: parsedInput.id },
       });

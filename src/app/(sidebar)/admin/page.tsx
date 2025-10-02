@@ -21,6 +21,7 @@ import {
   getTotalVariantsCount
 } from "@/server/actions/admin-report-actions";
 import { Suspense } from "react";
+import { rupee } from "@/constants/values";
 
 // Loading component for individual stat cards
 function StatCardSkeleton() {
@@ -109,14 +110,14 @@ async function DashboardStats() {
       },
       {
         title: "Revenue",
-        value: `₹${currentMetrics.totalRevenue.toLocaleString()}`,
+        value: `${rupee} ${currentMetrics.totalRevenue.toLocaleString()}`,
         description: `${revenueChange >= 0 ? '+' : ''}${revenueChange.toFixed(1)}% from last month`,
         icon: DollarSign,
         trend: revenueChange >= 0 ? "up" : "down" as const
       },
       {
         title: "Average Order",
-        value: `₹${currentMetrics.averageOrderValue.toFixed(2)}`,
+        value: `${rupee} ${currentMetrics.averageOrderValue.toFixed(2)}`,
         description: "Average order value",
         icon: TrendingUp,
         trend: "neutral" as const
@@ -207,7 +208,7 @@ async function RecentOrders() {
                     <p className="text-xs text-muted-foreground">{order.userName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium">₹{order.totalAmount.toFixed(2)}</p>
+                    <p className="text-sm font-medium">{rupee}{' '}{order.totalAmount.toFixed(2)}</p>
                     <p className={`text-xs ${
                       order.status === 'DELIVERED' ? 'text-green-600' :
                       order.status === 'CANCELLED' ? 'text-red-600' :

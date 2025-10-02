@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { removeFromWishlist } from "@/server/actions/wishlist-action";
 import { toast } from "sonner";
 import { ShoppingCart, Trash2 } from "lucide-react";
+import { rupee } from "@/constants/values";
 
 type WishlistItemProps = {
   variantId: string;
@@ -77,7 +78,7 @@ export default function WishlistCard({ variantId, product, onRemoved }: Wishlist
           </h3>
 
           {product.price && (
-            <p className="text-sm text-gray-600 mt-1">₹{product.price.toFixed(2)}</p>
+            <p className="text-sm text-gray-600 mt-1">{rupee} {product.price.toFixed(2)}</p>
           )}
         </div>
 
@@ -85,7 +86,7 @@ export default function WishlistCard({ variantId, product, onRemoved }: Wishlist
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
           {product.price && (
             <p className="font-medium text-gray-900 hidden sm:block">
-              ₹{product.price.toFixed(2)}
+              {rupee} {product.price.toFixed(2)}
             </p>
           )}
 

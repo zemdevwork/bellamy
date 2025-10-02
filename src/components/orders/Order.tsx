@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Package, ShoppingBag } from "lucide-react";
+import { rupee } from "@/constants/values";
 
 type Order = {
   id: string;
@@ -215,7 +216,7 @@ export default function OrderList() {
                 <div className="text-right">
                   <StatusBadge status={order.status} />
                   <p className="text-lg font-medium text-gray-900 mt-2">
-                    ₹{order.totalAmount.toFixed(2)}
+                    {rupee}{" "}{order.totalAmount.toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -242,13 +243,13 @@ export default function OrderList() {
                       <div className="flex items-center gap-3 mt-1 text-sm text-gray-600">
                         <span>Qty: {item.quantity}</span>
                         <span>•</span>
-                        <span>₹{item.price.toFixed(2)} each</span>
+                        <span>{rupee} {item.price.toFixed(2)} each</span>
                       </div>
                     </div>
 
                     <div className="text-right">
                       <p className="font-medium text-gray-900">
-                        ₹{(item.price * item.quantity).toFixed(2)}
+                        {rupee} {(item.price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>

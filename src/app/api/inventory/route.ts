@@ -145,7 +145,7 @@ export async function PATCH(req: Request) {
       }, { status: 400 });
     }
 
-    const updatedVariants = [] as any[];
+    const updatedVariants: Prisma.ProductVariantGetPayload<{ include: { product: true } }>[] = [];
     const notifications = [];
     const failedUpdates = [];
 

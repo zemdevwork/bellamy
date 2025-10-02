@@ -9,6 +9,7 @@ import cloudinary from "@/lib/cloudinary";
 
 import { createProductSchema, updateProductSchema, deleteProductSchema } from "@/schema/product-schema";
 import { Prisma } from "@prisma/client";
+import { getAuthenticatedAdmin } from "./admin-user-action";
 
 // Define the update data type for better type safety
 type ProductUpdateData = {
@@ -24,9 +25,8 @@ export const createProductAction = actionClient
   .inputSchema(createProductSchema)
   .action(async ({ parsedInput }) => {
     try {
-      // 🔍 DEBUG: Log the parsed input
-      console.log("=== CREATE PRODUCT DEBUG ===");
-      console.log("Full parsedInput:", parsedInput);
+            await getAuthenticatedAdmin()
+      
       // handle main image upload
       let photoUrl: string = "";
       if (parsedInput.image && parsedInput.image.size > 0) {
@@ -59,6 +59,8 @@ export const updateProductAction = actionClient
   .inputSchema(updateProductSchema)
   .action(async ({ parsedInput }) => {
     try {
+            await getAuthenticatedAdmin()
+
       // Get existing product to preserve current images if needed
       const existingProduct = await prisma.product.findUnique({
         where: { id: parsedInput.id },
@@ -121,6 +123,8 @@ export const deleteProductAction = actionClient
   .inputSchema(deleteProductSchema)
   .action(async ({ parsedInput }) => {
     try {
+            await getAuthenticatedAdmin()
+
       // Ensure product exists
       const product = await prisma.product.findUnique({ where: { id: parsedInput.id } });
       if (!product) {

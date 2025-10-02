@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer className="text-white" style={{ backgroundColor: brand.primaryDark }}>
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="page-wrap">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
@@ -132,7 +132,7 @@ export default function Footer() {
       </div>
       {/* Bottom Bar */}
       <div className="border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 py-6">
+        <div className="page-wrap">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
             <div className="text-sm text-gray-400">
               © 2024 Bellamy. All rights reserved.

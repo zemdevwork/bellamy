@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useCart } from "@/context/cartContext";
+import { rupee } from "@/constants/values";
 
 type Product = {
   id: string;
@@ -139,7 +140,7 @@ export default function CheckoutModal({
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-lg font-semibold text-gray-900">
-                  ₹{total.toFixed(2)}
+                  {rupee} {total.toFixed(2)}
                 </span>
                 {isOrderSummaryOpen ? (
                   <ChevronUp className="w-5 h-5 text-gray-500" />
@@ -178,7 +179,7 @@ export default function CheckoutModal({
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-gray-900">
-                          ₹{(product.price * product.quantity).toFixed(2)}
+                          {rupee} {(product.price * product.quantity).toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -189,11 +190,11 @@ export default function CheckoutModal({
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Sub total</span>
-                    <span>₹{total.toFixed(2)}</span>
+                    <span>{rupee} {total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-semibold text-gray-900 pt-2 border-t">
                     <span>Total amount</span>
-                    <span>₹{total.toFixed(2)}</span>
+                    <span>{rupee} {total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>

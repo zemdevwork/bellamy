@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { getAuthenticatedAdmin } from "@/server/actions/admin-user-action";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
+    await getAuthenticatedAdmin()
     const { searchParams } = new URL(request.url);
     
     // Extract all possible parameters
