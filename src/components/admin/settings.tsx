@@ -7,10 +7,10 @@ import { getAdminProfile, resetPassword } from '@/server/actions/admin-settings-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import BufferingLoader from '@/components/ui/spinner';
+import { Label } from "@/components/ui/label";;
 import { toast } from 'sonner';
 import { fallBackImage } from '@/constants/values';
+import AdminLoader from './AdminLoader';
 
 type AdminProfile = {
     id: string;
@@ -134,10 +134,7 @@ function Settings() {
 
     if (loading) {
         return (
-            <div className="p-4 text-center">
-                <BufferingLoader />
-                <p className="text-muted-foreground text-sm mt-4">Loading settings...</p>
-            </div>
+            <AdminLoader/>
         );
     }
 
