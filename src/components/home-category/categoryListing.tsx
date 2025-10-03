@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-
+import { useRouter } from "next/navigation"; // ✅ Import router
 
 type Category = {
   id: string;
@@ -17,6 +17,7 @@ type CategorySectionProps = {
 export default function CategorySection({ onCategorySelect }: CategorySectionProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter(); // ✅ Initialize router
 
   useEffect(() => {
     async function fetchCategories() {
@@ -45,22 +46,23 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
 
   return (
     <div className="page-wrap">
-        <div className="flex justify-between items-center mb-8">
-            <h2 className="page-title">Shop by Category</h2>
-          </div>
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="page-title">Shop by Category</h2>
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-
         {categories.map((category) => (
           <div
             key={category.id}
-            onClick={() => onCategorySelect?.(category)}
+            onClick={() => {
+              onCategorySelect?.(category);
+              router.push(`/shop/category/${category.id}`); // ✅ Navigate on click
+            }}
             className="group cursor-pointer"
           >
             <div className="relative w-full aspect-[5/4] rounded-2xl overflow-hidden shadow-md ring-1 ring-stone-200/60 bg-white transition-transform duration-300 group-hover:scale-[1.02]">
               {/* Category Image */}
               <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300">
                 {category.image ? (
-                  
                   <Image
                     src={category.image}
                     alt={category.name}
@@ -74,10 +76,10 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
                   </div>
                 )}
               </div>
-              
+
               {/* Gradient overlay for text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
-              
+
               {/* Category name centered */}
               <div className="absolute bottom-4 left-0 right-0 flex justify-center">
                 <h3 className="text-white text-lg font-semibold drop-shadow-lg text-center tracking-wide">

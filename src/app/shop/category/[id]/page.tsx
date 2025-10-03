@@ -10,7 +10,7 @@ export default async function CategoryPage({ params }: Props) {
   
   return (
     <div>
-      <div className="page-wrap">
+      <div className="page-wrap min-h-screen">
         <h1 className="page-title mb-6">Category Products</h1>
         <ShopProductListing categoryId={id} hideCategoryFilter />
       </div>
