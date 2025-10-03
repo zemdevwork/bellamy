@@ -153,6 +153,11 @@ export default function ShopProductListing({ categoryId, hideCategoryFilter }: {
 
   return (
     <div className="w-full h-full" >
+      <div className="mb-8">
+        <h1 className="page-title mb-6 md:mb-8">
+          {categories.find((c) => c.id === selectedCategory)?.name || "Shop"}
+        </h1>
+      </div>
       <div className="grid grid-cols-15 gap-4 w-full">
         <aside className="col-span-15 md:col-span-3 mb-6 md:mb-0">
           <div
