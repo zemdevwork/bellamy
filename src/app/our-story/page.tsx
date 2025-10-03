@@ -3,11 +3,11 @@ import Footer from "../../components/Footer";
 
 export default function OurStoryPage() {
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen page-wrap">
       {/* Hero Section */}
       <section style={{ backgroundColor: brand.primary }} className="text-white py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-5xl font-serif mb-6">Our Story</h1>
+          <h1 className="page-title">Our Story</h1>
           <p className="text-xl text-blue-100 leading-relaxed">
             From humble beginnings to becoming a trusted name in quality products, 
             discover the journey that shaped Bellamy into what it is today.

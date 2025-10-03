@@ -67,6 +67,11 @@ const pageMap: Record<string, PageInfo> = {
     description: "View and manage product inventory",
     icon: Boxes,
   },
+  "/admin/variations": {
+    title: "Variations",
+    description: "Manage product variations",
+    icon: Layers,
+  },
   "/admin/analytics": {
     title: "Analytics",
     description: "View store performance metrics",

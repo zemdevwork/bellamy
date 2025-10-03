@@ -41,7 +41,7 @@ export default function ProfilePage() {
         <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
           <button className="hover:text-gray-900">Home</button>
           <span>/</span>
-          <span className="text-gray-400 font-serif">My Account</span>
+          <span className="page-title">My Account</span>
         </div>
 
         {/* Page Title */}

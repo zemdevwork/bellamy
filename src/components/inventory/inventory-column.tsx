@@ -1,6 +1,5 @@
 'use client';
 
-import { Product } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import type { ProductWithRelations } from "./inventory-table";
 import {
@@ -26,7 +25,7 @@ import InventoryDialogForm from "./inventory-dialog-form";
 
 // Format currency
 const formatCurrency = (amount: number | null | undefined) => {
-  if (!amount) return "₹0.00";
+  if (!amount) return "rupee0.00";
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import { rupee } from "@/constants/values";
 
 
 type Product = {
@@ -119,7 +120,7 @@ export default function ProductListing({ categoryId, categoryName }: ProductList
                   {product.name}
                 </h3>
                 <p className="text-gray-900 text-lg font-bold">
-                  ₹ {product.price.toLocaleString()}
+                  {rupee}{''}{product.price.toLocaleString()}
                 </p>
               </div>
             </div>

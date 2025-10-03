@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProductCard from "@/components/ProductCard";
+import Link from "next/link";
 
 type Product = {
   id: string;
@@ -30,7 +31,6 @@ type ProductResponse = {
 };
 
 export default function ProductList() {
-  const [showAll, setShowAll] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +47,8 @@ export default function ProductList() {
         const transformedProducts: Product[] = data.map((product) => ({
           id: product.id,
           name: product.name,
-          price: `₹${product.price}`,
-          oldPrice: product.oldPrice ? `₹${product.oldPrice}` : undefined,
+          price: `${product.price}`,
+          oldPrice: product.oldPrice ? `${product.oldPrice}` : undefined,
           image: product.image || "/Images/placeholder.jpg",
           description: product.description,
           rating: product.rating ?? 0,
@@ -68,16 +68,16 @@ export default function ProductList() {
     fetchProductsAndCart();
   }, []);
 
-  const visibleProducts = showAll ? products : products.slice(0, 8);
+  const visibleProducts = products.slice(0, 8);
 
   if (loading) {
     return (
-      <section className="py-16 px-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="page-wrap">
+        <div >
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-serif text-gray-800">Our Products</h2>
+            <h2 className="page-title">Our Products</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 ">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
@@ -93,14 +93,14 @@ export default function ProductList() {
             ))}
           </div>
         </div>
-      </section>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <section className="py-10 px-6 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-serif mb-8">Our Products</h2>
+      <div className="page-wrap">
+        <h2 className="page-title">Our Products</h2>
         <div className="text-center py-10">
           <p className="text-red-500">Error: {error}</p>
           <button
@@ -110,22 +110,21 @@ export default function ProductList() {
             Try Again
           </button>
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="py-10 px-6 ">
-      <div className="max-w-7xl mx-auto">
+    <div className="page-wrap">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-serif text-stone-800">Our Products</h2>
+          <h2 className="page-title">Our Products</h2>
           {products.length > 8 && (
-            <button
-              onClick={() => setShowAll(!showAll)}
+            <Link
+              href="/shop"
               className="px-6 py-2 border border-stone-300 rounded-full text-sm font-medium text-stone-700 hover:bg-stone-50 transition"
             >
-              {showAll ? "Show Less" : "See All Products"}
-            </button>
+              See All Products
+            </Link>
           )}
         </div>
 
@@ -134,7 +133,7 @@ export default function ProductList() {
             <p className="text-gray-500">No products found.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 ">
             {visibleProducts.map((product) => (
               <div key={product.id}>
                 <ProductCard
@@ -150,7 +149,6 @@ export default function ProductList() {
             ))}
           </div>
         )}
-      </div>
-    </section>
+    </div>
   );
 }

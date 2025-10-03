@@ -9,6 +9,7 @@ import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
 import { Eye, ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/cartContext";
+import { rupee } from "@/constants/values";
 
 type ProductProps = {
   id: string;
@@ -53,13 +54,17 @@ export default function ProductCard({
           // cart is now an array
           if (Array.isArray(cart)) {
             const exists = cart.some(
-              (item: { variant: { id: string } }) => !!item.variant && (variantId ? item.variant.id === variantId : false)
+              (item: { variant: { id: string } }) =>
+                !!item.variant &&
+                (variantId ? item.variant.id === variantId : false)
             );
             setIsInCart(exists);
           }
         } else {
           const localCart = getLocalCart();
-          const exists = localCart.some((item) => (variantId ? item.variantId === variantId : false));
+          const exists = localCart.some((item) =>
+            variantId ? item.variantId === variantId : false
+          );
           setIsInCart(exists);
         }
       } catch (error) {
@@ -72,11 +77,11 @@ export default function ProductCard({
 
   const discountPercentage = oldPrice
     ? Math.round(
-      ((parseFloat(oldPrice.replace(/[₹$]/g, "")) -
-        parseFloat(price.replace(/[₹$]/g, ""))) /
-        parseFloat(oldPrice.replace(/[₹$]/g, ""))) *
-      100
-    )
+        ((parseFloat(oldPrice) -
+          parseFloat(price)) /
+          parseFloat(oldPrice)) *
+          100
+      )
     : 0;
 
   // Add to cart handler
@@ -146,8 +151,6 @@ export default function ProductCard({
     flex-col
   "
         >
-
-
           {/* Badges */}
           {(badge || discountPercentage > 0) && (
             <div className="absolute z-10 inset-x-0 top-0 flex justify-between p-3">
@@ -175,7 +178,9 @@ export default function ProductCard({
               className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
               onLoad={() => setImageLoaded(true)}
             />
-            {!imageLoaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+            )}
 
             {/* Action Buttons - Always visible, bottom center */}
             <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-5">
@@ -218,17 +223,26 @@ export default function ProductCard({
           {/* Product Info */}
           <div className="pt-3 flex flex-col gap-1">
             <div className="text-xs text-gray-500 h-4">{brandName || ""}</div>
-            <h3 className="font-serif text-sm text-gray-900 line-clamp-2 h-10">{name}</h3>
+            <h3 className="font-serif text-sm text-gray-900 line-clamp-2 h-10">
+              {name}
+            </h3>
             <div className="flex items-center gap-2">
               {oldPrice && (
-                <span className="text-xs text-gray-400 line-through">{oldPrice}</span>
+                <span className="text-xs text-gray-400 line-through">
+                  {rupee}{oldPrice}
+                </span>
               )}
-              <div className="font-semibold text-base" style={{ color: brandThemePrimary }}>
-                {price}
+              <div
+                className="font-semibold text-base"
+                style={{ color: brandThemePrimary }}
+              >
+                {rupee}{price}
               </div>
             </div>
             {description ? (
-              <p className="text-xs text-gray-600 line-clamp-2 h-8">{description}</p>
+              <p className="text-xs text-gray-600 line-clamp-2 h-8">
+                {description}
+              </p>
             ) : (
               <div className="h-8"></div>
             )}
@@ -242,12 +256,12 @@ export default function ProductCard({
             {
               id: variantId as string,
               name,
-              price: parseFloat(price.replace(/[₹$]/g, "")),
+              price: parseFloat(price),
               quantity: 1,
               image,
             },
           ]}
-          total={parseFloat(price.replace(/[₹$]/g, ""))}
+          total={parseFloat(price)}
           onClose={() => setShowCheckout(false)}
         />
       )}

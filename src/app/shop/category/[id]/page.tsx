@@ -7,12 +7,11 @@ type Props = {
 
 export default async function CategoryPage({ params }: Props) {
   const { id } = await params;
-  
+
   return (
     <div>
-      <div className="page-wrap">
-        <h1 className="page-title mb-6">Category Products</h1>
-        <ShopProductListing categoryId={id} hideCategoryFilter />
+      <div className="page-wrap min-h-screen">
+        <ShopProductListing categoryId={id} hideCategoryFilter={true} />
       </div>
       <Footer/>
     </div>

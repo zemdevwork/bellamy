@@ -1,7 +1,6 @@
-// app/products/[id]/page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, ChangeEvent } from 'react';
 import Image from 'next/image';
 import { getProductById } from '@/server/actions/product-action'; 
 import { ProductDeleteDialog } from './delete-product-dialog'; 
@@ -24,19 +23,19 @@ import {
 } from 'lucide-react';
 import { deleteVariantAction, updateVariantAction } from '@/server/actions/variant-actions';
 import { useAction } from 'next-safe-action/hooks';
-import { AdminProduct } from '@/types/product';
 import { toast } from 'sonner';
+import { ProductDetail, VariantDetail, AttributeWithValues } from '@/types/product';
+import { rupee } from '@/constants/values';
 
 interface ProductDetailProps {
    id: string;
 }
 
 export default function ProductDetailPage({ id }: ProductDetailProps) {
-  const [product, setProduct] = useState<any | null>(null);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
-  const [attributes, setAttributes] = useState<{ key: string; value: string }[]>([]);
   const [selectedImage, setSelectedImage] = useState<string>('');
 
   useEffect(() => {
@@ -45,9 +44,9 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
         const fetchedProduct = await getProductById(id);
         if (!fetchedProduct.success) {
           toast.error(fetchedProduct.message || 'Product not found');
-          return
+          return;
         }
-        if( !fetchedProduct.data ) {
+        if (!fetchedProduct.data) {
           toast.error('Product not found');
           return;
         }
@@ -85,7 +84,7 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
     return null;
   }
 
-  const totalQty = (product.variants || []).reduce((acc: number, v: any) => acc + (v.qty || 0), 0);
+  const totalQty = (product.variants || []).reduce((acc: number, v: VariantDetail) => acc + (v.qty || 0), 0);
   const firstVariantPrice = product.variants?.[0]?.price ?? 0;
   const stockStatus = getStockStatus(totalQty);
 
@@ -216,7 +215,7 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="text-3xl font-bold">₹{firstVariantPrice.toFixed(2)}</p>
+                  <p className="text-3xl font-bold">{rupee} {firstVariantPrice.toFixed(2)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Stock Status</p>
@@ -244,7 +243,7 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {(product.variants || []).map((v: any) => (
+                {(product.variants || []).map((v: VariantDetail) => (
                   <VariantRow key={v.id} variant={v} />
                 ))}
                 {(!product.variants || product.variants.length === 0) && (
@@ -272,17 +271,24 @@ export default function ProductDetailPage({ id }: ProductDetailProps) {
   );
 }
 
-function VariantRow({ variant }: { variant: any }) {
+interface VariantRowProps {
+  variant: VariantDetail;
+}
+
+function VariantRow({ variant }: VariantRowProps) {
   const [price, setPrice] = useState(String(variant.price));
   const [qty, setQty] = useState(String(variant.qty));
   const [editingOptions, setEditingOptions] = useState(false);
-  const [attributes, setAttributes] = useState<{ id: string; name: string; values: { id: string; value: string }[] }[]>([]);
+  const [attributes, setAttributes] = useState<AttributeWithValues[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<{ attributeId: string; valueId: string }[]>([]);
   const { execute: update, isExecuting: updating } = useAction(updateVariantAction);
   const { execute: del, isExecuting: deleting } = useAction(deleteVariantAction);
 
   useEffect(() => {
-    const current = (variant.options || []).map((o: any) => ({ attributeId: o.attributeId, valueId: o.valueId }));
+    const current = (variant.options || []).map((o) => ({ 
+      attributeId: o.attributeId, 
+      valueId: o.valueId 
+    }));
     setSelectedOptions(current);
   }, [variant]);
 
@@ -290,7 +296,7 @@ function VariantRow({ variant }: { variant: any }) {
     if (editingOptions) {
       (async () => {
         const res = await fetch('/api/attributes');
-        const data = await res.json();
+        const data: AttributeWithValues[] = await res.json();
         setAttributes(data || []);
       })();
     }
@@ -301,19 +307,19 @@ function VariantRow({ variant }: { variant: any }) {
     form.append("id", variant.id);
     form.append("price", price);
     form.append("qty", qty);
-    await update(form as any);
+    await update(form);
   };
 
   const saveOptions = async () => {
     const form = new FormData();
     form.append("id", variant.id);
     form.append("options", JSON.stringify(selectedOptions));
-    await update(form as any);
+    await update(form);
     setEditingOptions(false);
   };
 
   const remove = async () => {
-    await del({ id: variant.id } as any);
+    await del({ id: variant.id });
   };
 
   const setOption = (attributeId: string, valueId: string) => {
@@ -323,21 +329,41 @@ function VariantRow({ variant }: { variant: any }) {
     });
   };
 
+  const handlePriceChange = (e: ChangeEvent<HTMLInputElement>) => setPrice(e.target.value);
+  const handleQtyChange = (e: ChangeEvent<HTMLInputElement>) => setQty(e.target.value);
+  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>, attributeId: string) => {
+    setOption(attributeId, e.target.value);
+  };
+
   return (
     <div className="flex flex-col gap-2 border-b last:border-0 py-2">
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium truncate">{variant.sku}</div>
           <div className="text-xs text-muted-foreground truncate">
-            {variant.options?.map((o: any) => `${o.attribute?.name}: ${o.attributeValue?.value}`).join(", ")}
+            {variant.options?.map((o) => `${o.attribute?.name}: ${o.attributeValue?.value}`).join(", ")}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <input className="w-24 border rounded px-2 py-1 text-sm" value={price} onChange={(e) => setPrice(e.target.value)} />
-          <input className="w-16 border rounded px-2 py-1 text-sm" value={qty} onChange={(e) => setQty(e.target.value)} />
-          <Button variant="outline" size="sm" onClick={saveBasic} disabled={updating}>Save</Button>
-          <Button variant="secondary" size="sm" onClick={() => setEditingOptions((s) => !s)}>Edit Options</Button>
-          <Button variant="destructive" size="sm" onClick={remove} disabled={deleting}>Delete</Button>
+          <input 
+            className="w-24 border rounded px-2 py-1 text-sm" 
+            value={price} 
+            onChange={handlePriceChange} 
+          />
+          <input 
+            className="w-16 border rounded px-2 py-1 text-sm" 
+            value={qty} 
+            onChange={handleQtyChange} 
+          />
+          <Button variant="outline" size="sm" onClick={saveBasic} disabled={updating}>
+            Save
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => setEditingOptions((s) => !s)}>
+            Edit Options
+          </Button>
+          <Button variant="destructive" size="sm" onClick={remove} disabled={deleting}>
+            Delete
+          </Button>
         </div>
       </div>
 
@@ -346,8 +372,9 @@ function VariantRow({ variant }: { variant: any }) {
           {attributes.map(attr => (
             <div key={attr.id} className="flex items-center gap-2">
               <div className="w-28 text-sm text-muted-foreground">{attr.name}</div>
-              <select className="border rounded px-2 py-1 text-sm flex-1"
-                onChange={(e) => setOption(attr.id, e.target.value)}
+              <select 
+                className="border rounded px-2 py-1 text-sm flex-1"
+                onChange={(e) => handleSelectChange(e, attr.id)}
                 value={selectedOptions.find(o => o.attributeId === attr.id)?.valueId || ''}
               >
                 <option value="">Select</option>
@@ -358,8 +385,12 @@ function VariantRow({ variant }: { variant: any }) {
             </div>
           ))}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setEditingOptions(false)}>Cancel</Button>
-            <Button size="sm" onClick={saveOptions} disabled={updating}>Save Options</Button>
+            <Button variant="outline" size="sm" onClick={() => setEditingOptions(false)}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={saveOptions} disabled={updating}>
+              Save Options
+            </Button>
           </div>
         </div>
       )}

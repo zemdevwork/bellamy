@@ -4,7 +4,8 @@ import { actionClient } from "@/lib/safe-action";
 import { prisma } from "@/lib/prisma";
 import uploadPhoto from "@/lib/upload";
 import { createVariantSchema, updateVariantSchema, deleteVariantSchema } from "@/schema/variant-schema";
-import { prisma as db } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { getAuthenticatedAdmin } from "./admin-user-action";
 
 async function ensureUniqueSku(baseSku: string) {
   let candidate = baseSku;
@@ -25,6 +26,8 @@ function generateSkuFromOptions(base: string, options: { attribute: string; valu
 export const createVariantAction = actionClient
   .inputSchema(createVariantSchema)
   .action(async ({ parsedInput }) => {
+  try{
+      await getAuthenticatedAdmin()
     const { productId, sku, price, qty, images, options } = parsedInput;
 
     // upload images
@@ -73,14 +76,21 @@ export const createVariantAction = actionClient
     });
 
     return { success: true, data: variant };
+  }catch(err){
+    console.log("Error creating variant:", err);
+    return { success: false, data: null };
+  }
   });
 
 export const updateVariantAction = actionClient
   .inputSchema(updateVariantSchema)
   .action(async ({ parsedInput }) => {
-    const { id, sku, price, qty, images, options } = parsedInput;
+       try{
+           await getAuthenticatedAdmin()
 
-    const data: any = {};
+    const { id,price, qty, images, options } = parsedInput;
+
+    const data: Partial<Prisma.ProductVariantUpdateInput> = {};
     if (price !== undefined) data.price = price;
     if (qty !== undefined) data.qty = qty;
 
@@ -134,12 +144,18 @@ export const updateVariantAction = actionClient
     });
 
     return { success: true, data: updated };
+       }catch(err){
+        console.log("Error updating variant:", err);
+        return { success: false, data: null };
+       }
   });
 
 export const deleteVariantAction = actionClient
   .inputSchema(deleteVariantSchema)
   .action(async ({ parsedInput }) => {
-    // Guard: if variant used in orders, block
+try{
+      // Guard: if variant used in orders, block
+    await getAuthenticatedAdmin()
     const used = await prisma.orderItem.findFirst({ where: { variantId: parsedInput.id }, select: { id: true } });
     if (used) {
       return { success: false, message: "Cannot delete variant. It is part of existing orders." };
@@ -147,6 +163,10 @@ export const deleteVariantAction = actionClient
 
     await prisma.productVariant.delete({ where: { id: parsedInput.id } });
     return { success: true };
+}catch(err){
+  console.log("Error deleting variant:", err);
+  return { success: false };
+}
   });
 
 

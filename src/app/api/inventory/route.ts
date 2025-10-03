@@ -42,65 +42,62 @@ export async function GET(req: Request) {
       }, { status: 400 });
     }
 
-    const where: Prisma.ProductWhereInput = {
-      AND: [
-        search
-          ? {
-              OR: [
-                { name: { contains: search, mode: "insensitive" } },
-                { description: { contains: search, mode: "insensitive" } },
-              ],
-            }
-          : {},
-        categoryId ? { categoryId: categoryId } : {},
-        brandId ? { brandId: brandId } : {},
-      ],
-    };
+ const where: Prisma.ProductVariantWhereInput = {
+  AND: [
+    search
+      ? {
+          OR: [
+            { product: { name: { contains: search, mode: "insensitive" } } },
+            { product: { description: { contains: search, mode: "insensitive" } } },
+          ],
+        }
+      : {},
+    categoryId ? { product: { categoryId } } : {},
+    brandId ? { product: { brandId } } : {},
+  ],
+};
 
-    // Create orderBy object based on sort parameters
-    const orderBy: Prisma.ProductOrderByWithRelationInput = {
-      [sortBy]: sortOrder as "asc" | "desc"
-    };
+    // Create orderBy object based on sort parameters,
+    const orderBy: Prisma.ProductVariantOrderByWithRelationInput = { [sortBy]: sortOrder as "asc" | "desc" };
 
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        skip: (pageNum - 1) * pageSize,
-        take: pageSize,
-        orderBy: { createdAt: orderBy.createdAt ?? 'desc' },
+
+   const [variants, total] = await Promise.all([
+  prisma.productVariant.findMany({
+    where,
+    skip: (pageNum - 1) * pageSize,
+    take: pageSize,
+    orderBy,
+    include: {
+      product: {
         include: {
           brand: { select: { id: true, name: true } },
           category: { select: { id: true, name: true } },
           subCategory: { select: { id: true, name: true } },
-          variants: {
-            include: {
-              options: { include: { attribute: true, attributeValue: true } },
-            },
-            orderBy: { createdAt: 'asc' },
-          },
         },
-      }),
-      prisma.product.count({ where }),
-    ]);
+      },
+      options: { include: { attribute: true, attributeValue: true } },
+    },
+  }),
+  prisma.productVariant.count({ where }),
+]);
 
     // Flatten to variant rows for inventory management
-    const results = products.flatMap((p) =>
-      p.variants.map((v) => ({
-        id: v.id,
-        productId: p.id,
-        name: p.name,
-        sku: v.sku,
-        options: v.options.map((o) => `${o.attribute.name}: ${o.attributeValue.value}`).join(', '),
-        price: v.price,
-        qty: v.qty,
-        brand: p.brand,
-        category: p.category,
-        subCategory: p.subCategory,
-        createdAt: v.createdAt,
-        updatedAt: v.updatedAt,
-        isLowStock: v.qty <= 10,
-      }))
-    );
+   const results = variants.map((v) => ({
+  id: v.id,
+  productId: v.product.id,
+  name: v.product.name,
+  sku: v.sku,
+  options: v.options.map(o => `${o.attribute.name}: ${o.attributeValue.value}`).join(", "),
+  price: v.price,
+  qty: v.qty,
+  brand: v.product.brand,
+  category: v.product.category,
+  subCategory: v.product.subCategory,
+  createdAt: v.createdAt,
+  updatedAt: v.updatedAt,
+  isLowStock: v.qty <= 10,
+}));
+
 
     return NextResponse.json({
       data: results,
@@ -145,7 +142,7 @@ export async function PATCH(req: Request) {
       }, { status: 400 });
     }
 
-    const updatedVariants = [] as any[];
+    const updatedVariants: Prisma.ProductVariantGetPayload<{ include: { product: true } }>[] = [];
     const notifications = [];
     const failedUpdates = [];
 

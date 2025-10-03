@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { rupee } from "@/constants/values";
 
 export type Order = {
   id: string;
@@ -236,7 +237,7 @@ export const columns: ColumnDef<Order>[] = [
     accessorKey: "totalAmount",
     header: "Total",
     cell: ({ row }) => (
-      <span className="font-semibold">₹{row.original.totalAmount.toLocaleString('en-IN')}</span>
+      <span className="font-semibold">{rupee} {row.original.totalAmount.toLocaleString('en-IN')}</span>
     ),
   },
   {

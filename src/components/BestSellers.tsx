@@ -127,11 +127,11 @@ export default function BestSellers() {
   }
 
   return (
-    <section className="py-16 px-6 bg-transparent">
-      <div className="max-w-7xl mx-auto">
+    <section className="w-full">
+      <div className="page-wrap">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl font-serif text-stone-800">
+          <h2 className="page-title">
             Our Best Sellers
           </h2>
           <div className="flex space-x-2">
@@ -190,18 +190,17 @@ export default function BestSellers() {
           onTouchEnd={handleTouchEnd}
         >
           {products.map((product) => (
-            <div key={product.id} className="w-72 flex-shrink-0">
               <ProductCard
+              key={product.id}
                 id={product.id}
                 name={product.title}
-                price={`₹${product.price}`}
-                oldPrice={product.originalPrice ? `₹${product.originalPrice}` : undefined}
+                price={product.price}
+                oldPrice={product.originalPrice ? product.originalPrice : undefined}
                 image={product.image}
                 description={undefined}
                 variantId={product.variantId}
                 brandName={product.name}
               />
-            </div>
           ))}
         </div>
       </div>

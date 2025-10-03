@@ -1,6 +1,6 @@
 export const fallBackImage = "https://i.pinimg.com/1200x/2a/86/a5/2a86a560f0559704310d98fc32bd3d32.jpg"
 export const maxSizeBytes = 4 * 1024 * 1024
-export const rupee = "₹"
+export const rupee = "₹";
 export const BannerImage = "https://res.cloudinary.com/dsaegpb70/image/upload/v1758345272/Banner_npoe1w.jpg"
 export const BannerImages = [
   "https://images.unsplash.com/photo-1599569842318-bb6c794da163?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",

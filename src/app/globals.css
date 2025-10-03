@@ -123,7 +123,7 @@
 
 @layer components {
   .page-wrap {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+    @apply max-w-7xl xl:max-w-[1440px] mx-auto px-4 py-8;
   }
   .page-title {
     @apply font-serif text-3xl sm:text-4xl font-medium tracking-tight;

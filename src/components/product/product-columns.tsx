@@ -1,6 +1,6 @@
 "use client";
 
-import { AdminProduct } from "@/types/product";
+import { ProductDetail } from "@/types/product";
 import { ProductFormDialog } from "./product-dialog-form";
 import { ProductDeleteDialog } from "./delete-product-dialog";
 
@@ -27,7 +27,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/utils";
 
-export const productColumns: ColumnDef<AdminProduct>[] = [
+export const productColumns: ColumnDef<ProductDetail>[] = [
   {
     accessorKey: "image",
     header: "Image",
@@ -129,7 +129,7 @@ export const productColumns: ColumnDef<AdminProduct>[] = [
   },
 ];
 
-export const ProductDropdownMenu = ({ product }: { product: AdminProduct }) => {
+export const ProductDropdownMenu = ({ product }: { product: ProductDetail }) => {
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openAddVariant, setOpenAddVariant] = useState(false);
@@ -240,7 +240,7 @@ function InlineAddVariant({ productId, onClose }: { productId: string; onClose: 
     form.append("qty", qty);
     files.forEach((f) => form.append("images", f));
     form.append("options", JSON.stringify(selectedOptions));
-    await execute(form as any);
+    await execute(form);
   };
 
   return (

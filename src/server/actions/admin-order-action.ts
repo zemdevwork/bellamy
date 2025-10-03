@@ -4,29 +4,56 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { orderStatusSchema } from "@/schema/order-schema";
 import { getAuthenticatedAdmin } from "./admin-user-action";
+import { Prisma } from "@prisma/client";
 
 // 🔹 Get all orders (admin)
-export async function getAllOrders() {
+export async function getAllOrders(page = 1, limit = 10, status?: string, search?: string) {
   try {
     await getAuthenticatedAdmin();
-    const orders = await prisma.order.findMany({
-      include: {
-        user: { select: { id: true, name: true, email: true } },
-        items: { 
-          include: { 
-            variant: { 
-              include: { 
-                product: true,
-                options: { include: { attribute: true, attributeValue: true } },
+
+    const where: Prisma.OrderWhereInput = {};
+    if (status) where.status = status.toUpperCase();
+    if (search && search.trim()) {
+      where.OR = [
+        { id: { contains: search.trim(), mode: 'insensitive' } },
+        { user: { name: { contains: search.trim(), mode: 'insensitive' } } },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: true,
+                  options: { include: { attribute: true, attributeValue: true } },
+                }
               }
             }
-          } 
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    });
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.order.count({ where }),
+    ]);
 
-    return orders;
+    return {
+      data: orders,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      }
+    };
   } catch (error) {
     console.error("❌ Admin fetch orders error:", error);
     throw new Error("Failed to fetch orders");

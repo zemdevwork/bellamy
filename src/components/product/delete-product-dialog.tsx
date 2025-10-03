@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Product } from "@/types/product";
+import { ProductDetail } from "@/types/product";
 import { useAction } from "next-safe-action/hooks";
 import { deleteProductAction } from "@/server/actions/product-action";
 import { toast } from "sonner";
@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 interface ProductDeleteDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  product: Product;
+  product: ProductDetail;
 }
 
 export const ProductDeleteDialog: FC<ProductDeleteDialogProps> = ({

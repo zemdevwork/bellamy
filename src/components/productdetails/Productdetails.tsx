@@ -7,10 +7,11 @@ import { addToWishlist } from "@/server/actions/wishlist-action";
 import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
-import { Heart, Share2 } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useCart } from '@/context/cartContext';
 import ShareButton from "../common/Share";
-import { brand } from "@/constants/values";
+import { brand, rupee } from "@/constants/values";
+import RelatedProducts from "../RelatedProducts";
 
 const capitalizeWords = (str: string) => {
   return str.replace(/\b\w/g, (char) => char.toUpperCase());
@@ -211,7 +212,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
+    <div className="w-full h-full">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
         <button onClick={() => router.push("/")} className="hover:text-gray-900">Home</button>
@@ -258,6 +259,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             <ShareButton url={`${window.location.origin}/product/${productId}`} />
             <button
               onClick={handleAddToWishlist}
+              disabled={isWishPending}
               className="p-2 border border-gray-300 rounded-full hover:bg-gray-50 disabled:opacity-50"
             >
               <Heart
@@ -282,8 +284,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
           {/* Price */}
           <div className="flex items-baseline gap-3">
-            <span className="text-2xl font-semibold text-gray-900">₹{price.toLocaleString()}</span>
-            <span className="text-lg text-gray-400 line-through">MRP ₹{(price * 1.2).toFixed(0)}</span>
+            <span className="text-2xl font-semibold text-gray-900">{rupee} {price.toLocaleString()}</span>
+            <span className="text-lg text-gray-400 line-through">MRP {rupee} {(price * 1.2).toFixed(0)}</span>
             <span className="text-sm text-green-600 font-medium">7% OFF</span>
           </div>
           <p className="text-xs text-gray-500">Inclusive of all taxes</p>
@@ -344,7 +346,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
             {isInCart ? (
               <button
                 onClick={handleGoToCart}
-                className="w-full py-3 text-sm font-medium bg-white text-gray-900 border border-gray-900 rounded hover:bg-gray-50 transition"
+                className="w-full py-3 text-sm cursor-pointer font-medium bg-white text-gray-900 border border-gray-900 rounded hover:bg-gray-50 transition"
               >
                 GO TO CART
               </button>
@@ -352,14 +354,14 @@ export default function ProductDetails({ productId }: { productId: string }) {
               <button
                 onClick={handleAddToCart}
                 disabled={isPending}
-                className="w-full py-3 text-sm font-medium bg-white text-gray-900 border border-gray-900 rounded hover:bg-gray-50 transition disabled:opacity-50"
+                className="w-full py-3 text-sm font-medium cursor-pointer bg-white text-gray-900 border border-gray-900 rounded hover:bg-gray-50 transition disabled:opacity-50"
               >
                 {isPending ? "ADDING..." : "ADD TO BAG"}
               </button>
             )}
             <button
               onClick={handleBuyNow}
-              className="w-full py-3 text-sm font-medium bg-rose-700 text-white rounded hover:bg-rose-800 transition"
+              className="w-full py-3 cursor-pointer text-sm font-medium bg-rose-700 text-white rounded hover:bg-rose-800 transition"
             >
               BUY NOW
             </button>
@@ -433,6 +435,8 @@ export default function ProductDetails({ productId }: { productId: string }) {
           onClose={() => setShowCheckout(false)}
         />
       )}
+      <RelatedProducts brand={product.brand!}/>
     </div>
+
   );
 }

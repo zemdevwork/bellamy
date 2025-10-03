@@ -165,7 +165,7 @@ export default function ShopList() {
   const brandTheme = { primary: "#8B1D3F" };
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       <div className="grid grid-cols-15 gap-4 w-full">
         <aside className="col-span-15 md:col-span-3 mb-6 md:mb-0">
           <div
@@ -231,7 +231,7 @@ export default function ShopList() {
         <main className="col-span-15 md:col-span-12 md:px-8">
           <div className="flex items-center justify-center md:justify-end mb-6">
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">Sort</span>
+              <span className="text-sm text-gray-600 font-bold">Sort</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -270,7 +270,7 @@ export default function ShopList() {
                   <ProductCard
                     id={p.id}
                     name={p.name}
-                    price={`₹${p.price.toFixed(2)}`}
+                    price={`${p.price.toFixed(2)}`}
                     image={p.image}
                     description={p.description}
                     variantId={p.defaultVariantId as string}

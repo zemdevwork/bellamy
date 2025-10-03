@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { ColumnDef } from "@tanstack/react-table";
 
 // Admin product type shaped for UI with computed fields based on variants
@@ -20,6 +21,32 @@ export interface AdminProduct {
   subCategory?: { id: string; name: string } | null;
 }
 
+export type ProductDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  image: string;
+  subimage?: string[];
+  brandId: string | null;
+  categoryId: string | null;
+  subCategoryId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  brand: {
+    id: string;
+    name: string;
+  } | null;
+  category: {
+    id: string;
+    name: string;
+  } | null;
+  subCategory: {
+    id: string;
+    name: string;
+  } | null;
+  variants: VariantDetail[];
+};
+
 // Props for product table component
 export interface ProductTableProps<TValue> {
   columns: ColumnDef<AdminProduct, TValue>[];
@@ -38,3 +65,57 @@ export interface ProductOption {
   margin: number;   // profit margin percentage
   quantity: number; // quantity to order/sell
 }
+
+export type ProductWithRelations = Prisma.ProductGetPayload<{
+  include: {
+    brand: true;
+    category: true;
+    subCategory: true;
+    variants: {
+      include: {
+        options: {
+          include: {
+            attribute: true;
+            attributeValue: true;
+          }
+        }
+      }
+    }
+  }
+}>;
+
+export type VariantOptionDetail = {
+  id: string;
+  productVariantId: string;
+  attributeId: string;
+  valueId: string;
+  attribute: {
+    id: string;
+    name: string;
+  };
+  attributeValue: {
+    id: string;
+    value: string;
+  };
+};
+
+export type VariantDetail = {
+  id: string;
+  productId: string;
+  sku: string;
+  price: number;
+  qty: number;
+  images: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  options: VariantOptionDetail[];
+};
+
+export type AttributeWithValues = {
+  id: string;
+  name: string;
+  values: {
+    id: string;
+    value: string;
+  }[];
+};
