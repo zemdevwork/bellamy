@@ -126,12 +126,12 @@ export default function ProductCard({
   };
 
   return (
-    <div className="group relative">
+    <div className="group relative  mx-2">
       <div
         onClick={() => router.push(`/product/${id}`)}
         className="cursor-pointer"
       >
-       <div
+        <div
           className="
     bg-white 
     transition-all duration-500
