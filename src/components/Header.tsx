@@ -9,6 +9,9 @@ import CartIcon from "@/components/common/CartIcon";
 import WishlistIcon from "@/components/common/WishlistIcon";
 import { brand } from "@/constants/values";
 import { isLoggedIn } from "@/lib/utils";
+import SearchComponent from "@/components/search";
+
+
 
 export default function Header() {
   const pathname = usePathname();
@@ -149,9 +152,8 @@ export default function Header() {
   return (
     <>
       <header
-        className={`w-full bg-white sticky top-0 z-50 transition-transform duration-300 ease-in-out ${
-          isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-        }`}
+        className={`w-full bg-white sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+          }`}
       >
         {/* Promo Bar */}
         <div
@@ -181,19 +183,34 @@ export default function Header() {
             </svg>
           </button>
 
-          {/* Left spacer for symmetry on desktop */}
-          <div className="hidden md:block w-24" />
-
-          {/* Center Logo */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        {/* Logo - Left on desktop, center on mobile */}
+          <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Link
               href="/"
-              className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-wider"
+              className="text-base sm:text-lg font-semibold tracking-wider"
               style={{ color: brand.primary }}
             >
               BELLAMY
             </Link>
           </div>
+
+          <div className="hidden md:block">
+            <Link
+              href="/"
+              className="text-xl lg:text-2xl font-semibold tracking-wider"
+              style={{ color: brand.primary }}
+            >
+              BELLAMY
+            </Link>
+          </div>
+
+          
+          {/* Search Component - Center on Desktop, Hidden on Mobile */}
+          <div className="hidden md:block md:flex-1 md:max-w-2xl md:mx-6 lg:mx-10">
+            <SearchComponent brand={brand} />
+          </div>
+         
+
 
           {/* Right Icons */}
           <div className="flex items-center gap-2 sm:gap-3 z-10">
@@ -221,14 +238,13 @@ export default function Header() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </button>
-                  
+
                   {/* Profile dropdown - visible on mobile click OR desktop hover */}
                   <div
-                    className={`absolute right-0 mt-2 w-44 bg-white shadow-xl border border-gray-100 rounded-lg overflow-hidden transition-all duration-200 z-50 ${
-                      isProfileMenuOpen
+                    className={`absolute right-0 mt-2 w-44 bg-white shadow-xl border border-gray-100 rounded-lg overflow-hidden transition-all duration-200 z-50 ${isProfileMenuOpen
                         ? "opacity-100 visible"
                         : "opacity-0 invisible md:group-hover:opacity-100 md:group-hover:visible"
-                    }`}
+                      }`}
                   >
                     <div className="py-1">
                       <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
@@ -367,9 +383,8 @@ export default function Header() {
 
         {/* Mobile Menu */}
         <div
-          className={`md:hidden bg-white border-t transition-all duration-300 ease-in-out overflow-hidden ${
-            isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
+          className={`md:hidden bg-white border-t transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            }`}
           style={{ borderColor: "#F0E5E9" }}
         >
           <nav className="px-4 py-4 space-y-3">
