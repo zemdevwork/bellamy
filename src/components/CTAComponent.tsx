@@ -34,7 +34,7 @@ export default function CTAComponent() {
 
                 <div className="flex flex-col sm:flex-row gap-6 pt-6">
                   <Link
-                    href="/shop"
+                    href={isLoggedIn() ? "/shop" : "/register"}
                     className="px-8 py-3 rounded-lg text-white font-semibold text-center transition-transform hover:scale-105"
                     style={{ backgroundColor: "#8B1D3F" }}
                   >
