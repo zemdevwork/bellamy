@@ -3,20 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { User } from "lucide-react";
 
 import { LogoutDialog } from "./auth/logout-modal";
 import CartIcon from "@/components/common/CartIcon";
 import WishlistIcon from "@/components/common/WishlistIcon";
 import { brand } from "@/constants/values";
 import { isLoggedIn } from "@/lib/utils";
-import SearchComponent from "@/components/search";
-
-
+import SearchComponent from "@/components/search"; // Assuming this is your Search bar component
 
 export default function Header() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // New state for mobile search
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -24,27 +22,41 @@ export default function Header() {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
 
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  );
 
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-    // Close profile menu when opening main menu
+    // Ensure only one mobile menu/search is open at a time
     if (!isMenuOpen) {
       setIsProfileMenuOpen(false);
+      setIsSearchOpen(false); // Close search when opening main menu
     }
   };
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
-    // Close main menu when opening profile menu
+    // Close other menus
     if (!isProfileMenuOpen) {
       setIsMenuOpen(false);
+      setIsSearchOpen(false); // Close search when opening profile menu
     }
   };
+  
+  // New function to toggle mobile search
+  const toggleSearch = () => {
+      setIsSearchOpen(!isSearchOpen);
+      // Close other menus
+      if (!isSearchOpen) {
+          setIsMenuOpen(false);
+          setIsProfileMenuOpen(false);
+      }
+  };
 
-  // Check login status
+  // Check login status (Omitted for brevity, assumed unchanged)
   useEffect(() => {
     const checkLoginStatus = () => {
       if (typeof window !== "undefined") {
@@ -63,12 +75,14 @@ export default function Header() {
     };
 
     checkLoginStatus();
-    const handleStorageChange = () => { checkLoginStatus(); };
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('userStatusChange', handleStorageChange);
+    const handleStorageChange = () => {
+      checkLoginStatus();
+    };
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("userStatusChange", handleStorageChange);
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('userStatusChange', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("userStatusChange", handleStorageChange);
     };
   }, []);
 
@@ -87,10 +101,13 @@ export default function Header() {
 
   const isActive = (path: string) => pathname === path;
 
-  // Close profile menu when clicking outside
+  // Close profile menu when clicking outside (Omitted for brevity, assumed unchanged)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
         setIsProfileMenuOpen(false);
       }
     };
@@ -104,11 +121,11 @@ export default function Header() {
     };
   }, [isProfileMenuOpen]);
 
-  // Scroll handling
+  // Scroll handling (Updated to include isSearchOpen)
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (isMenuOpen || isProfileMenuOpen) {
+      if (isMenuOpen || isProfileMenuOpen || isSearchOpen) { // Check new search state
         setIsHeaderVisible(true);
         return;
       }
@@ -133,17 +150,19 @@ export default function Header() {
       }
     };
 
-    if (!isMenuOpen && !isProfileMenuOpen) {
-      window.addEventListener("scroll", throttledHandleScroll, { passive: true });
+    if (!isMenuOpen && !isProfileMenuOpen && !isSearchOpen) { // Check new search state
+      window.addEventListener("scroll", throttledHandleScroll, {
+        passive: true,
+      });
     }
     return () => {
       window.removeEventListener("scroll", throttledHandleScroll);
     };
-  }, [lastScrollY, isMenuOpen, isProfileMenuOpen]);
+  }, [lastScrollY, isMenuOpen, isProfileMenuOpen, isSearchOpen]); // Added isSearchOpen
 
   useEffect(() => {
-    if (isMenuOpen || isProfileMenuOpen) setIsHeaderVisible(true);
-  }, [isMenuOpen, isProfileMenuOpen]);
+    if (isMenuOpen || isProfileMenuOpen || isSearchOpen) setIsHeaderVisible(true); // Added isSearchOpen
+  }, [isMenuOpen, isProfileMenuOpen, isSearchOpen]);
 
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
@@ -153,8 +172,9 @@ export default function Header() {
   return (
     <>
       <header
-        className={`w-full bg-white sticky top-0 z-50 transition-transform duration-300 ease-in-out ${isHeaderVisible ? "translate-y-0" : "-translate-y-full"
-          }`}
+        className={`w-full bg-white sticky top-0 z-50 transition-transform duration-300 ease-in-out ${
+          isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
       >
         {/* Promo Bar */}
         <div
@@ -164,83 +184,127 @@ export default function Header() {
           New GST rates are now live across all products
         </div>
 
-        {/* Top Bar */}
+        {/* Top Bar (Main Navigation Row) */}
         <div
           className="flex justify-between items-center px-3 sm:px-4 md:px-12 py-2.5 sm:py-3 md:py-4 border-b relative"
           style={{ borderColor: "#F0E5E9" }}
         >
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="md:hidden p-1.5 sm:p-2 rounded-full text-gray-800 hover:bg-gray-100 focus:outline-none z-10"
-            aria-label="Toggle menu"
-          >
-            <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+          {/* Left Side: Mobile Menu Button & Desktop Logo */}
+          <div className="flex items-center gap-4">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMenu}
+              className="md:hidden p-1.5 sm:p-2 rounded-full text-gray-800 hover:bg-gray-100 focus:outline-none z-10"
+              aria-label="Toggle menu"
+            >
+              <svg
+                className="h-5 w-5 sm:h-6 sm:w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {isMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
 
-        {/* Logo - Left on desktop, center on mobile */}
-          <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            {/* Desktop Logo */}
+            <div className="hidden md:block">
+              <Link
+                href="/"
+                className="text-xl lg:text-2xl font-semibold tracking-wider"
+                style={{ color: brand.primary }}
+              >
+                BELLAMY
+              </Link>
+            </div>
+          </div>
+
+          {/* Center: Mobile Logo & Desktop Search */}
+          {/* Mobile Logo: Absolute positioning for true centering */}
+          <div className="md:hidden absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <Link
               href="/"
-              className="text-base sm:text-lg font-semibold tracking-wider"
+              className="text-base font-serif sm:text-lg font-semibold tracking-wider"
               style={{ color: brand.primary }}
             >
               BELLAMY
             </Link>
           </div>
 
-          <div className="hidden md:block">
-            <Link
-              href="/"
-              className="text-xl lg:text-2xl font-semibold tracking-wider"
-              style={{ color: brand.primary }}
-            >
-              BELLAMY
-            </Link>
-          </div>
-
-          
-          {/* Search Component - Center on Desktop, Hidden on Mobile */}
-          <div className="hidden md:block md:flex-1 md:max-w-2xl md:mx-6 lg:mx-10">
+          {/* Desktop Search Component - Center on Desktop, Hidden on Mobile */}
+          <div className="hidden md:block md:flex-1 md:max-w-2xl lg:max-w-xl">
             <SearchComponent brand={brand} />
           </div>
-         
-
 
           {/* Right Icons */}
           <div className="flex items-center gap-2 sm:gap-3 z-10">
+            {/* Mobile Search Icon */}
+            <button
+                onClick={toggleSearch}
+                className="md:hidden p-1.5 sm:p-2 rounded-full text-gray-800 hover:bg-gray-100 focus:outline-none"
+                aria-label="Toggle search"
+            >
+                <svg
+                    className="h-5 w-5 sm:h-6 sm:w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    {isSearchOpen ? (
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                    ) : (
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                    )}
+                </svg>
+            </button>
+
             <CartIcon color={brand.primary} />
             {userLoggedIn && <WishlistIcon color={brand.primary} />}
 
             <div className="relative" ref={profileMenuRef}>
               {userLoggedIn ? (
-                <>
-                  {/* Profile button - works on both mobile (click) and desktop (hover) */}
+                <div className="relative group">
+                  {/* Profile button */}
                   <button
                     onClick={toggleProfileMenu}
                     aria-label="Account"
-                    className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 cursor-pointer md:h-10 flex items-center justify-center rounded-full bg-white border transition-all duration-300 hover:scale-110 hover:shadow-md"
-                    style={{ borderColor: brand.primary }}
+                    className="w-7 h-7 cursor-pointer sm:w-9 sm:h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-white border transition-all duration-300 hover:scale-110 hover:shadow-md text-sm font-semibold uppercase"
+                    style={{ borderColor: brand.primary, color: brand.primary }}
                   >
-                    <User
-                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:h-5 md:w-5"
-                      strokeWidth={1.8}
-                      color={brand.primary}
-                    />
+                    {userName ? userName.charAt(0) : "U"}
                   </button>
 
-                  {/* Profile dropdown - visible on mobile click OR desktop hover */}
+                  {/* Profile dropdown (Omitted for brevity, assumed unchanged) */}
                   <div
-                    className={`absolute right-0 mt-2 w-44 bg-white shadow-xl border border-gray-100 rounded-lg overflow-hidden transition-all duration-200 z-50 ${isProfileMenuOpen
+                    className={`absolute right-0 mt-2 w-44 bg-white shadow-xl border border-gray-100 rounded-lg overflow-hidden transition-all duration-200 z-50 ${
+                      isProfileMenuOpen
                         ? "opacity-100 visible"
                         : "opacity-0 invisible md:group-hover:opacity-100 md:group-hover:visible"
-                      }`}
+                    }`}
                   >
                     <div className="py-1">
                       <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
@@ -251,7 +315,12 @@ export default function Header() {
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         onClick={() => setIsProfileMenuOpen(false)}
                       >
-                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -265,7 +334,12 @@ export default function Header() {
                         onClick={handleLogoutClick}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left"
                       >
-                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4 mr-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -277,12 +351,12 @@ export default function Header() {
                       </button>
                     </div>
                   </div>
-                </>
+                </div>
               ) : (
                 <Link
                   href="/login"
                   aria-label="Login"
-                  className="font-serif px-3 py-1 rounded-2xl border flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md"
+                  className="font-serif px-3 py-1 rounded-2xl border flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-md text-sm sm:text-base"
                   style={{ borderColor: brand.primary }}
                 >
                   Login
@@ -292,11 +366,24 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Desktop Nav Row */}
+        {/* Mobile Search Bar - Collapsed Row */}
+        <div
+            className={`md:hidden bg-white border-b transition-all duration-300 ease-in-out overflow-hidden ${
+                isSearchOpen ? "max-h-20 opacity-100 py-3 px-4" : "max-h-0 opacity-0"
+            }`}
+            style={{ borderColor: "#F0E5E9" }}
+        >
+            <SearchComponent brand={brand} />
+        </div>
+
+        {/* Desktop Nav Row (Omitted for brevity, assumed unchanged) */}
         <div className="hidden md:block">
           <div
-            className="flex items-center justify-center py-3 shadow-sm/0"
-            style={{ boxShadow: "inset 0 -1px 0 0 #F0E5E9", backgroundColor: "#F7ECEF" }}
+            className="flex items-center justify-center py-3"
+            style={{
+              boxShadow: "inset 0 -1px 0 0 #F0E5E9",
+              backgroundColor: "#F7ECEF",
+            }}
           >
             <nav className="flex items-center gap-10 text-sm tracking-wide">
               <Link
@@ -310,10 +397,13 @@ export default function Header() {
                 <Link
                   href="/shop"
                   className="transition-colors"
-                  style={{ color: isActive("/shop") ? brand.primary : "#3f3f3f" }}
+                  style={{
+                    color: isActive("/shop") ? brand.primary : "#3f3f3f",
+                  }}
                 >
                   SHOP
                 </Link>
+                {/* Desktop Dropdown (Omitted for brevity, assumed unchanged) */}
                 <div
                   className="absolute left-1/2 -translate-x-1/2 mt-3 bg-white shadow-2xl border rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden"
                   style={{ borderColor: "#E3D5CA", width: 360 }}
@@ -329,9 +419,17 @@ export default function Header() {
                       const mid = Math.ceil(categories.length / 2);
                       const left = categories.slice(0, mid);
                       const right = categories.slice(mid);
-                      const renderCol = (items: { id: string; name: string }[]) => (
-                        <div className="px-4 py-3 first:border-r" style={{ borderColor: "#E3D5CA" }}>
-                          <div className="text-[12px] font-semibold mb-2" style={{ color: brand.primary }}>
+                      const renderCol = (
+                        items: { id: string; name: string }[]
+                      ) => (
+                        <div
+                          className="px-4 py-3 first:border-r"
+                          style={{ borderColor: "#E3D5CA" }}
+                        >
+                          <div
+                            className="text-[12px] font-semibold mb-2"
+                            style={{ color: brand.primary }}
+                          >
                             Browse
                           </div>
                           <ul className="space-y-2">
@@ -362,14 +460,18 @@ export default function Header() {
               <Link
                 href="/our-story"
                 className="transition-colors"
-                style={{ color: isActive("/our-story") ? brand.primary : "#3f3f3f" }}
+                style={{
+                  color: isActive("/our-story") ? brand.primary : "#3f3f3f",
+                }}
               >
                 OUR STORY
               </Link>
               <Link
                 href="/contact"
                 className="transition-colors"
-                style={{ color: isActive("/contact") ? brand.primary : "#3f3f3f" }}
+                style={{
+                  color: isActive("/contact") ? brand.primary : "#3f3f3f",
+                }}
               >
                 CONTACT
               </Link>
@@ -377,10 +479,11 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu (Omitted for brevity, assumed unchanged) */}
         <div
-          className={`md:hidden bg-white border-t transition-all duration-300 ease-in-out overflow-hidden ${isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-            }`}
+          className={`md:hidden bg-white border-t transition-all duration-300 ease-in-out overflow-hidden ${
+            isMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          }`}
           style={{ borderColor: "#F0E5E9" }}
         >
           <nav className="px-4 py-4 space-y-3">
@@ -401,7 +504,12 @@ export default function Header() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </summary>
               <div className="pl-4 mt-2 space-y-2">
@@ -420,7 +528,9 @@ export default function Header() {
             <Link
               href="/our-story"
               className="block py-2 text-base font-medium"
-              style={{ color: isActive("/our-story") ? brand.primary : "#3f3f3f" }}
+              style={{
+                color: isActive("/our-story") ? brand.primary : "#3f3f3f",
+              }}
               onClick={() => setIsMenuOpen(false)}
             >
               OUR STORY
@@ -428,7 +538,9 @@ export default function Header() {
             <Link
               href="/contact"
               className="block py-2 text-base font-medium"
-              style={{ color: isActive("/contact") ? brand.primary : "#3f3f3f" }}
+              style={{
+                color: isActive("/contact") ? brand.primary : "#3f3f3f",
+              }}
               onClick={() => setIsMenuOpen(false)}
             >
               CONTACT
@@ -437,7 +549,9 @@ export default function Header() {
               <Link
                 href="/user-profile"
                 className="block py-2 text-base font-medium"
-                style={{ color: isActive("/user-profile") ? brand.primary : "#3f3f3f" }}
+                style={{
+                  color: isActive("/user-profile") ? brand.primary : "#3f3f3f",
+                }}
                 onClick={() => setIsMenuOpen(false)}
               >
                 PROFILE

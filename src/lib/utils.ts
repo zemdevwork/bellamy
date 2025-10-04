@@ -98,3 +98,8 @@ export const isLoggedIn = () => {
   if(typeof window === 'undefined') return false
   return localStorage.getItem('user') !== null;
 };
+
+export const loggedInUser = () => {
+  if(typeof window === 'undefined') return null
+  return JSON.parse(localStorage.getItem('user')!);
+};

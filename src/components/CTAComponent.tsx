@@ -1,56 +1,126 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
 import { isLoggedIn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
+import Slider from "react-slick";
+import { CTASlides } from "@/constants/values";
 
-export default function CTAComponent() {
+interface CTACardProps {
+  image: string;
+  title: string;
+  subtitle: string;
+  bgColor: string;
+  titleColor?: string;
+  priority?: boolean;
+}
+
+function CTACard({
+  image,
+  title,
+  subtitle,
+  bgColor,
+  titleColor,
+  priority = false,
+}: CTACardProps) {
+  // Determine text color based on background for better visibility
+  const getTextColor = () => {
+    if (titleColor) return titleColor;
+    // Light backgrounds get dark text, dark backgrounds get light text
+    const lightBgs = ["#B8D4E8", "#FFE5D9", "#F8E8EE"];
+    return lightBgs.includes(bgColor) ? "#2C3E50" : "#F5E6D3";
+  };
+
+  const getSubtitleColor = () => {
+    // If custom titleColor exists, use a complementary color
+    if (titleColor) return "#5B7C99";
+    const lightBgs = ["#B8D4E8", "#FFE5D9", "#F8E8EE"];
+    return lightBgs.includes(bgColor) ? "#4A5568" : "#F5E6D3";
+  };
+
   return (
-    <section className="page-wrap py-20">
-        <Card className="w-full h-full overflow-hidden border-none shadow-xl shadow-gray-50 rounded-xl">
-          <div className="grid md:grid-cols-2 gap-0 h-full">
-            {/* Image Section */}
-            <div className="relative h-96 md:h-[500px] lg:h-[600px] min-h-[400px]">
-              <Image
-                src="https://i.pinimg.com/1200x/cf/b8/e3/cfb8e32b4975021903da1bad82877ebf.jpg"
-                alt="Happy kids shopping"
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
+    <div className="flex flex-col md:flex-row rounded-xl overflow-hidden shadow-lg h-[400px] md:h-[500px]">
+      {/* Image */}
+      <div className="relative w-full md:w-1/2 h-full">
+        <Image
+          src={image}
+          alt={title}
+          fill
+          className="object-cover"
+          priority={priority}
+        />
+      </div>
 
-            {/* Content Section */}
-            <div className="flex flex-col justify-center p-12 bg-gradient-to-br from-rose-100 to-pink-100">
-              <div className="space-y-8">
-                <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
-                  Discover Joy in Every Outfit
-                </h2>
-                <p className="text-lg text-gray-700 leading-relaxed max-w-lg">
-                  Explore our curated collection of comfortable, stylish clothing
-                  designed to keep your little ones happy and confident all day long.
-                </p>
+      {/* Banner */}
+      <div
+        className="flex flex-col justify-center items-start p-8 md:p-12 w-full md:w-1/2 text-left"
+        style={{ backgroundColor: bgColor }}
+      >
+        <h2
+          className="text-3xl md:text-4xl font-serif font-semibold leading-snug"
+          style={{ color: getTextColor() }}
+        >
+          {title}
+        </h2>
+        <p
+          className="text-xl md:text-2xl font-light italic mt-3 leading-relaxed"
+          style={{ color: getSubtitleColor() }}
+        >
+          {subtitle}
+        </p>
 
-                <div className="flex flex-col sm:flex-row gap-6 pt-6">
-                  <Link
-                    href={isLoggedIn() ? "/shop" : "/register"}
-                    className="px-8 py-3 rounded-lg text-white font-semibold text-center transition-transform hover:scale-105"
-                    style={{ backgroundColor: "#8B1D3F" }}
-                  >
-                    {isLoggedIn() ? "Shop Now" : "Get Started"}
-                  </Link>
-                  <Link
-                    href="/shop"
-                    className="px-8 py-3 rounded-lg border-2 border-gray-900 text-gray-900 font-semibold text-center transition-transform hover:bg-gray-900 hover:text-white hover:scale-105"
-                  >
-                    Browse Collection
-                  </Link>
-                </div>
-              </div>
-            </div>
+        {/* Centered Button */}
+        <div className="w-full flex justify-center mt-6">
+          <Link
+            href={isLoggedIn() ? "/shop" : "/login"}
+            className="px-8 py-3 rounded-full bg-white text-gray-900 font-medium text-base md:text-lg shadow hover:scale-105 transition-transform"
+          >
+            Shop Now
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function CTASlider() {
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 2, // 1 card on mobile
+    slidesToScroll: 1,
+    arrows: true,
+    autoplay: true,
+    autoplaySpeed: 4000,
+    adaptiveHeight: true,
+    responsive: [
+      {
+        breakpoint: 1024, // lg breakpoint
+        settings: {
+          slidesToShow: 1, // 2 cards on larger screens
+          slidesToScroll: 1,
+        }
+      }
+    ]
+  };
+
+  return (
+    <div className="page-wrap py-3 sm:py-6 md:py-12 lg:py-16">
+      <Slider {...settings}>
+        {CTASlides.map((slide, index) => (
+          <div key={index} className="px-2">
+            <CTACard
+              image={slide.image}
+              title={slide.title}
+              subtitle={slide.subtitle}
+              bgColor={slide.bgColor}
+              titleColor={slide.titleColor}
+              priority={index === 0}
+            />
           </div>
-        </Card>
-    </section>
+        ))}
+      </Slider>
+    </div>
   );
 }

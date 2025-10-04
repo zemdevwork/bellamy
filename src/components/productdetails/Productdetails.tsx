@@ -222,29 +222,29 @@ export default function ProductDetails({ productId }: { productId: string }) {
 
       {/* Main Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Images */}
-        <div className="space-y-4">
-          {/* Main Image */}
-          <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: "3/4" }}>
+        {/* Left Column - Images (COMPACTED) */}
+        <div className="space-y-3">
+          {/* Main Image - Adjusted aspect ratio to 4/5 for a slightly smaller look */}
+          <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: "4/5" }}>
             {selectedImage && (
               <Image
                 src={selectedImage}
                 alt={capitalizeWords(product.name)}
                 fill
-                className="object-cover"
+                className="object-cover p-2" // Changed to object-cover for full image view
               />
             )}
           </div>
 
-          {/* Thumbnail Gallery */}
-          <div className="grid grid-cols-4 gap-3">
-            {galleryImages.slice(0, 4).map((img, idx) => (
+          {/* Thumbnail Gallery - Changed to horizontal scrollable list */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {galleryImages.map((img, idx) => (
               <div
                 key={idx}
                 onClick={() => setSelectedImage(img)}
-                className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition ${selectedImage === img ? "border-gray-900" : "border-transparent"
+                // Smaller size for thumbnails (w-16, h-20)
+                className={`relative flex-shrink-0 w-16 h-20 cursor-pointer rounded-md overflow-hidden border-2 transition ${selectedImage === img ? "border-gray-900" : "border-gray-200 hover:border-gray-400"
                   }`}
-                style={{ aspectRatio: "3/4" }}
               >
                 <Image src={img} alt="Thumbnail" fill className="object-cover" />
               </div>
@@ -323,23 +323,23 @@ export default function ProductDetails({ productId }: { productId: string }) {
               </div>
             </div>
           ))}
-         {!isInCart && (
-  <div className="flex items-center gap-3">
-    <button
-      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-      className="px-3 py-1 border rounded"
-    >
-      -
-    </button>
-    <span className="w-6 text-center">{quantity}</span>
-    <button
-      onClick={() => setQuantity((q) => q + 1)}
-      className="px-3 py-1 border rounded"
-    >
-      +
-    </button>
-  </div>
-)}
+          {!isInCart && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                className="px-3 py-1 border rounded"
+              >
+                -
+              </button>
+              <span className="w-6 text-center">{quantity}</span>
+              <button
+                onClick={() => setQuantity((q) => q + 1)}
+                className="px-3 py-1 border rounded"
+              >
+                +
+              </button>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="space-y-3 pt-4">

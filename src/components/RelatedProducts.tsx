@@ -117,9 +117,7 @@ export default function RelatedProducts({ brand, limit, excludeProductId }: Prop
 
   return (
     <div className="w-full mt-10 sm:mt-20 md:mt-32">
-      <div className="flex justify-between items-center mb-8">
             <h2 className="page-title">More from {brand.name}</h2>
-          </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4">
         {products.map((p) => (

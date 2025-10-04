@@ -1,149 +1,159 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { BannerImages } from "@/constants/values";
+import Slider from "react-slick";
 import Link from "next/link";
+import { useMemo } from "react";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { BannerImages } from "@/constants/values";
+
+type BannerSlide = {
+  id: number;
+  image: string;
+  title: string;
+  subtitle: string;
+  buttonLabel: string;
+  buttonLink: string;
+  align?: "left" | "center" | "right";
+};
 
 export default function Banner() {
-  const [index, setIndex] = useState(0);
-  const [isHovering, setIsHovering] = useState(false);
-  const touchStartX = useRef<number | null>(null);
-  const touchDeltaX = useRef(0);
-  const sliderRef = useRef<HTMLDivElement>(null);
+  const slides: BannerSlide[] = useMemo(
+    () => [
+      {
+        id: 1,
+        image: BannerImages[0],
+        title: "Dress Your Little Ones in Pure Joy",
+        subtitle:
+          "Playful outfits for every mood — crafted for comfort, made for fun.",
+        buttonLabel: "Shop Collection",
+        buttonLink: "/shop",
+        align: "left",
+      },
+      {
+        id: 2,
+        image: BannerImages[1],
+        title: "Trendy, Comfy, and Always Adorable",
+        subtitle: "Let your kids shine in every season with our stylish picks.",
+        buttonLabel: "Explore New Arrivals",
+        buttonLink: "/shop",
+        align: "center",
+      },
+      {
+        id: 3,
+        image: BannerImages[2],
+        title: "From Playtime to Partytime",
+        subtitle:
+          "Discover our range of quality kidswear for every joyful occasion.",
+        buttonLabel: "Browse Styles",
+        buttonLink: "/shop",
+        align: "right",
+      },
+      {
+        id: 4,
+        image: BannerImages[3],
+        title: "Everyday Comfort, Endless Smiles",
+        subtitle:
+          "Soft fabrics, happy colors, and joyful vibes — made for little explorers.",
+        buttonLabel: "Start Shopping",
+        buttonLink: "/shop",
+        align: "left",
+      },
+      {
+        id: 5,
+        image: BannerImages[4],
+        title: "Bright Looks for Brighter Days",
+        subtitle:
+          "Stylish, sustainable, and designed to keep up with their adventures.",
+        buttonLabel: "Shop Now",
+        buttonLink: "/shop",
+        align: "center",
+      },
+    ],
+    []
+  );
 
-  const total = BannerImages.length;
-  const goTo = useCallback((i: number) => setIndex((i + total) % total), [total]);
-  const next = useCallback(() => goTo(index + 1), [goTo, index]);
-  const prev = useCallback(() => goTo(index - 1), [goTo, index]);
-
-  // Autoplay
-  useEffect(() => {
-    if (total <= 1) return;
-    if (isHovering) return;
-    const id = setInterval(next, 3000);
-    return () => clearInterval(id);
-  }, [next, total, isHovering]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [next, prev]);
-
-  // Swipe handlers
-  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchDeltaX.current = 0;
-  };
-  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (touchStartX.current == null) return;
-    touchDeltaX.current = e.touches[0].clientX - touchStartX.current;
-  };
-  const onTouchEnd = () => {
-    const dx = touchDeltaX.current;
-    touchStartX.current = null;
-    touchDeltaX.current = 0;
-    if (Math.abs(dx) < 40) return;
-    if (dx < 0) next(); else prev();
-  };
-
-  const slides = useMemo(() => BannerImages, []);
+  const settings = useMemo(
+    () => ({
+      dots: true,
+      infinite: true,
+      speed: 700,
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      autoplay: true,
+      autoplaySpeed: 3500,
+      arrows: true,
+      pauseOnHover: true,
+      swipeToSlide: true,
+      adaptiveHeight: false,
+      cssEase: "ease-in-out",
+      appendDots: (dots: React.ReactNode) => (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "30px",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <ul style={{ margin: 0 }}> {dots} </ul>
+        </div>
+      ),
+      customPaging: () => (
+        <div className="h-3 w-3 bg-white/70 rounded-full hover:bg-white transition-all" />
+      ),
+    }),
+    []
+  );
 
   return (
-    <section
-      className="relative w-full h-screen overflow-hidden mb-3 sm:mb-6 md:mb-12 lg:mb-16"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
-      {/* Slides */}
-      <div
-        ref={sliderRef}
-        className="absolute inset-0"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        {slides.map((src, i) => (
-          <Image
-            key={i}
-            src={src}
-            alt={`Banner ${i + 1}`}
-            fill
-            priority={i === 0}
-            sizes="100vw"
-            className={`object-cover transition-opacity duration-700 ease-in-out ${
-              i === index ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))}
-      </div>
+    <section className="relative w-full h-screen overflow-hidden cursor-pointer">
+      <Slider {...settings} className="h-full">
+        {slides.map((slide) => (
+          <div key={slide.id} className="relative w-full h-screen">
+            {/* Background Image */}
+            <Image
+              src={slide.image}
+              alt={slide.title}
+              fill
+              priority={slide.id === 1}
+              className="object-cover"
+            />
 
-      {/* Gradient overlays for readability with warm brand vibe */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-black/40" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(244,114,182,0.15),transparent_60%)]" />
-      </div>
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,200,100,0.15),transparent_60%)]" />
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex items-center justify-center md:justify-start">
-        <div className="px-6 md:px-12 lg:px-20 xl:px-24 max-w-4xl text-center md:text-left">
-          <h1 className="text-white text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight drop-shadow-2xl tracking-tight">
-            Dress Your Kids In Comfort & Style
-          </h1>
-          <p className="mt-5 md:mt-6 lg:mt-8 text-white/95 text-lg sm:text-xl md:text-2xl lg:text-3xl max-w-2xl drop-shadow-lg font-medium leading-relaxed">
-            Discover trendy, comfy, and affordable kidswear for every occasion.
-          </p>
-          <Link
-            href="/shop"
-            className="mt-8 md:mt-10 lg:mt-12 inline-flex items-center justify-center rounded-full bg-amber-200/90 hover:bg-amber-200 text-stone-900 px-8 md:px-10 lg:px-12 py-3.5 md:py-4 lg:py-5 text-base md:text-lg lg:text-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-          >
-            Shop now
-          </Link>
-        </div>
-      </div>
-
-      {/* Controls */}
-      {total > 1 && (
-        <>
-          <button
-            aria-label="Previous"
-            onClick={prev}
-            className="absolute left-3 md:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-10 h-11 w-11 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all duration-200 hover:scale-110"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 md:h-6 md:w-6">
-              <path fillRule="evenodd" d="M15.78 18.28a.75.75 0 01-1.06 0l-6-6a.75.75 0 010-1.06l6-6a.75.75 0 111.06 1.06L10.56 12l5.22 5.22a.75.75 0 010 1.06z" clipRule="evenodd"/>
-            </svg>
-          </button>
-          <button
-            aria-label="Next"
-            onClick={next}
-            className="absolute right-3 md:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-10 h-11 w-11 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all duration-200 hover:scale-110"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 md:h-6 md:w-6">
-              <path fillRule="evenodd" d="M8.22 5.72a.75.75 0 011.06 0l6 6a.75.75 0 010 1.06l-6 6a.75.75 0 11-1.06-1.06L13.44 12 8.22 6.78a.75.75 0 010-1.06z" clipRule="evenodd"/>
-            </svg>
-          </button>
-
-          {/* Dots */}
-          <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 z-10 flex gap-2 md:gap-3">
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                aria-label={`Go to slide ${i + 1}`}
-                onClick={() => goTo(i)}
-                className={`h-2.5 md:h-3 w-2.5 md:w-3 rounded-full transition-all ${
-                  i === index ? "bg-white w-6 md:w-8" : "bg-white/60 hover:bg-white/80"
-                }`}
-              />
-            ))}
+            {/* Text Content */}
+            <div
+              className={`relative z-10 h-full flex items-center px-6 md:px-12 lg:px-24 xl:px-32 ${
+                slide.align === "center"
+                  ? "justify-center text-center"
+                  : slide.align === "right"
+                  ? "justify-end text-right"
+                  : "justify-start text-left"
+              }`}
+            >
+              <div className="max-w-3xl">
+                <h1 className="text-white text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-tight drop-shadow-2xl tracking-tight">
+                  {slide.title}
+                </h1>
+                <p className="mt-5 md:mt-6 lg:mt-8 text-white/95 text-lg sm:text-xl md:text-2xl lg:text-3xl max-w-2xl drop-shadow-lg font-medium leading-relaxed">
+                  {slide.subtitle}
+                </p>
+                <Link
+                  href={slide.buttonLink}
+                  className="mt-8 md:mt-10 lg:mt-12 inline-flex items-center justify-center rounded-full bg-amber-300/90 hover:bg-amber-300 text-stone-900 px-8 md:px-10 lg:px-12 py-3.5 md:py-4 lg:py-5 text-base md:text-lg lg:text-xl font-bold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                >
+                  {slide.buttonLabel}
+                </Link>
+              </div>
+            </div>
           </div>
-        </>
-      )}
+        ))}
+      </Slider>
     </section>
   );
 }

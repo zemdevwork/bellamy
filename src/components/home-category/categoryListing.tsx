@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import { useRouter } from "next/navigation"; // ✅ Import router
+import CategoryCard from "./CategoryCard";
 
 type Category = {
   id: string;
@@ -17,7 +16,6 @@ type CategorySectionProps = {
 export default function CategorySection({ onCategorySelect }: CategorySectionProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter(); // ✅ Initialize router
 
   useEffect(() => {
     async function fetchCategories() {
@@ -46,48 +44,15 @@ export default function CategorySection({ onCategorySelect }: CategorySectionPro
 
   return (
     <div className="page-wrap">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="page-title">Shop by Category</h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
+      <h2 className="page-title">Shop By Category</h2>
+
+      <div className="w-full grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-5 lg:gap-8">
         {categories.map((category) => (
-          <div
+          <CategoryCard
             key={category.id}
-            onClick={() => {
-              onCategorySelect?.(category);
-              router.push(`/shop/category/${category.id}`); // ✅ Navigate on click
-            }}
-            className="group cursor-pointer"
-          >
-            <div className="relative w-full aspect-[5/4] rounded-2xl overflow-hidden shadow-md ring-1 ring-stone-200/60 bg-white transition-transform duration-300 group-hover:scale-[1.02]">
-              {/* Category Image */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300">
-                {category.image ? (
-                  <Image
-                    src={category.image}
-                    alt={category.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
-                    <span className="text-gray-500 text-lg font-medium">{category.name}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Gradient overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
-
-              {/* Category name centered */}
-              <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                <h3 className="text-white text-lg font-semibold drop-shadow-lg text-center tracking-wide">
-                  {category.name}
-                </h3>
-              </div>
-            </div>
-          </div>
+            category={category}
+            onSelect={onCategorySelect}
+          />
         ))}
       </div>
     </div>

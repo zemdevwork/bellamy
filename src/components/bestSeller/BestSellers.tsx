@@ -1,7 +1,7 @@
 "use client";
 
-import ProductCard from "@/components/ProductCard";
 import React, { useState, useEffect } from "react";
+import BestSellerCard from "./BestSellerCard";
 
 type Product = {
   id: string;
@@ -127,59 +127,15 @@ export default function BestSellers() {
   }
 
   return (
-    <section className="w-full">
+    <section className="w-full relative">
       <div className="page-wrap">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="page-title">
-            Our Best Sellers
-          </h2>
-          <div className="flex space-x-2">
-            <button
-              onClick={prevSlide}
-              className="p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
-            >
-              <svg
-                className="w-5 h-5 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                {" "}
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />{" "}
-              </svg>
-            </button>
-            <button
-              onClick={nextSlide}
-              className="p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
-            >
-              <svg
-                className="w-5 h-5 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                {" "}
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />{" "}
-              </svg>
-            </button>
-          </div>
-        </div>
+        <h2 className="page-title">Customer Favourites</h2>
 
-        {/* Product Grid */}
+        {/* Scrollable Product Container */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing"
+          className="flex gap-4 sm:gap-6 md:gap-12 lg:gap-16 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -190,20 +146,56 @@ export default function BestSellers() {
           onTouchEnd={handleTouchEnd}
         >
           {products.map((product) => (
-              <ProductCard
+            <BestSellerCard
               key={product.id}
-                id={product.id}
-                name={product.title}
-                price={product.price}
-                oldPrice={product.originalPrice ? product.originalPrice : undefined}
-                image={product.image}
-                description={undefined}
-                variantId={product.variantId}
-                brandName={product.name}
-              />
+              id={product.id}
+              name={product.title}
+              price={product.price}
+              image={product.image}
+            />
           ))}
         </div>
       </div>
+
+      {/* Left Arrow - Outside page-wrap */}
+      <button
+        onClick={prevSlide}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
+      >
+        <svg
+          className="w-5 h-5 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      {/* Right Arrow - Outside page-wrap */}
+      <button
+        onClick={nextSlide}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
+      >
+        <svg
+          className="w-5 h-5 text-gray-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </button>
     </section>
   );
 }

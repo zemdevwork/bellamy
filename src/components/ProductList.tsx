@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import ProductCard from "@/components/ProductCard";
-import Link from "next/link";
 
 type Product = {
   id: string;
@@ -74,9 +73,7 @@ export default function ProductList() {
     return (
       <div className="page-wrap">
         <div >
-          <div className="flex justify-between items-center mb-8">
             <h2 className="page-title">Our Products</h2>
-          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 ">
             {[...Array(6)].map((_, i) => (
               <div
@@ -116,18 +113,7 @@ export default function ProductList() {
 
   return (
     <div className="page-wrap">
-        <div className="flex justify-between items-center mb-8">
           <h2 className="page-title">Our Products</h2>
-          {products.length > 8 && (
-            <Link
-              href="/shop"
-              className="px-6 py-2 border border-stone-300 rounded-full text-sm font-medium text-stone-700 hover:bg-stone-50 transition"
-            >
-              See All Products
-            </Link>
-          )}
-        </div>
-
         {products.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-gray-500">No products found.</p>

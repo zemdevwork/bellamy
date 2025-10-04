@@ -2,38 +2,81 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createProductAction } from "@/server/actions/product-action";
 
-
-// GET all products and filter by categoryId + brandId + subCategoryId + sort by price
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get("categoryId");
     const subCategoryId = searchParams.get("subCategoryId");
-
-    // ✅ Support multiple brands: ?brandId=1,2,3
     const brandIds = searchParams.get("brandId");
-
-    // ✅ Support sorting: ?sort=price_asc or ?sort=price_desc
     const sort = searchParams.get("sort");
+    const priceRange = searchParams.get("priceRange");
+    const selectedColor = searchParams.get("color");
+    const selectedSize = searchParams.get("size");
 
-    // Build where clause dynamically
-    const whereClause: Record<string, unknown> = {};
-    if (categoryId) whereClause.categoryId = categoryId;
-    if (subCategoryId) whereClause.subCategoryId = subCategoryId;
+    // 1. Build Base WHERE Clause for Product model
+    const productWhereClause: Record<string, unknown> = {};
+    if (categoryId) productWhereClause.categoryId = categoryId;
+    if (subCategoryId) productWhereClause.subCategoryId = subCategoryId;
     if (brandIds) {
       const brandIdArray = brandIds.split(",");
-      whereClause.brandId = { in: brandIdArray };
+      productWhereClause.brandId = { in: brandIdArray };
     }
 
-    // Always fetch latest products, price sorting handled after mapping (variant-based)
+    // 2. Handle Color/Size Filtering
+    let matchingProductIds: string[] | null = null;
+
+    if (selectedColor || selectedSize) {
+      // Build attribute filters
+      const attributeFilters = [];
+
+      if (selectedColor) {
+        attributeFilters.push({
+          options: {
+            some: {
+              attribute: { name: "Color" },
+              attributeValue: { value: selectedColor },
+            }
+          }
+        });
+      }
+
+      if (selectedSize) {
+        attributeFilters.push({
+          options: {
+            some: {
+              attribute: { name: "Size" },
+              attributeValue: { value: selectedSize },
+            }
+          }
+        });
+      }
+
+      // Find variants that match ALL selected attributes
+      const variantIdsToFilter = await prisma.productVariant.findMany({
+        where: {
+          AND: attributeFilters,
+        },
+        select: { productId: true },
+      });
+
+      matchingProductIds = Array.from(new Set(variantIdsToFilter.map(v => v.productId)));
+      
+      // If no variants matched, return empty array
+      if (matchingProductIds.length === 0) {
+        return NextResponse.json([]);
+      }
+
+      productWhereClause.id = { in: matchingProductIds };
+    }
+
+    // 3. Fetch products with variants (for price filtering)
     const products = await prisma.product.findMany({
-      where: whereClause,
+      where: productWhereClause,
       include: {
         category: true,
         brand: true,
         subCategory: true,
         variants: {
-          take: 1,
           orderBy: { createdAt: "asc" },
           select: { id: true, price: true },
         },
@@ -41,8 +84,8 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Map to listing DTO expected by frontend (price from first variant)
-    const mapped = products.map((p) => {
+    // 4. Map products and apply price filter
+    let mapped = products.map((p) => {
       const defaultVariant = p.variants?.[0] || null;
       return {
         id: p.id,
@@ -64,7 +107,31 @@ export async function GET(request: Request) {
       };
     });
 
-    // Apply price sorting if requested (on mapped array)
+    // 5. Apply price range filter AFTER mapping
+    if (priceRange) {
+      let minPrice = 0;
+      let maxPrice = Number.MAX_SAFE_INTEGER;
+
+      if (priceRange === "1-500") {
+        minPrice = 1;
+        maxPrice = 500;
+      } else if (priceRange === "500-1000") {
+        minPrice = 501; // Fixed overlap
+        maxPrice = 1000;
+      } else if (priceRange === "1000-5000") {
+        minPrice = 1001; // Fixed overlap
+        maxPrice = 5000;
+      } else if (priceRange === "5000+") {
+        minPrice = 5001; // Fixed overlap
+      }
+
+      mapped = mapped.filter(product => {
+        const price = product.price ?? 0;
+        return price >= minPrice && price <= maxPrice;
+      });
+    }
+
+    // 6. Apply sorting
     if (sort === "price_asc") {
       mapped.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
     } else if (sort === "price_desc") {
