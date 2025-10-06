@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useCart } from "@/context/cartContext";
 
 export const LogoutDialog = ({
   open,
@@ -22,7 +23,7 @@ export const LogoutDialog = ({
   setOpen: (open: boolean) => void;
 }) => {
     const router = useRouter()
-
+  const { updateCartCount } = useCart();
 const handleLogout = async () => {
   try {
     const res = await fetch("/api/auth/logout", {
@@ -40,6 +41,8 @@ const handleLogout = async () => {
     }
 
     localStorage.removeItem("user");
+    localStorage.removeItem("cart");
+    updateCartCount();
     toast.success(data?.message || "Logged out successfully");
     router.replace("/login");
   } catch (error) {
