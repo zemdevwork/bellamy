@@ -22,6 +22,8 @@ type Product = {
   subimage: string[];
   brandId?: string;
   categoryId?: string;
+  isInCart?: boolean;
+  isInWishlist?: boolean;
   subCategoryId?: string;
   createdAt: string;
   updatedAt: string;
@@ -333,7 +335,7 @@ export default function ShopProductListing({
     <div className="w-full h-full pb-20 lg:pb-0">
       <div className="w-full max-w-[1400px] mx-auto px-4">
         {/* Filter Header and Sort Section - Full Width */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-4">
+        <div className="flex flex-col hidden lg:flex lg:flex-row items-start lg:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-4">
           {/* Filter By Header (Desktop Only) */}
           <div className="hidden lg:flex items-center justify-between w-64 flex-shrink-0">
             <h3 className="text-base sm:text-md md:text-lg font-medium uppercase tracking-wider text-gray-700">
@@ -416,7 +418,7 @@ export default function ShopProductListing({
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Desktop Filters Sidebar */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 z-10">
+            <div>
               <div className="space-y-3">
                 <FilterSection title="PRICE RANGE" section="price">
                   <FilterOption
@@ -548,7 +550,7 @@ export default function ShopProductListing({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 overflow-y-auto h-screen scrollbar-hide">
                   {products.map((p) => (
                     <div key={p.id} className="group">
                       <ProductCard
@@ -559,6 +561,8 @@ export default function ShopProductListing({
                         description={p.description}
                         variantId={p.defaultVariantId as string}
                         brandName={p.brand?.name}
+                        isInCart={p.isInCart}
+                        isInWishlist={p.isInWishlist}
                       />
                     </div>
                   ))}

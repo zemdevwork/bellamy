@@ -128,7 +128,7 @@
 
 @layer components {
   .page-wrap {
-    @apply max-w-7xl xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto py-8 px-4;
+    @apply max-w-7xl xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto py-8 px-4 sm:px-10 md:px-14 lg:px-20;
   }
 
   .page-title {

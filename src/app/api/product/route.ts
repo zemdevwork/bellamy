@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createProductAction } from "@/server/actions/product-action";
+import { auth } from "@/lib/auth";
+
 
 export async function GET(request: Request) {
   try {
+    const session = await auth.api.getSession({ headers: request.headers }); 
+    const userId = session?.user.id; 
+
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get("categoryId");
     const subCategoryId = searchParams.get("subCategoryId");
@@ -22,7 +27,7 @@ export async function GET(request: Request) {
       productWhereClause.brandId = { in: brandIdArray };
     }
 
-    // 2. Handle Color/Size Filtering
+    // 2. Handle Color/Size Filtering (Existing Logic)
     let matchingProductIds: string[] | null = null;
 
     if (selectedColor || selectedSize) {
@@ -35,8 +40,8 @@ export async function GET(request: Request) {
             some: {
               attribute: { name: "Color" },
               attributeValue: { value: selectedColor },
-            }
-          }
+            },
+          },
         });
       }
 
@@ -46,8 +51,8 @@ export async function GET(request: Request) {
             some: {
               attribute: { name: "Size" },
               attributeValue: { value: selectedSize },
-            }
-          }
+            },
+          },
         });
       }
 
@@ -59,8 +64,10 @@ export async function GET(request: Request) {
         select: { productId: true },
       });
 
-      matchingProductIds = Array.from(new Set(variantIdsToFilter.map(v => v.productId)));
-      
+      matchingProductIds = Array.from(
+        new Set(variantIdsToFilter.map((v) => v.productId))
+      );
+
       // If no variants matched, return empty array
       if (matchingProductIds.length === 0) {
         return NextResponse.json([]);
@@ -77,16 +84,54 @@ export async function GET(request: Request) {
         brand: true,
         subCategory: true,
         variants: {
+          // IMPORTANT: Include SKU to help identify the default variant later, 
+          // and images, for a more complete product card view.
+          select: { id: true, price: true, sku: true, images: true }, 
           orderBy: { createdAt: "asc" },
-          select: { id: true, price: true },
         },
       },
       orderBy: { createdAt: "desc" },
     });
+    
+    // --- START: Cart/Wishlist Check Logic ---
+    let cartVariantIds: Set<string> = new Set();
+    let wishlistVariantIds: Set<string> = new Set();
+    
+    if (userId) {
+      // Get the IDs of all variants in the result set
+      const allVariantIds = products.flatMap(p => p.variants).map(v => v.id);
+
+      // 3.1 Fetch Cart Items
+      const cartItems = await prisma.cartItem.findMany({
+        where: {
+          cart: { userId: userId }, // Link to the user's cart
+          variantId: { in: allVariantIds }, // Filter by the variants we are displaying
+        },
+        select: { variantId: true },
+      });
+      cartVariantIds = new Set(cartItems.map(item => item.variantId));
+
+      // 3.2 Fetch Wishlist Items
+      const wishlistItems = await prisma.wishlistItem.findMany({
+        where: {
+          wishlist: { userId: userId }, // Link to the user's wishlist
+          variantId: { in: allVariantIds }, // Filter by the variants we are displaying
+        },
+        select: { variantId: true },
+      });
+      wishlistVariantIds = new Set(wishlistItems.map(item => item.variantId));
+    }
+    // --- END: Cart/Wishlist Check Logic ---
+
 
     // 4. Map products and apply price filter
     let mapped = products.map((p) => {
       const defaultVariant = p.variants?.[0] || null;
+      
+      // Determine if ANY variant of this product is in the cart/wishlist
+      const isInCart = p.variants.some(v => cartVariantIds.has(v.id));
+      const isInWishlist = p.variants.some(v => wishlistVariantIds.has(v.id));
+
       return {
         id: p.id,
         name: p.name,
@@ -100,14 +145,22 @@ export async function GET(request: Request) {
         brand: p.brand || undefined,
         category: p.category || undefined,
         subCategory: p.subCategory || undefined,
+        
+        // Product Variant Info (based on default variant)
         price: defaultVariant?.price ?? 0,
-        qty: undefined,
-        subimage: [],
+        subimage: defaultVariant?.images ?? [], // Use default variant's images as subimages
         defaultVariantId: defaultVariant?.id ?? null,
+        
+        // New status fields
+        isInCart: isInCart, // True if ANY of its variants are in the cart
+        isInWishlist: isInWishlist, // True if ANY of its variants are in the wishlist
+
+        // Removed qty, as it's variant-specific and not meaningful on the product level here
+        // qty: undefined, 
       };
     });
 
-    // 5. Apply price range filter AFTER mapping
+    // 5. Apply price range filter AFTER mapping (Existing Logic)
     if (priceRange) {
       let minPrice = 0;
       let maxPrice = Number.MAX_SAFE_INTEGER;
@@ -125,13 +178,13 @@ export async function GET(request: Request) {
         minPrice = 5001; // Fixed overlap
       }
 
-      mapped = mapped.filter(product => {
+      mapped = mapped.filter((product) => {
         const price = product.price ?? 0;
         return price >= minPrice && price <= maxPrice;
       });
     }
 
-    // 6. Apply sorting
+    // 6. Apply sorting (Existing Logic)
     if (sort === "price_asc") {
       mapped.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
     } else if (sort === "price_desc") {

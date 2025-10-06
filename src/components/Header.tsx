@@ -151,7 +151,7 @@ export default function Header() {
       >
         {/* Main Header Bar */}
         <div
-          className="flex items-center shadow-md justify-between md:justify-center px-4 sm:px-6 md:px-8 py-2 md:py-3 lg:py-5 border-b"
+          className="flex items-center shadow-lg shadow-stone-100 justify-between md:justify-center px-4 sm:px-6 md:px-8 py-2 md:py-3 lg:py-5 border-b"
           style={{ borderColor: "#F0E5E9" }}
         >
           {/* Left: Mobile Menu + Logo */}
@@ -252,7 +252,7 @@ export default function Header() {
 
         {/* Navigation Bar */}
         <div
-          className="hidden md:block border-b shadow-lg"
+          className="hidden md:block shadow-lg"
           style={{ borderColor: "#F0E5E9" }}
         >
           <div className="flex items-center justify-center px-8 lg:px-12 py-1 sm:py-2 md:py-3 lg:py-4">

@@ -10,7 +10,7 @@ function WishlistIcon({ color = "#8B1D3F", userLoggedIn }: { color?: string; use
       className="inline-flex items-center justify-center p-1"
       aria-label="Wishlist"
     >
-      <Heart strokeWidth={1} color={color} className="w-5 h-5 md:w-7 md:h-7 cursor-pointer hover:scale-[1.2] transition-all duration-200" />
+      <Heart strokeWidth={1.3} color={color} className="w-5 h-5 md:w-7 md:h-7 cursor-pointer hover:opacity-60 transition-all duration-200" />
     </Link>
   );
 }

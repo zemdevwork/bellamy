@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
-import { Eye, ShoppingCart } from "lucide-react";
+import { Eye, ShoppingCart, Heart, Loader2, Check, CloudCog } from "lucide-react";
 import { useCart } from "@/context/cartContext";
 import { rupee } from "@/constants/values";
+import { addToWishlist } from "@/server/actions/wishlist-action";
 
 type ProductProps = {
   id: string;
@@ -22,6 +23,8 @@ type ProductProps = {
   variantId?: string;
   brandName?: string;
   brandThemePrimary?: string;
+  isInCart?: boolean;
+  isInWishlist?: boolean;
 };
 
 export default function ProductCard({
@@ -31,53 +34,26 @@ export default function ProductCard({
   oldPrice,
   image,
   badge,
+  isInCart,
+  isInWishlist,
   variantId,
   brandThemePrimary = "#000",
 }: ProductProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [isInCart, setIsInCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [isCartLoading, setIsCartLoading] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [isInCartState, setIsInCartState] = useState(isInCart);
+  const [isInWishlistState, setIsInWishlistState] = useState(isInWishlist);
   const router = useRouter();
   const { updateCartCount } = useCart();
 
-  // Check if product already in cart on mount
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        if (isLoggedIn()) {
-          const res = await fetch("/api/cart", { cache: "no-store" });
-          if (!res.ok) return;
-          const cart = await res.json();
-          // cart is now an array
-          if (Array.isArray(cart)) {
-            const exists = cart.some(
-              (item: { variant: { id: string } }) =>
-                !!item.variant &&
-                (variantId ? item.variant.id === variantId : false)
-            );
-            setIsInCart(exists);
-          }
-        } else {
-          const localCart = getLocalCart();
-          const exists = localCart.some((item) =>
-            variantId ? item.variantId === variantId : false
-          );
-          setIsInCart(exists);
-        }
-      } catch (error) {
-        console.error("Error loading cart:", error);
-      }
-    };
-
-    if (id) fetchCart();
-  }, [id, variantId]);
-
   const discountPercentage = oldPrice
     ? Math.round(
-        ((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) *
-          100
-      )
+      ((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) *
+      100
+    )
     : 0;
 
   // Add to cart handler
@@ -90,6 +66,8 @@ export default function ProductCard({
       return;
     }
 
+    setIsCartLoading(true);
+
     startTransition(async () => {
       try {
         if (isLoggedIn()) {
@@ -99,17 +77,20 @@ export default function ProductCard({
             body: JSON.stringify({ variantId, quantity: 1 }),
           });
           if (!res.ok) throw new Error("Failed to add to cart");
+          setIsInCartState(true);
           await updateCartCount();
           toast.success(`Added "${name}" to cart!`);
         } else {
           addLocalCartItem(variantId, 1);
+          setIsInCartState(true);
           await updateCartCount();
           toast.success(`Added "${name}" to cart (Local)!`);
         }
-        setIsInCart(true);
       } catch (error) {
         console.error("Failed to add to cart:", error);
         toast.error("Failed to add to cart. Please try again.");
+      } finally {
+        setIsCartLoading(false);
       }
     });
   };
@@ -126,11 +107,52 @@ export default function ProductCard({
     router.push(`/product/${id}`);
   };
 
+  const handleToggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!variantId) {
+      toast.error("Variant is required");
+      return;
+    }
+
+    setIsWishlistLoading(true);
+
+    startTransition(async () => {
+      try {
+        if (isInWishlist) {
+          // Remove from wishlist
+          if (isLoggedIn()) {
+            setIsInWishlistState(false);
+            router.push("/wishlist");
+          } else {
+            router.push('/login')
+          }
+        } else {
+          // Add to wishlist
+          if (isLoggedIn()) {
+            const res = await addToWishlist({ variantId });
+            setIsInWishlistState(true);
+            toast.success(`Added "${name}" to wishlist!`);
+          } else {
+            setIsInWishlistState(false);
+            router.push('/login')
+          }
+        }
+      } catch (error) {
+        console.error("Failed to update wishlist:", error);
+        toast.error("Failed to update wishlist. Please try again.");
+      } finally {
+        setIsWishlistLoading(false);
+      }
+    });
+  };
+
   return (
     <div className="group relative">
       <div
         onClick={() => router.push(`/product/${id}`)}
-        className="cursor-pointer pt-3 px-3 pb-10 rounded-tl-2xl rounded-br-2xl hover:shadow-xl shadow-stone-200 transition-shadow duration-800"
+        className="cursor-pointer pt-3 px-3 pb-10 rounded-tl-2xl md:rounded-tl-3xl rounded-br-2xl md:rounded-br-3xl hover:shadow-xl shadow-stone-200 transition-shadow duration-800"
       >
         <div>
           {/* Badges */}
@@ -165,37 +187,89 @@ export default function ProductCard({
             )}
 
             {/* Action Buttons - Always visible */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-6 opacity-100 transition-opacity duration-300">
-              {isInCart ? (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-3 opacity-100 transition-opacity duration-300">
+              {/* Cart Button */}
+              {isInCartState ? (
                 <button
                   onClick={handleGoToCart}
                   aria-label="Go to cart"
                   title="Go to cart"
-                  className="flex items-center justify-center opacity-70 w-12 h-12 rounded-full 
-       bg-white hover:bg-gray-50 text-gray-800 hover:w-20 transition-all shadow-lg backdrop-blur-sm"
+                  className="group/btn flex items-center justify-center gap-2 h-12 px-4 rounded-full 
+text-stone-500 cursor-pointer transition-all shadow-lg backdrop-blur-sm overflow-hidden bg-white hover:bg-gray-50"
                 >
-                  <ShoppingCart size={20} strokeWidth={1.5} />
+                  <ShoppingCart
+                    size={20}
+                    strokeWidth={2}
+                    fill="currentColor"
+                    className="flex-shrink-0"
+                  />
+                  <span className="max-w-0 group-hover/btn:max-w-xs overflow-hidden whitespace-nowrap transition-all duration-300 text-sm font-medium">
+                    In Cart
+                  </span>
                 </button>
               ) : (
                 <button
                   onClick={handleAddToCart}
-                  disabled={isPending}
+                  disabled={isPending || isCartLoading}
                   aria-label="Add to cart"
                   title="Add to cart"
-                  className="flex items-center justify-center w-12 h-12 opacity-70 rounded-full 
-       bg-white hover:bg-gray-50 text-gray-800 transition-all hover:w-20 disabled:opacity-50 shadow-lg backdrop-blur-sm"
+                  className="group/btn flex items-center justify-center gap-2 h-12 cursor-pointer px-4 rounded-full 
+bg-white hover:bg-gray-50 text-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg backdrop-blur-sm overflow-hidden"
                 >
-                  <ShoppingCart size={20} strokeWidth={1.5} />
+                  {isCartLoading ? (
+                    <Loader2 size={20} strokeWidth={1.5} className="flex-shrink-0 animate-spin" />
+                  ) : (
+                    <ShoppingCart
+                      size={20}
+                      strokeWidth={1.5}
+                      fill="none"
+                      className="flex-shrink-0"
+                    />
+                  )}
+                  <span className="max-w-0 group-hover/btn:max-w-xs overflow-hidden cursor-pointer whitespace-nowrap transition-all duration-500 text-sm font-medium">
+                    {isCartLoading ? "Adding..." : "Add to Cart"}
+                  </span>
                 </button>
               )}
 
+              {/* Wishlist Button */}
+              <button
+                onClick={handleToggleWishlist}
+                disabled={isPending || isWishlistLoading}
+                aria-label={isInWishlistState ? "Go to wishlist" : "Add to wishlist"}
+                title={isInWishlistState ? "Go to wishlist" : "Add to wishlist"}
+                className={`group/btn flex items-center justify-center gap-2 h-12 cursor-pointer px-4 rounded-full 
+bg-white hover:bg-gray-50 text-gray-800 transition-all shadow-lg backdrop-blur-sm 
+disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden`}
+              >
+                {isWishlistLoading ? (
+                  <Loader2 size={20} strokeWidth={1.5} className="flex-shrink-0 animate-spin" />
+                ) : (
+                  <Heart
+                    size={20}
+                    strokeWidth={1.5}
+                    fill={isInWishlistState ? "currentColor" : "none"}
+                    className={`flex-shrink-0 transition-colors duration-300 ${isInWishlistState ? "text-amber-600" : "text-gray-800"
+                      }`}
+                  />
+                )}
+                <span className="max-w-0 group-hover/btn:max-w-xs overflow-hidden whitespace-nowrap transition-all duration-500 text-sm font-medium">
+                  {isWishlistLoading ? "Loading..." : isInWishlist ? "Go to wishlist" : "Wishlist"}
+                </span>
+              </button>
+
+
+              {/* View Details Button */}
               <button
                 onClick={handleViewDetails}
                 aria-label="View details"
                 title="View details"
-                className="flex items-center justify-center w-12 h-12 hover:w-20 rounded-full opacity-70 bg-white hover:bg-gray-50 text-gray-800 transition-all shadow-lg backdrop-blur-sm"
+                className="group/btn flex items-center justify-center gap-2 h-12 cursor-pointer px-4 rounded-full bg-white hover:bg-gray-50 text-gray-800 transition-all shadow-lg backdrop-blur-sm overflow-hidden"
               >
-                <Eye size={20} strokeWidth={1.5} />
+                <Eye size={20} strokeWidth={1.5} className="flex-shrink-0" />
+                <span className="max-w-0 group-hover/btn:max-w-xs overflow-hidden cursor-pointer whitespace-nowrap transition-all duration-500 text-sm font-medium">
+                  View Details
+                </span>
               </button>
             </div>
           </div>

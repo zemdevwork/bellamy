@@ -48,9 +48,9 @@ export default function UserIcon({
         aria-label="Account"
       >
         <UserRound
-          strokeWidth={1}
+          strokeWidth={1.3}
           color={color}
-          className="w-5 h-5 md:w-7 md:h-7 cursor-pointer hover:scale-[1.2] transition-all duration-200"
+          className="w-5 h-5 md:w-7 md:h-7 cursor-pointer hover:opacity-60 transition-all duration-200"
         />
       </button>
 

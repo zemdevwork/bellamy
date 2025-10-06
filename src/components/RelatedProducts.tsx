@@ -13,6 +13,8 @@ type Product = {
   price: number;
   qty: number;
   image: string;
+  isInCart?: boolean;
+  isInWishlist?: boolean;
   subimage: string[];
   brandId?: string;
   categoryId?: string;
@@ -130,6 +132,8 @@ export default function RelatedProducts({ brand, limit, excludeProductId }: Prop
               description={p.description}
               variantId={p.defaultVariantId as string}
               brandName={p.brand?.name}
+              isInCart={p.isInCart}
+              isInWishlist={p.isInWishlist}
             />
           </div>
         ))}
