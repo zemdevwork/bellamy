@@ -142,6 +142,9 @@
   .subsection-title {
     @apply text-lg mb-2 sm:mb-4 md:md:mb-6 lg:mb-8 text-center;
   }
+  .product-title {
+    @apply text-lg sm:text-xl md:text-2xl font-semibold text-stone-600 mb-1 md:mb-2;
+  }
 }
 
 

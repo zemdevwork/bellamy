@@ -10,7 +10,7 @@ export default function WishlistIcon({
   return (
     <Link
       href="/wishlist"
-      className="relative inline-flex items-center justify-center h-7 w-7 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-full border bg-white transition-all duration-300 hover:scale-110 hover:shadow-md"
+      className="relative inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border bg-white transition-all duration-300 hover:scale-110 hover:shadow-md"
       style={{ borderColor: color }}
       aria-label="Wishlist"
     >

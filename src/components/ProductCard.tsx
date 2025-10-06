@@ -127,10 +127,10 @@ export default function ProductCard({
   };
 
   return (
-    <div className="group relative mx-2">
+    <div className="group relative">
       <div
         onClick={() => router.push(`/product/${id}`)}
-        className="cursor-pointer p-3 pb-10 rounded-tl-2xl rounded-br-2xl hover:shadow-lg transition-shadow duration-800"
+        className="cursor-pointer pt-3 px-3 pb-10 rounded-tl-2xl rounded-br-2xl hover:shadow-xl shadow-stone-200 transition-shadow duration-800"
       >
         <div>
           {/* Badges */}

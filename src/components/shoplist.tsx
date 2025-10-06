@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
+import {
+  ChevronDown,
+  ChevronUp,
+  X,
+  SlidersHorizontal,
+  ArrowUpDown,
+} from "lucide-react";
+import { brand } from "@/constants/values";
 
 type ProductAttribute = { name: string; value: string };
 type Brand = { id: string; name: string };
@@ -55,6 +56,22 @@ export default function ShopList() {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+
+  // Mobile UI state
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showMobileSort, setShowMobileSort] = useState(false);
+  const [mobileFilterView, setMobileFilterView] = useState<string | null>(null);
+
+  // Desktop accordion state
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    price: true,
+    category: true,
+    subcategory: false,
+    size: false,
+    color: false,
+    brand: false,
+    sort: false,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -241,6 +258,92 @@ export default function ShopList() {
     setSelectedSubCategory("");
   };
 
+  const resetFilters = () => {
+    setSelectedCategory("");
+    setSelectedBrand("");
+    setSelectedSubCategory("");
+    setSortOrder("");
+    setPriceRange("");
+    setSelectedColor("");
+    setSelectedSize("");
+  };
+
+  const toggleSection = (section: string) => {
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const FilterSection = ({
+    title,
+    section,
+    children,
+  }: {
+    title: string;
+    section: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="border-b pb-2 border-gray-200">
+      <button
+        onClick={() => toggleSection(section)}
+        className="w-full flex items-center justify-between py-3 text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide hover:text-gray-900"
+      >
+        {title}
+        {openSections[section] ? (
+          <ChevronUp className="h-4 w-4 text-gray-400" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-gray-400" />
+        )}
+      </button>
+        <div
+          className={`overflow-hidden transition-all ease-in duration-200 ${
+            openSections[section] ? "max-h-96 pb-4" : "max-h-0"
+          }`}
+        >
+          <div className="space-y-2">{children}</div>
+        </div>
+    </div>
+  );
+
+  const FilterOption = ({
+    label,
+    isSelected,
+    onClick,
+  }: {
+    label: string;
+    isSelected: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      onClick={onClick}
+      className={`w-full text-left px-3 py-2 text-sm rounded transition-colors ${
+        isSelected ? "text-white" : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+      }`}
+      style={isSelected ? { backgroundColor: brand.primary } : {}}
+    >
+      {label}
+    </button>
+  );
+
+  const SortOption = ({
+    label,
+    isSelected,
+    onClick,
+  }: {
+    label: string;
+    value: string;
+    isSelected: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      onClick={onClick}
+      className={`w-full text-left px-4 py-3 text-sm border-b border-gray-100 transition-colors ${
+        isSelected ? "text-white" : "text-gray-700 hover:bg-gray-50"
+      }`}
+      style={isSelected ? { backgroundColor: brand.primary } : {}}
+    >
+      {label}
+    </button>
+  );
+
   if (loading) {
     return (
       <div className="text-center py-10">
@@ -265,324 +368,563 @@ export default function ShopList() {
   }
 
   return (
-    <div className="w-full h-full">
-      <div className="flex flex-col lg:flex-row gap-6 w-full max-w-[1400px] mx-auto px-4">
-        <aside className="w-full lg:w-64 flex-shrink-0">
-          <h1 className="section-title">Products</h1>
-          <div className="lg:sticky lg:top-24">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-xs sm:text-sm font-medium uppercase tracking-wider text-gray-700">
-                FILTER BY
-              </h3>
+    <div className="w-full h-full pb-20 lg:pb-0">
+      <div className="w-full max-w-[1400px] mx-auto px-4">
+        {/* Filter Header and Sort Section - Full Width */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-4">
+          {/* Filter By Header (Desktop Only) */}
+                    <div className="hidden lg:flex items-center justify-between w-64 flex-shrink-0">
+            <h3 className="text-base sm:text-md md:text-lg font-medium uppercase tracking-wider text-gray-700">
+              FILTER BY
+            </h3>
+            <button
+              onClick={resetFilters}
+              className="text-base text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            >
+              Reset <span className="text-xl">⟲</span>
+            </button>
+          </div>
+
+
+          {/* Sort Section */}
+          <div className="hidden lg:flex items-center gap-3 w-full sm:w-auto justify-end">
+            <span className="text-xs sm:text-sm text-gray-700 font-medium uppercase tracking-wide">
+              SORT BY :
+            </span>
+            <div className="relative">
+              <button
+                onClick={() =>
+                  setOpenSections((prev) => ({ ...prev, sort: !prev.sort }))
+                }
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50 min-w-[160px] justify-between"
+              >
+                {sortOrder === "price_asc"
+                  ? "Price: Low to High"
+                  : sortOrder === "price_desc"
+                  ? "Price: High to Low"
+                  : "Newly Arrived"}
+                {openSections.sort ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+              {openSections.sort && (
+                <div className="absolute right-0 top-full mt-1 w-[180px] bg-white border border-gray-200 rounded shadow-lg z-10">
+                  <button
+                    onClick={() => {
+                      setSortOrder("");
+                      setOpenSections((prev) => ({ ...prev, sort: false }));
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${
+                      sortOrder === "" ? "font-medium" : ""
+                    }`}
+                    style={sortOrder === "" ? { color: brand.primary } : {}}
+                  >
+                    Newly Arrived
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOrder("price_asc");
+                      setOpenSections((prev) => ({ ...prev, sort: false }));
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${
+                      sortOrder === "price_asc" ? "font-medium" : ""
+                    }`}
+                    style={
+                      sortOrder === "price_asc" ? { color: brand.primary } : {}
+                    }
+                  >
+                    Price: Low to High
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortOrder("price_desc");
+                      setOpenSections((prev) => ({ ...prev, sort: false }));
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${
+                      sortOrder === "price_desc" ? "font-medium" : ""
+                    }`}
+                    style={
+                      sortOrder === "price_desc" ? { color: brand.primary } : {}
+                    }
+                  >
+                    Price: High to Low
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Filters and Products Section */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Desktop Filters Sidebar */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-24 z-10">
+              <div className="space-y-3">
+                <FilterSection title="PRICE RANGE" section="price">
+                  <FilterOption
+                    label="All Prices"
+                    isSelected={priceRange === ""}
+                    onClick={() => setPriceRange("")}
+                  />
+                  <FilterOption
+                    label="₹1 - ₹500"
+                    isSelected={priceRange === "1-500"}
+                    onClick={() => setPriceRange("1-500")}
+                  />
+                  <FilterOption
+                    label="₹500 - ₹1,000"
+                    isSelected={priceRange === "500-1000"}
+                    onClick={() => setPriceRange("500-1000")}
+                  />
+                  <FilterOption
+                    label="₹1,000 - ₹5,000"
+                    isSelected={priceRange === "1000-5000"}
+                    onClick={() => setPriceRange("1000-5000")}
+                  />
+                  <FilterOption
+                    label="₹5,000+"
+                    isSelected={priceRange === "5000+"}
+                    onClick={() => setPriceRange("5000+")}
+                  />
+                </FilterSection>
+
+                <FilterSection title="CATEGORY" section="category">
+                  <FilterOption
+                    label="All Categories"
+                    isSelected={selectedCategory === ""}
+                    onClick={() => handleCategoryChange("")}
+                  />
+                  {categories.map((category) => (
+                    <FilterOption
+                      key={category.id}
+                      label={category.name}
+                      isSelected={selectedCategory === category.id}
+                      onClick={() => handleCategoryChange(category.id)}
+                    />
+                  ))}
+                </FilterSection>
+
+                <FilterSection title="SUBCATEGORY" section="subcategory">
+                  <FilterOption
+                    label="All Subcategories"
+                    isSelected={selectedSubCategory === ""}
+                    onClick={() => setSelectedSubCategory("")}
+                  />
+                  {subcategories.map((sub) => (
+                    <FilterOption
+                      key={sub.id}
+                      label={sub.name}
+                      isSelected={selectedSubCategory === sub.id}
+                      onClick={() => setSelectedSubCategory(sub.id)}
+                    />
+                  ))}
+                </FilterSection>
+
+                <FilterSection title="SIZE" section="size">
+                  <FilterOption
+                    label="All Sizes"
+                    isSelected={selectedSize === ""}
+                    onClick={() => setSelectedSize("")}
+                  />
+                  {availableSizes.map((size) => (
+                    <FilterOption
+                      key={size}
+                      label={size}
+                      isSelected={selectedSize === size}
+                      onClick={() => setSelectedSize(size)}
+                    />
+                  ))}
+                </FilterSection>
+
+                <FilterSection title="COLOUR" section="color">
+                  <FilterOption
+                    label="All Colors"
+                    isSelected={selectedColor === ""}
+                    onClick={() => setSelectedColor("")}
+                  />
+                  {availableColors.map((color) => (
+                    <FilterOption
+                      key={color}
+                      label={color}
+                      isSelected={selectedColor === color}
+                      onClick={() => setSelectedColor(color)}
+                    />
+                  ))}
+                </FilterSection>
+
+                <FilterSection title="BRAND" section="brand">
+                  <FilterOption
+                    label="All Brands"
+                    isSelected={selectedBrand === ""}
+                    onClick={() => setSelectedBrand("")}
+                  />
+                  {brands.map((brand) => (
+                    <FilterOption
+                      key={brand.id}
+                      label={brand.name}
+                      isSelected={selectedBrand === brand.id}
+                      onClick={() => setSelectedBrand(brand.id)}
+                    />
+                  ))}
+                </FilterSection>
+              </div>
+            </div>
+          </aside>
+
+          <main className="flex-1 min-w-0">
+            {products.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="flex items-center justify-between pb-4">
+                  <h1 className="section-title">Products</h1>
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">{products.length}</span>{" "}
+                    Products Found
+                  </div>
+                </div>
+
+                <p className="text-gray-600">
+                  No products found{selectedCategory ? " for this category" : ""}.
+                </p>
+                {selectedCategory && (
+                  <button
+                    onClick={() => handleCategoryChange("")}
+                    className="mt-4 inline-block text-gray-700 hover:underline"
+                  >
+                    Show all categories
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="w-full">
+                <div className="flex items-start justify-between">
+                  <h1 className="product-title">Products</h1>
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">{products.length}</span>{" "}
+                    Products Found
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {products.map((p) => (
+                    <div key={p.id} className="group">
+                      <ProductCard
+                        id={p.id}
+                        name={p.name}
+                        price={`${p.price.toFixed(2)}`}
+                        image={p.image}
+                        description={p.description}
+                        variantId={p.defaultVariantId as string}
+                        brandName={p.brand?.name}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 lg:hidden z-50">
+        <div className="grid grid-cols-2 divide-x divide-gray-200">
+          <button
+            onClick={() => setShowMobileSort(true)}
+            className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            SORT
+          </button>
+          <button
+            onClick={() => setShowMobileFilters(true)}
+            className="flex items-center justify-center gap-2 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            FILTER
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Sort Modal */}
+      {showMobileSort && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 lg:hidden transition-opacity duration-300 ease-in-out"
+          onClick={() => setShowMobileSort(false)}
+        >
+          <div
+            className="absolute bottom-0 left-0 right-0 bg-white max-h-[70vh] overflow-y-auto transform transition-transform duration-300 ease-out"
+            style={{ animation: "slideUp 0.3s ease-out" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Sort By</h3>
+              <button onClick={() => setShowMobileSort(false)}>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="divide-y divide-gray-100">
+              <SortOption
+                label="Newly Arrived"
+                value=""
+                isSelected={sortOrder === ""}
+                onClick={() => {
+                  setSortOrder("");
+                  setShowMobileSort(false);
+                }}
+              />
+              <SortOption
+                label="Price: Low to High"
+                value="price_asc"
+                isSelected={sortOrder === "price_asc"}
+                onClick={() => {
+                  setSortOrder("price_asc");
+                  setShowMobileSort(false);
+                }}
+              />
+              <SortOption
+                label="Price: High to Low"
+                value="price_desc"
+                isSelected={sortOrder === "price_desc"}
+                onClick={() => {
+                  setSortOrder("price_desc");
+                  setShowMobileSort(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Filter Modal */}
+      {showMobileFilters && (
+        <div
+          className="fixed inset-0 bg-white z-50 lg:hidden flex flex-col transform transition-transform duration-300 ease-out"
+          style={{ animation: "slideInRight 0.3s ease-out" }}
+        >
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Filters</h3>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={resetFilters}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                Reset
+              </button>
               <button
                 onClick={() => {
-                  setSelectedCategory("");
-                  setSelectedBrand("");
-                  setSelectedSubCategory("");
-                  setSortOrder("");
-                  setPriceRange("");
-                  setSelectedColor("");
-                  setSelectedSize("");
+                  setShowMobileFilters(false);
+                  setMobileFilterView(null);
                 }}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
               >
-                Reset <span className="text-lg">⟲</span>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-hidden flex">
+            {/* Left Column - Filter Categories */}
+            <div className="w-2/5 border-r border-gray-200 overflow-y-auto">
+              <button
+                onClick={() => setMobileFilterView("price")}
+                className={`w-full text-left px-4 py-4 text-sm border-b border-gray-100 ${
+                  mobileFilterView === "price" ? "bg-gray-50 font-medium" : ""
+                }`}
+              >
+                Price Range
+              </button>
+              <button
+                onClick={() => setMobileFilterView("category")}
+                className={`w-full text-left px-4 py-4 text-sm border-b border-gray-100 ${
+                  mobileFilterView === "category"
+                    ? "bg-gray-50 font-medium"
+                    : ""
+                }`}
+              >
+                Category
+              </button>
+              <button
+                onClick={() => setMobileFilterView("subcategory")}
+                className={`w-full text-left px-4 py-4 text-sm border-b border-gray-100 ${
+                  mobileFilterView === "subcategory"
+                    ? "bg-gray-50 font-medium"
+                    : ""
+                }`}
+              >
+                Subcategory
+              </button>
+              <button
+                onClick={() => setMobileFilterView("size")}
+                className={`w-full text-left px-4 py-4 text-sm border-b border-gray-100 ${
+                  mobileFilterView === "size" ? "bg-gray-50 font-medium" : ""
+                }`}
+              >
+                Size
+              </button>
+              <button
+                onClick={() => setMobileFilterView("color")}
+                className={`w-full text-left px-4 py-4 text-sm border-b border-gray-100 ${
+                  mobileFilterView === "color" ? "bg-gray-50 font-medium" : ""
+                }`}
+              >
+                Colour
+              </button>
+              <button
+                onClick={() => setMobileFilterView("brand")}
+                className={`w-full text-left px-4 py-4 text-sm border-b border-gray-100 ${
+                  mobileFilterView === "brand" ? "bg-gray-50 font-medium" : ""
+                }`}
+              >
+                Brand
               </button>
             </div>
 
-            <div className="space-y-4">
-              {/* Price Range */}
-              <div className="border-b border-gray-200 pb-4">
-                <button className="w-full flex items-center justify-between text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide mb-3">
-                  PRICE RANGE
-                  <span className="text-gray-400">⌄</span>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-xs h-9"
-                    >
-                      {priceRange === ""
-                        ? "All Prices"
-                        : priceRange === "1-500"
-                        ? "₹1 - ₹500"
-                        : priceRange === "500-1000"
-                        ? "₹500 - ₹1,000"
-                        : priceRange === "1000-5000"
-                        ? "₹1,000 - ₹5,000"
-                        : "₹5,000+"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[240px]">
-                    <DropdownMenuLabel>Select Price Range</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setPriceRange("")}>
-                      All Prices
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setPriceRange("1-500")}>
-                      ₹1 - ₹500
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setPriceRange("500-1000")}>
-                      ₹500 - ₹1,000
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setPriceRange("1000-5000")}
-                    >
-                      ₹1,000 - ₹5,000
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setPriceRange("5000+")}>
-                      ₹5,000+
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Category */}
-              <div className="border-b border-gray-200 pb-4">
-                <button className="w-full flex items-center justify-between text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide mb-3">
-                  CATEGORY
-                  <span className="text-gray-400">⌄</span>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-xs h-9"
-                    >
-                      {selectedCategory === ""
-                        ? "All Categories"
-                        : categories.find((c) => c.id === selectedCategory)
-                            ?.name || "Select Category"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[240px]">
-                    <DropdownMenuLabel>Select Category</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => handleCategoryChange("")}>
-                      All Categories
-                    </DropdownMenuItem>
-                    {categories.map((category) => (
-                      <DropdownMenuItem
-                        key={category.id}
-                        onClick={() => handleCategoryChange(category.id)}
-                      >
-                        {category.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Subcategory */}
-              <div className="border-b border-gray-200 pb-4">
-                <button className="w-full flex items-center justify-between text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide mb-3">
-                  SUBCATEGORY
-                  <span className="text-gray-400">⌄</span>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-xs h-9"
-                    >
-                      {selectedSubCategory === ""
-                        ? "All Subcategories"
-                        : subcategories.find(
-                            (s) => s.id === selectedSubCategory
-                          )?.name || "Select"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[240px]">
-                    <DropdownMenuLabel>Select Subcategory</DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onClick={() => setSelectedSubCategory("")}
-                    >
-                      All Subcategories
-                    </DropdownMenuItem>
-                    {subcategories.map((sub) => (
-                      <DropdownMenuItem
-                        key={sub.id}
-                        onClick={() => setSelectedSubCategory(sub.id)}
-                      >
-                        {sub.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Size */}
-              <div className="border-b border-gray-200 pb-4">
-                <button className="w-full flex items-center justify-between text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide mb-3">
-                  SIZE
-                  <span className="text-gray-400">⌄</span>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-xs h-9"
-                    >
-                      {selectedSize || "All Sizes"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[240px]">
-                    <DropdownMenuLabel>Select Size</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setSelectedSize("")}>
-                      All Sizes
-                    </DropdownMenuItem>
-                    {availableSizes.map((size) => (
-                      <DropdownMenuItem
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                      >
-                        {size}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Colour */}
-              <div className="border-b border-gray-200 pb-4">
-                <button className="w-full flex items-center justify-between text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide mb-3">
-                  COLOUR
-                  <span className="text-gray-400">⌄</span>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-xs h-9"
-                    >
-                      {selectedColor || "All Colors"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[240px]">
-                    <DropdownMenuLabel>Select Color</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setSelectedColor("")}>
-                      All Colors
-                    </DropdownMenuItem>
-                    {availableColors.map((color) => (
-                      <DropdownMenuItem
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                      >
-                        {color}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Brand */}
-              <div className="border-b border-gray-200 pb-4">
-                <button className="w-full flex items-center justify-between text-xs sm:text-sm font-medium text-gray-700 uppercase tracking-wide mb-3">
-                  BRAND
-                  <span className="text-gray-400">⌄</span>
-                </button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between text-xs h-9"
-                    >
-                      {selectedBrand
-                        ? brands.find((b) => b.id === selectedBrand)?.name
-                        : "All Brands"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[240px]">
-                    <DropdownMenuLabel>Select Brand</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => setSelectedBrand("")}>
-                      All Brands
-                    </DropdownMenuItem>
-                    {brands.map((brand) => (
-                      <DropdownMenuItem
-                        key={brand.id}
-                        onClick={() => setSelectedBrand(brand.id)}
-                      >
-                        {brand.name}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <main className="flex-1 min-w-0">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-4">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">{products.length}</span> Products
-              Found
-            </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <span className="text-xs sm:text-sm text-gray-700 font-medium uppercase tracking-wide">
-                SORT BY :
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="flex-1 sm:min-w-[160px] h-9 text-xs justify-between"
-                  >
-                    {sortOrder === "price_asc"
-                      ? "Price: Low to High"
-                      : sortOrder === "price_desc"
-                      ? "Price: High to Low"
-                      : "New Arrivals"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[180px]">
-                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => setSortOrder("")}>
-                    New Arrivals
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOrder("price_asc")}>
-                    Price: Low to High
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setSortOrder("price_desc")}>
-                    Price: High to Low
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          {products.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-gray-600">
-                No products found{selectedCategory ? " for this category" : ""}.
-              </p>
-              {selectedCategory && (
-                <button
-                  onClick={() => handleCategoryChange("")}
-                  className="mt-4 inline-block text-gray-700 hover:underline"
-                >
-                  Show all categories
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {products.map((p) => (
-                <div key={p.id} className="group">
-                  <ProductCard
-                    id={p.id}
-                    name={p.name}
-                    price={`${p.price.toFixed(2)}`}
-                    image={p.image}
-                    description={p.description}
-                    variantId={p.defaultVariantId as string}
-                    brandName={p.brand?.name}
+            {/* Right Column - Filter Options */}
+            <div className="flex-1 overflow-y-auto bg-gray-50">
+              {mobileFilterView === "price" && (
+                <div className="p-4 space-y-2">
+                  <FilterOption
+                    label="All Prices"
+                    isSelected={priceRange === ""}
+                    onClick={() => setPriceRange("")}
+                  />
+                  <FilterOption
+                    label="₹1 - ₹500"
+                    isSelected={priceRange === "1-500"}
+                    onClick={() => setPriceRange("1-500")}
+                  />
+                  <FilterOption
+                    label="₹500 - ₹1,000"
+                    isSelected={priceRange === "500-1000"}
+                    onClick={() => setPriceRange("500-1000")}
+                  />
+                  <FilterOption
+                    label="₹1,000 - ₹5,000"
+                    isSelected={priceRange === "1000-5000"}
+                    onClick={() => setPriceRange("1000-5000")}
+                  />
+                  <FilterOption
+                    label="₹5,000+"
+                    isSelected={priceRange === "5000+"}
+                    onClick={() => setPriceRange("5000+")}
                   />
                 </div>
-              ))}
+              )}
+
+              {mobileFilterView === "category" && (
+                <div className="p-4 space-y-2">
+                  <FilterOption
+                    label="All Categories"
+                    isSelected={selectedCategory === ""}
+                    onClick={() => handleCategoryChange("")}
+                  />
+                  {categories.map((category) => (
+                    <FilterOption
+                      key={category.id}
+                      label={category.name}
+                      isSelected={selectedCategory === category.id}
+                      onClick={() => handleCategoryChange(category.id)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {mobileFilterView === "subcategory" && (
+                <div className="p-4 space-y-2">
+                  <FilterOption
+                    label="All Subcategories"
+                    isSelected={selectedSubCategory === ""}
+                    onClick={() => setSelectedSubCategory("")}
+                  />
+                  {subcategories.map((sub) => (
+                    <FilterOption
+                      key={sub.id}
+                      label={sub.name}
+                      isSelected={selectedSubCategory === sub.id}
+                      onClick={() => setSelectedSubCategory(sub.id)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {mobileFilterView === "size" && (
+                <div className="p-4 space-y-2">
+                  <FilterOption
+                    label="All Sizes"
+                    isSelected={selectedSize === ""}
+                    onClick={() => setSelectedSize("")}
+                  />
+                  {availableSizes.map((size) => (
+                    <FilterOption
+                      key={size}
+                      label={size}
+                      isSelected={selectedSize === size}
+                      onClick={() => setSelectedSize(size)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {mobileFilterView === "color" && (
+                <div className="p-4 space-y-2">
+                  <FilterOption
+                    label="All Colors"
+                    isSelected={selectedColor === ""}
+                    onClick={() => setSelectedColor("")}
+                  />
+                  {availableColors.map((color) => (
+                    <FilterOption
+                      key={color}
+                      label={color}
+                      isSelected={selectedColor === color}
+                      onClick={() => setSelectedColor(color)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {mobileFilterView === "brand" && (
+                <div className="p-4 space-y-2">
+                  <FilterOption
+                    label="All Brands"
+                    isSelected={selectedBrand === ""}
+                    onClick={() => setSelectedBrand("")}
+                  />
+                  {brands.map((brand) => (
+                    <FilterOption
+                      key={brand.id}
+                      label={brand.name}
+                      isSelected={selectedBrand === brand.id}
+                      onClick={() => setSelectedBrand(brand.id)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!mobileFilterView && (
+                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                  Select a filter category
+                </div>
+              )}
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+
+          <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
+            <Button
+              onClick={() => {
+                setShowMobileFilters(false);
+                setMobileFilterView(null);
+              }}
+              className="w-full text-white"
+              style={{ backgroundColor: brand.primary }}
+            >
+              Apply Filters
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
