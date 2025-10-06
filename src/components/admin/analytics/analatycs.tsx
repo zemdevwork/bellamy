@@ -24,6 +24,7 @@ import {
 import Image from "next/image";
 import { exportOverviewPDF, exportProductsPDF, exportOrdersPDF } from "./analytic-pdf";
 import { Button } from "@/components/ui/button";
+import AdminLoader from "../AdminLoader";
 
 interface FilterState {
   status:
@@ -242,10 +243,7 @@ function AnalyticsPage() {
   if (loading && !salesMetrics) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <RefreshCw className="h-6 w-6 animate-spin" />
-          <span>Loading analytics...</span>
-        </div>
+        <AdminLoader/>
       </div>
     );
   }

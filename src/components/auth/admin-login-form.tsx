@@ -26,6 +26,7 @@ import { Loader2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginData } from "@/types/auth";
 import { IconLogout } from "@tabler/icons-react";
+import { toast } from "sonner";
 
 export function AdminLoginForm({
   className,
@@ -61,6 +62,7 @@ export function AdminLoginForm({
       if (!res.ok) {
         setErrorMessage(result.error || "Login failed");
       } else {
+        toast.success("Login successful");
         router.replace(result.redirectTo || "/");
       }
     } catch (error) {

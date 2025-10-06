@@ -8,6 +8,7 @@ import { getAllOrders } from "@/server/actions/admin-order-action";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import AdminLoader from "@/components/admin/AdminLoader";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -37,8 +38,7 @@ export default function AdminOrdersPage() {
   if (loading) {
     return (
       <div className="container w-full h-screen text-center flex flex-col items-center justify-center"> 
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
-        <p className="text-gray-600">Loading orders...</p>
+        <AdminLoader/>
       </div>
     )
   }
@@ -49,12 +49,12 @@ export default function AdminOrdersPage() {
         <h1 className="text-2xl font-bold">Admin Orders</h1>
         <div className="flex items-center gap-2">
           <Input placeholder="Search orders..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Select value={status} onValueChange={setStatus}>
+          <Select value={status} onValueChange={(v) => setStatus(v === "ALL" ? "" : v)}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All</SelectItem>
+              <SelectItem value="ALL">All</SelectItem>
               <SelectItem value="PENDING">PENDING</SelectItem>
               <SelectItem value="PAID">PAID</SelectItem>
               <SelectItem value="FAILED">FAILED</SelectItem>
