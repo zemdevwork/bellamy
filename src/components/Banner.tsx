@@ -109,7 +109,7 @@ export default function Banner() {
   );
 
   return (
-    <section className="relative w-full h-screen overflow-hidden cursor-pointer">
+    <section className="relative w-full h-screen md:h-[90vh] overflow-hidden cursor-pointer">
       <Slider {...settings} className="h-full">
         {slides.map((slide) => (
           <div key={slide.id} className="relative w-full h-screen">

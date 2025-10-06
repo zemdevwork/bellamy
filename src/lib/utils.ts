@@ -101,5 +101,5 @@ export const isLoggedIn = () => {
 
 export const loggedInUser = () => {
   if(typeof window === 'undefined') return null
-  return JSON.parse(localStorage.getItem('user')!);
+  return JSON.parse(localStorage.getItem('user')!) || null;
 };

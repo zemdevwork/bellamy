@@ -11,6 +11,7 @@ import { brand } from "@/constants/values";
 import { isLoggedIn } from "@/lib/utils";
 import SearchComponent from "@/components/search";
 import { bodoniModa } from "@/lib/font";
+import UserIcon from "./common/UserIcon";
 
 export default function Header() {
   const pathname = usePathname();
@@ -21,7 +22,6 @@ export default function Header() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
 
   const [categories, setCategories] = useState<{ id: string; name: string }[]>(
     []
@@ -37,14 +37,6 @@ export default function Header() {
     }
   };
 
-  const toggleProfileMenu = () => {
-    setIsProfileMenuOpen(!isProfileMenuOpen);
-    if (!isProfileMenuOpen) {
-      setIsMenuOpen(false);
-      setIsSearchOpen(false);
-    }
-  };
-  
   const toggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
     if (!isSearchOpen) {
@@ -58,15 +50,6 @@ export default function Header() {
       if (typeof window !== "undefined") {
         const loggedIn = isLoggedIn();
         setUserLoggedIn(loggedIn);
-        if (loggedIn) {
-          try {
-            const user = JSON.parse(localStorage.getItem("user")!);
-            setUserName(user.name || "User");
-          } catch (error) {
-            console.error("Failed to parse user data:", error);
-            setUserName("User");
-          }
-        }
       }
     };
 
@@ -155,13 +138,9 @@ export default function Header() {
   }, [lastScrollY, isMenuOpen, isProfileMenuOpen, isSearchOpen]);
 
   useEffect(() => {
-    if (isMenuOpen || isProfileMenuOpen || isSearchOpen) setIsHeaderVisible(true);
+    if (isMenuOpen || isProfileMenuOpen || isSearchOpen)
+      setIsHeaderVisible(true);
   }, [isMenuOpen, isProfileMenuOpen, isSearchOpen]);
-
-  const handleLogoutClick = () => {
-    setIsLogoutModalOpen(true);
-    setIsProfileMenuOpen(false);
-  };
 
   return (
     <>
@@ -171,8 +150,10 @@ export default function Header() {
         }`}
       >
         {/* Main Header Bar */}
-        <div className="flex items-center justify-between md:justify-center px-4 sm:px-6 md:px-8 lg:px-12 py-3 md:py-5 lg:py-7 border-b" style={{ borderColor: "#F0E5E9" }}>
-          
+        <div
+          className="flex items-center shadow-md justify-between md:justify-center px-4 sm:px-6 md:px-8 py-2 md:py-3 lg:py-5 border-b"
+          style={{ borderColor: "#F0E5E9" }}
+        >
           {/* Left: Mobile Menu + Logo */}
           <div className="flex items-center gap-3 md:gap-4">
             {/* Mobile Menu Button */}
@@ -188,9 +169,19 @@ export default function Header() {
                 viewBox="0 0 24 24"
               >
                 {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -206,7 +197,7 @@ export default function Header() {
           </div>
 
           {/* Center: Search Bar */}
-          <div className="hidden md:block flex-1 max-w-xl mx-8 lg:mx-12">
+          <div className="hidden md:block flex-1 max-w-xl mx-8">
             <SearchComponent brand={brand} />
           </div>
 
@@ -215,73 +206,32 @@ export default function Header() {
             {/* Mobile Search Icon */}
             <button
               onClick={toggleSearch}
-              className="md:hidden p-2 rounded-full text-gray-800 hover:bg-gray-100 focus:outline-none"
+              className="md:hidden p-1"
               aria-label="Toggle search"
             >
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="h-5 w-5 sm:h-6 sm:w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </button>
 
-            {/* Profile/Login */}
-            <div className="relative cursor-pointer" ref={profileMenuRef}>
-              {userLoggedIn ? (
-                <div className="relative group">
-                  <button
-                    onClick={toggleProfileMenu}
-                    aria-label="Account"
-                    className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-white border transition-all duration-300 hover:scale-110 hover:shadow-md text-sm font-semibold uppercase"
-                    style={{ borderColor: brand.primary, color: brand.primary }}
-                  >
-                    {userName ? userName.charAt(0) : "U"}
-                  </button>
-
-                  <div
-                    className={`absolute right-0 mt-2 w-44 bg-white shadow-xl border border-gray-100 rounded-lg overflow-hidden transition-all duration-200 z-50 ${
-                      isProfileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible md:group-hover:opacity-100 md:group-hover:visible"
-                    }`}
-                  >
-                    <div className="py-1">
-                      <div className="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
-                        Hello, {userName}
-                      </div>
-                      <Link
-                        href="/user-profile"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsProfileMenuOpen(false)}
-                      >
-                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        Profile
-                      </Link>
-                      <button
-                        onClick={handleLogoutClick}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 text-left"
-                      >
-                        <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  href="/login"
-                  aria-label="Login"
-                  className="p-2 rounded-full text-gray-800 hover:bg-gray-100 transition-all duration-300"
-                >
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </Link>
-              )}
-            </div>
+            {/* User */}
+            <UserIcon
+              userLoggedIn={userLoggedIn}
+              color={brand.primary}
+            />
 
             {/* Wishlist */}
-            {userLoggedIn && <WishlistIcon color={brand.primary} />}
+            <WishlistIcon userLoggedIn={userLoggedIn} color={brand.primary} />
 
             {/* Cart */}
             <CartIcon color={brand.primary} />
@@ -291,7 +241,9 @@ export default function Header() {
         {/* Mobile Search Bar - Expandable */}
         <div
           className={`md:hidden bg-white border-b transition-all duration-300 ease-in-out overflow-hidden ${
-            isSearchOpen ? "max-h-20 opacity-100 py-3 px-4" : "max-h-0 opacity-0"
+            isSearchOpen
+              ? "max-h-20 opacity-100 py-3 px-4"
+              : "max-h-0 opacity-0"
           }`}
           style={{ borderColor: "#F0E5E9" }}
         >
@@ -299,8 +251,11 @@ export default function Header() {
         </div>
 
         {/* Navigation Bar */}
-        <div className="hidden md:block border-b" style={{ borderColor: "#F0E5E9" }}>
-          <div className="flex items-center justify-center px-8 lg:px-12 py-3">
+        <div
+          className="hidden md:block border-b shadow-lg"
+          style={{ borderColor: "#F0E5E9" }}
+        >
+          <div className="flex items-center justify-center px-8 lg:px-12 py-1 sm:py-2 md:py-3 lg:py-4">
             <nav className="flex text-xs font-bold items-center gap-8 lg:gap-12 tracking-wider">
               <Link
                 href="/"
@@ -309,29 +264,45 @@ export default function Header() {
               >
                 HOME
               </Link>
-              
+
               <div className="relative group">
                 <Link
                   href="/shop"
                   className="transition-colors hover:opacity-70"
-                  style={{ color: isActive("/shop") ? brand.primary : "#3f3f3f" }}
+                  style={{
+                    color: isActive("/shop") ? brand.primary : "#3f3f3f",
+                  }}
                 >
                   SHOP
                 </Link>
-                
+
                 {/* Dropdown */}
-                <div className="absolute left-1/2 -translate-x-1/2 mt-3 bg-white shadow-2xl border rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden" style={{ borderColor: "#E3D5CA", width: 360 }}>
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 mt-3 bg-white shadow-2xl border rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden"
+                  style={{ borderColor: "#E3D5CA", width: 360 }}
+                >
                   <div className="grid grid-cols-2">
-                    <div className="col-span-2 border-b px-4 py-3 text-[13px] font-semibold" style={{ color: brand.primary, borderColor: "#E3D5CA" }}>
+                    <div
+                      className="col-span-2 border-b px-4 py-3 text-[13px] font-semibold"
+                      style={{ color: brand.primary, borderColor: "#E3D5CA" }}
+                    >
                       Shop Categories
                     </div>
                     {(() => {
                       const mid = Math.ceil(categories.length / 2);
                       const left = categories.slice(0, mid);
                       const right = categories.slice(mid);
-                      const renderCol = (items: { id: string; name: string }[]) => (
-                        <div className="px-4 py-3 first:border-r" style={{ borderColor: "#E3D5CA" }}>
-                          <div className="text-[12px] font-semibold mb-2" style={{ color: brand.primary }}>
+                      const renderCol = (
+                        items: { id: string; name: string }[]
+                      ) => (
+                        <div
+                          className="px-4 py-3 first:border-r"
+                          style={{ borderColor: "#E3D5CA" }}
+                        >
+                          <div
+                            className="text-[12px] font-semibold mb-2"
+                            style={{ color: brand.primary }}
+                          >
                             Browse
                           </div>
                           <ul className="space-y-2">
@@ -363,15 +334,19 @@ export default function Header() {
               <Link
                 href="/our-story"
                 className="transition-colors hover:opacity-70"
-                style={{ color: isActive("/our-story") ? brand.primary : "#3f3f3f" }}
+                style={{
+                  color: isActive("/our-story") ? brand.primary : "#3f3f3f",
+                }}
               >
                 OUR STORY
               </Link>
-              
+
               <Link
                 href="/contact"
                 className="transition-colors hover:opacity-70"
-                style={{ color: isActive("/contact") ? brand.primary : "#3f3f3f" }}
+                style={{
+                  color: isActive("/contact") ? brand.primary : "#3f3f3f",
+                }}
               >
                 CONTACT
               </Link>
@@ -398,8 +373,18 @@ export default function Header() {
             <details className="group">
               <summary className="flex justify-between items-center py-2 text-base font-medium text-gray-800 cursor-pointer">
                 SHOP
-                <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4 transition-transform group-open:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </summary>
               <div className="pl-4 mt-2 space-y-2">
@@ -418,7 +403,9 @@ export default function Header() {
             <Link
               href="/our-story"
               className="block py-2 text-base font-medium"
-              style={{ color: isActive("/our-story") ? brand.primary : "#3f3f3f" }}
+              style={{
+                color: isActive("/our-story") ? brand.primary : "#3f3f3f",
+              }}
               onClick={() => setIsMenuOpen(false)}
             >
               OUR STORY
@@ -426,7 +413,9 @@ export default function Header() {
             <Link
               href="/contact"
               className="block py-2 text-base font-medium"
-              style={{ color: isActive("/contact") ? brand.primary : "#3f3f3f" }}
+              style={{
+                color: isActive("/contact") ? brand.primary : "#3f3f3f",
+              }}
               onClick={() => setIsMenuOpen(false)}
             >
               CONTACT
@@ -435,7 +424,9 @@ export default function Header() {
               <Link
                 href="/user-profile"
                 className="block py-2 text-base font-medium"
-                style={{ color: isActive("/user-profile") ? brand.primary : "#3f3f3f" }}
+                style={{
+                  color: isActive("/user-profile") ? brand.primary : "#3f3f3f",
+                }}
                 onClick={() => setIsMenuOpen(false)}
               >
                 PROFILE

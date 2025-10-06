@@ -1,27 +1,21 @@
 "use client";
 import Link from "next/link";
-import { ShoppingCart } from "lucide-react";
+import { Handbag } from "lucide-react";
 import { useCart } from "@/context/cartContext";
 
-export default function CartIcon({ color = "#8B1D3F" }: { color?: string }) {
+function CartIcon({ color = "#8B1D3F" }: { color?: string }) {
   const { cartCount } = useCart();
 
   return (
     <Link
       href="/cart"
-      className="relative inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border bg-white transition-all duration-300 hover:scale-110 hover:shadow-md"
-      style={{ borderColor: color }}
+      className="relative inline-flex items-center justify-center p-1"
       aria-label="Cart"
     >
-      <ShoppingCart
-        className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 transition-transform duration-300"
-        strokeWidth={1.8}
-        color={color}
-      />
+      <Handbag strokeWidth={1} color={color} className="w-5 h-5 md:w-7 md:h-7 cursor-pointer hover:scale-[1.2] transition-all duration-200" />
       {cartCount > 0 && (
         <span
-          className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 text-[8px] sm:text-[9px] md:text-[10px] font-bold px-1 py-0.5 rounded-full text-white min-w-[14px] sm:min-w-[16px] text-center"
-          style={{ backgroundColor: color }}
+          className="absolute -top-1 -right-1 text-[10px] font-bold px-1 rounded-full text-white bg-red-600 min-w-[14px] text-center"
         >
           {cartCount}
         </span>
@@ -29,3 +23,5 @@ export default function CartIcon({ color = "#8B1D3F" }: { color?: string }) {
     </Link>
   );
 }
+
+export default CartIcon;

@@ -135,7 +135,7 @@ export default function BestSellers() {
         {/* Scrollable Product Container */}
         <div
           ref={scrollContainerRef}
-          className="flex gap-4 sm:gap-6 md:gap-12 lg:gap-16 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing"
+          className="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-4 cursor-grab active:cursor-grabbing"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -160,7 +160,7 @@ export default function BestSellers() {
       {/* Left Arrow - Outside page-wrap */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
+        className="absolute hidden md:block left-14 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
       >
         <svg
           className="w-5 h-5 text-gray-600"
@@ -180,7 +180,7 @@ export default function BestSellers() {
       {/* Right Arrow - Outside page-wrap */}
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
+        className="absolute right-14 top-1/2 hidden md:block -translate-y-1/2 z-10 p-2 rounded-full bg-white/90 ring-1 ring-stone-200 text-stone-700 shadow-sm hover:shadow transition"
       >
         <svg
           className="w-5 h-5 text-gray-600"

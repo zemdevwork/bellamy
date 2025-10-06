@@ -1,24 +1,18 @@
 "use client";
-import Link from "next/link";
-import { Heart } from "lucide-react";
 
-export default function WishlistIcon({
-  color = "#8B1D3F",
-}: {
-  color?: string;
-}) {
+import Link from "next/link";
+import { Heart} from "lucide-react";
+
+function WishlistIcon({ color = "#8B1D3F", userLoggedIn }: { color?: string; userLoggedIn: boolean }) {
   return (
     <Link
-      href="/wishlist"
-      className="relative inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full border bg-white transition-all duration-300 hover:scale-110 hover:shadow-md"
-      style={{ borderColor: color }}
+      href={userLoggedIn ? "/wishlist" : "/login"}
+      className="inline-flex items-center justify-center p-1"
       aria-label="Wishlist"
     >
-      <Heart
-        className="h-3.5 w-3.5 sm:h-4 sm:w-4 md:h-5 md:w-5 transition-transform duration-300"
-        strokeWidth={1.8}
-        color={color}
-      />
+      <Heart strokeWidth={1} color={color} className="w-5 h-5 md:w-7 md:h-7 cursor-pointer hover:scale-[1.2] transition-all duration-200" />
     </Link>
   );
 }
+
+export default WishlistIcon;
