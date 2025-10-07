@@ -39,7 +39,7 @@ function CTACard({
   };
 
   return (
-    <div className="flex flex-col md:flex-row rounded-xl overflow-hidden shadow-lg h-[400px] md:h-[500px]">
+    <div className="w-full flex flex-col md:flex-row rounded-xl overflow-hidden shadow-lg h-[400px] md:h-[500px]">
       {/* Image */}
       <div className="relative w-full md:w-1/2 h-full">
         <Image
@@ -106,7 +106,7 @@ export default function CTASlider() {
   };
 
   return (
-    <div className="page-wrap py-3 sm:py-6 md:py-12 lg:py-16">
+    <div className="page-wrap overflow-hidden py-3 sm:py-6 md:py-12 lg:py-16">
       <Slider {...settings}>
         {CTASlides.map((slide, index) => (
           <div key={index} className="px-2">
