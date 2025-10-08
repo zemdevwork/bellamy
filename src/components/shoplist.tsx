@@ -373,7 +373,7 @@ export default function ShopList() {
     <div className="w-full h-full pb-20 lg:pb-0">
       <div className="w-full max-w-[1400px] mx-auto px-4">
         {/* Filter Header and Sort Section - Full Width */}
-        <div className="flex flex-col hidden lg:flex lg:flex-row items-start lg:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-4">
+        <div className="flex-col hidden lg:flex lg:flex-row items-start lg:items-center justify-between mb-6 pb-4 border-b border-gray-200 gap-4">
           {/* Filter By Header (Desktop Only) */}
                     <div className="hidden lg:flex items-center justify-between w-64 flex-shrink-0">
             <h3 className="text-base sm:text-md md:text-lg font-medium uppercase tracking-wider text-gray-700">

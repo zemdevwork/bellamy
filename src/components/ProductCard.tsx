@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useTransition, useEffect } from "react";
+import React, { useState, useTransition} from "react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils";
-import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
-import { Eye, ShoppingCart, Heart, Loader2, Check, CloudCog } from "lucide-react";
+import { addLocalCartItem } from "@/lib/local-cart";
+import { Eye, ShoppingCart, Heart, Loader2 } from "lucide-react";
 import { useCart } from "@/context/cartContext";
 import { rupee } from "@/constants/values";
 import { addToWishlist } from "@/server/actions/wishlist-action";
@@ -131,7 +131,7 @@ export default function ProductCard({
         } else {
           // Add to wishlist
           if (isLoggedIn()) {
-            const res = await addToWishlist({ variantId });
+            await addToWishlist({ variantId });
             setIsInWishlistState(true);
             toast.success(`Added "${name}" to wishlist!`);
           } else {
