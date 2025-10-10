@@ -18,10 +18,14 @@ export default function UserIcon({
 }: UserIconProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [user, setUser] = useState<{ name?: string } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const user = loggedInUser();
 
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+  useEffect(() => {
+    // ✅ Runs only on client side — avoids SSR mismatch
+    const data = loggedInUser();
+    setUser(data);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -32,13 +36,17 @@ export default function UserIcon({
         setIsDropdownOpen(false);
       }
     };
+
     if (isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDropdownOpen]);
+
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   return (
     <div className="md:relative static" ref={dropdownRef}>

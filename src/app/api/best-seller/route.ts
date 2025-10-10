@@ -109,11 +109,8 @@ export async function GET() {
       (a, b) => b.topVariantPurchases - a.topVariantPurchases
     );
 
-    // Step 7: Take top 5 products
-    const top5Products = sortedProducts.slice(0, 10);
-
     // Step 8: Format the response
-    const formattedBestsellers: FormattedBestsellers[] = top5Products.map(
+    const formattedBestsellers: FormattedBestsellers[] = sortedProducts.map(
       (item) => ({
         id: item.product.id,
         variantId: item.topVariantId,

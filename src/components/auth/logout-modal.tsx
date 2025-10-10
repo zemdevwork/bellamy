@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useCart } from "@/context/cartContext";
+import { authClient } from "@/lib/auth-client";
 
 export const LogoutDialog = ({
   open,
@@ -24,8 +25,10 @@ export const LogoutDialog = ({
 }) => {
     const router = useRouter()
   const { updateCartCount } = useCart();
+
 const handleLogout = async () => {
   try {
+    await authClient.signOut();
     const res = await fetch("/api/auth/logout", {
       method: "POST",
       headers: {
