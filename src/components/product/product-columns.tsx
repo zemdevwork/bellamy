@@ -207,6 +207,7 @@ export const ProductDropdownMenu = ({ product }: { product: ProductDetail }) => 
 import { useAction } from "next-safe-action/hooks";
 import { createVariantAction } from "@/server/actions/variant-actions";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 function InlineAddVariant({ productId, onClose }: { productId: string; onClose: () => void }) {
   const [price, setPrice] = useState("");
@@ -247,19 +248,25 @@ function InlineAddVariant({ productId, onClose }: { productId: string; onClose: 
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-md p-4 w-full max-w-md space-y-3">
         <div className="font-semibold">Add Variant</div>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {attributes.map(attr => (
-            <div key={attr.id} className="flex items-center gap-2">
-              <div className="w-28 text-sm text-muted-foreground">{attr.name}</div>
-              <select className="border rounded px-2 py-1 text-sm flex-1"
-                onChange={(e) => setOption(attr.id, e.target.value)}
+            <div key={attr.id} className="space-y-1.5">
+              <label className="text-sm font-medium">{attr.name}</label>
+              <Select
                 value={selectedOptions.find(o => o.attributeId === attr.id)?.valueId || ''}
+                onValueChange={(value) => setOption(attr.id, value)}
               >
-                <option value="">Select</option>
-                {attr.values.map(v => (
-                  <option key={v.id} value={v.id}>{v.value}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  {attr.values.map(v => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           ))}
         </div>
