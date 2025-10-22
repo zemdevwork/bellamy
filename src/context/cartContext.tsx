@@ -2,17 +2,21 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { isLoggedIn } from '@/lib/utils';
 import { getUserCart } from '@/server/actions/cart-action';
+import { getUserWishlist } from '@/server/actions/wishlist-action';
 import { getLocalCart } from '@/lib/local-cart';
 
-interface CartContextType {
+interface CartWishlistContextType {
   cartCount: number;
+  wishlistCount: number;
   updateCartCount: () => Promise<void>;
+  updateWishlistCount: () => Promise<void>;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const CartWishlistContext = createContext<CartWishlistContextType | undefined>(undefined);
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartWishlistProvider({ children }: { children: ReactNode }) {
   const [cartCount, setCartCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
   const updateCartCount = async () => {
     try {
@@ -30,21 +34,53 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateWishlistCount = async () => {
+    try {
+      if (isLoggedIn()) {
+        const wishlist = await getUserWishlist();
+        const totalItems = wishlist?.items?.length || 0;
+        setWishlistCount(totalItems);
+      } else {
+        setWishlistCount(0);
+      }
+    } catch (error) {
+      console.error("Failed to load wishlist", error);
+    }
+  };
+
+
   useEffect(() => {
     updateCartCount();
+    updateWishlistCount();
   }, []);
 
   return (
-    <CartContext.Provider value={{ cartCount, updateCartCount }}>
+    <CartWishlistContext.Provider value={{ 
+      cartCount, 
+      wishlistCount, 
+      updateCartCount, 
+      updateWishlistCount,
+    }}>
       {children}
-    </CartContext.Provider>
+    </CartWishlistContext.Provider>
   );
 }
 
-export const useCart = () => {
-  const context = useContext(CartContext);
+export const useCartWishlist = () => {
+  const context = useContext(CartWishlistContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error('useCartWishlist must be used within a CartWishlistProvider');
   }
   return context;
+};
+
+// Optional: Keep the old hook names for backwards compatibility
+export const useCart = () => {
+  const { cartCount, updateCartCount } = useCartWishlist();
+  return { cartCount, updateCartCount };
+};
+
+export const useWishlist = () => {
+  const { wishlistCount, updateWishlistCount } = useCartWishlist();
+  return { wishlistCount, updateWishlistCount };
 };

@@ -6,6 +6,7 @@ import { removeFromWishlist } from "@/server/actions/wishlist-action";
 import { toast } from "sonner";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import { rupee } from "@/constants/values";
+import { useWishlist } from "@/context/cartContext";
 
 type WishlistItemProps = {
   variantId: string;
@@ -16,11 +17,13 @@ type WishlistItemProps = {
 export default function WishlistCard({ variantId, product, onRemoved }: WishlistItemProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { updateWishlistCount } = useWishlist();
 
   const handleRemove = () => {
     startTransition(async () => {
       try {
         await removeFromWishlist({ variantId });
+        await updateWishlistCount();
         toast.success("Removed from wishlist");
         onRemoved?.(variantId);
       } catch {

@@ -8,7 +8,7 @@ import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem } from "@/lib/local-cart";
 import { Eye, ShoppingCart, Heart, Loader2 } from "lucide-react";
-import { useCart } from "@/context/cartContext";
+import { useCart, useWishlist } from "@/context/cartContext";
 import { rupee } from "@/constants/values";
 import { addToWishlist } from "@/server/actions/wishlist-action";
 
@@ -48,6 +48,7 @@ export default function ProductCard({
   const [isInWishlistState, setIsInWishlistState] = useState(isInWishlist);
   const router = useRouter();
   const { updateCartCount } = useCart();
+  const { updateWishlistCount } = useWishlist();
 
   const discountPercentage = oldPrice
     ? Math.round(
@@ -133,6 +134,7 @@ export default function ProductCard({
           if (isLoggedIn()) {
             await addToWishlist({ variantId });
             setIsInWishlistState(true);
+            await updateWishlistCount();
             toast.success(`Added "${name}" to wishlist!`);
           } else {
             setIsInWishlistState(false);

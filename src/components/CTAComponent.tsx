@@ -3,7 +3,9 @@
 import { isLoggedIn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
-import Slider from "react-slick";
+import { useKeenSlider, KeenSliderInstance } from "keen-slider/react";
+import "keen-slider/keen-slider.min.css";
+import { useEffect } from "react";
 import { CTASlides } from "@/constants/values";
 
 interface CTACardProps {
@@ -23,16 +25,13 @@ function CTACard({
   titleColor,
   priority = false,
 }: CTACardProps) {
-  // Determine text color based on background for better visibility
   const getTextColor = () => {
     if (titleColor) return titleColor;
-    // Light backgrounds get dark text, dark backgrounds get light text
     const lightBgs = ["#B8D4E8", "#FFE5D9", "#F8E8EE"];
     return lightBgs.includes(bgColor) ? "#2C3E50" : "#F5E6D3";
   };
 
   const getSubtitleColor = () => {
-    // If custom titleColor exists, use a complementary color
     if (titleColor) return "#5B7C99";
     const lightBgs = ["#B8D4E8", "#FFE5D9", "#F8E8EE"];
     return lightBgs.includes(bgColor) ? "#4A5568" : "#F5E6D3";
@@ -69,7 +68,6 @@ function CTACard({
           {subtitle}
         </p>
 
-        {/* Centered Button */}
         <div className="w-full flex justify-center mt-6">
           <Link
             href={isLoggedIn() ? "/shop" : "/login"}
@@ -83,33 +81,63 @@ function CTACard({
   );
 }
 
-export default function CTASlider() {
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 2, // 1 card on mobile
-    slidesToScroll: 1,
-    arrows: true,
-    autoplay: true,
-    autoplaySpeed: 4000,
-    adaptiveHeight: true,
-    responsive: [
-      {
-        breakpoint: 1024, // lg breakpoint
-        settings: {
-          slidesToShow: 1, // 2 cards on larger screens
-          slidesToScroll: 1,
-        }
-      }
-    ]
+// ✅ Type-safe autoplay plugin
+function AutoplayPlugin(slider: KeenSliderInstance) {
+  let timeout: ReturnType<typeof setTimeout>;
+  let mouseOver = false;
+
+  const clearNextTimeout = () => clearTimeout(timeout);
+
+  const nextTimeout = () => {
+    clearTimeout(timeout);
+    if (mouseOver) return;
+    timeout = setTimeout(() => slider.next(), 4000);
   };
+
+  slider.on("created", () => {
+    slider.container.addEventListener("mouseover", () => {
+      mouseOver = true;
+      clearNextTimeout();
+    });
+    slider.container.addEventListener("mouseout", () => {
+      mouseOver = false;
+      nextTimeout();
+    });
+    nextTimeout();
+  });
+
+  slider.on("dragStarted", clearNextTimeout);
+  slider.on("animationEnded", nextTimeout);
+  slider.on("updated", nextTimeout);
+}
+
+export default function CTASlider() {
+  const [sliderRef, slider] = useKeenSlider<HTMLDivElement>(
+    {
+      loop: true,
+      renderMode: "performance",
+      slides: {
+        perView: 2,
+        spacing: 20,
+      },
+      breakpoints: {
+        "(max-width: 1024px)": {
+          slides: { perView: 1 },
+        },
+      },
+    },
+    [AutoplayPlugin]
+  );
+
+  useEffect(() => {
+    slider.current?.update();
+  }, [slider]);
 
   return (
     <div className="page-wrap overflow-hidden py-3 sm:py-6 md:py-12 lg:py-16">
-      <Slider {...settings}>
+      <div ref={sliderRef} className="keen-slider">
         {CTASlides.map((slide, index) => (
-          <div key={index} className="px-2">
+          <div key={index} className="keen-slider__slide px-2">
             <CTACard
               image={slide.image}
               title={slide.title}
@@ -120,7 +148,7 @@ export default function CTASlider() {
             />
           </div>
         ))}
-      </Slider>
+      </div>
     </div>
   );
 }

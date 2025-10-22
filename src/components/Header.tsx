@@ -225,10 +225,7 @@ export default function Header() {
             </button>
 
             {/* User */}
-            <UserIcon
-              userLoggedIn={userLoggedIn}
-              color={brand.primary}
-            />
+            <UserIcon userLoggedIn={userLoggedIn} color={brand.primary} />
 
             {/* Wishlist */}
             <WishlistIcon userLoggedIn={userLoggedIn} color={brand.primary} />
@@ -283,11 +280,21 @@ export default function Header() {
                 >
                   <div className="grid grid-cols-2">
                     <div
-                      className="col-span-2 border-b px-4 py-3 text-[13px] font-semibold"
-                      style={{ color: brand.primary, borderColor: "#E3D5CA" }}
+                      className="col-span-2 flex justify-between items-center border-b px-4 py-3 text-[13px] font-semibold"
+                      style={{ borderColor: "#E3D5CA" }}
                     >
-                      Shop Categories
+                      <span style={{ color: brand.primary }}>
+                        Shop Categories
+                      </span>
+                      <Link
+                        href="/shop"
+                        className="text-[12px] font-medium underline hover:opacity-70"
+                        style={{ color: "#3f3f3f" }}
+                      >
+                        All
+                      </Link>
                     </div>
+
                     {(() => {
                       const mid = Math.ceil(categories.length / 2);
                       const left = categories.slice(0, mid);
@@ -388,6 +395,13 @@ export default function Header() {
                 </svg>
               </summary>
               <div className="pl-4 mt-2 space-y-2">
+                <Link
+                  href="/shop"
+                  className="block text-gray-800 font-medium py-1"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  All
+                </Link>
                 {categories.map((cat) => (
                   <Link
                     key={cat.id}

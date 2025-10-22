@@ -22,7 +22,6 @@ export default function UserIcon({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // ✅ Runs only on client side — avoids SSR mismatch
     const data = loggedInUser();
     setUser(data);
   }, []);
@@ -48,12 +47,21 @@ export default function UserIcon({
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
+  // Get only the first name
+  const getFirstName = (name?: string) => {
+    if (!name) return "";
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    return parts[0] || "";
+  };
+
+  const firstName = getFirstName(user?.name);
+
   return (
     <div className="md:relative static" ref={dropdownRef}>
       {/* User Icon */}
       <button
         onClick={toggleDropdown}
-        className="inline-flex items-center justify-center p-1"
+        className="inline-flex items-end justify-center p-1 gap-2"
         aria-label="Account"
       >
         <UserRound
@@ -61,6 +69,17 @@ export default function UserIcon({
           color={color}
           className="w-5 h-5 md:w-7 md:h-7 cursor-pointer hover:opacity-60 transition-all duration-200"
         />
+        {/* First name shown to the right of the icon when a name exists */}
+        {firstName ? (
+          <span
+            className="text-sm md:text-base font-medium select-none"
+            style={{
+              color: brand.primary,
+            }}
+          >
+            {firstName}
+          </span>
+        ) : null}
       </button>
 
       {/* Dropdown */}

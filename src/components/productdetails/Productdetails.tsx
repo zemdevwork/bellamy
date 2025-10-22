@@ -8,7 +8,7 @@ import OrderCheckout from "@/components/orders/OrderCheckout";
 import { isLoggedIn } from "@/lib/utils";
 import { addLocalCartItem, getLocalCart } from "@/lib/local-cart";
 import { Heart } from "lucide-react";
-import { useCart } from '@/context/cartContext';
+import { useCart, useWishlist } from '@/context/cartContext';
 import ShareButton from "../common/Share";
 import { brand, rupee } from "@/constants/values";
 import RelatedProducts from "../RelatedProducts";
@@ -64,6 +64,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const { updateCartCount } = useCart();
+  const { updateWishlistCount } = useWishlist();
   const [quantity, setQuantity] = useState(1); // ✅ Added quantity state
 
   const router = useRouter();
@@ -192,6 +193,7 @@ export default function ProductDetails({ productId }: { productId: string }) {
         const res = await addToWishlist({ variantId: selectedVariantId });
         if (res?.success) {
           setIsInWishlist(true);
+          await updateWishlistCount();
           toast.success(`❤️ Added to wishlist`);
         }
       } catch (error) {

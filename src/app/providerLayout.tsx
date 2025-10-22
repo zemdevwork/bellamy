@@ -3,7 +3,7 @@
 
 import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
-import { CartProvider } from "@/context/cartContext";
+import { CartWishlistProvider } from "@/context/cartContext";
 
 export default function ProvidersLayout({
   children,
@@ -17,9 +17,9 @@ export default function ProvidersLayout({
     noHeaderRoutes.includes(pathname) || pathname.startsWith("/admin");
 
   return (
-    <CartProvider>
+    <CartWishlistProvider>
       {!hideHeader && <Header />}
       {children}
-    </CartProvider>
+    </CartWishlistProvider>
   );
 }
