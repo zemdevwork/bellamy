@@ -99,7 +99,7 @@ export default function WishlistCard({ variantId, product, onRemoved }: Wishlist
               disabled={isPending}
               className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              <ShoppingCart className="w-4 h-4" />
+              <ShoppingCart className="w-4 h-4 cursor-pointer" />
               <span>Add</span>
             </button>
 
@@ -109,7 +109,7 @@ export default function WishlistCard({ variantId, product, onRemoved }: Wishlist
               className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
               aria-label="Remove from wishlist"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 cursor-pointer" />
             </button>
           </div>
         </div>

@@ -29,6 +29,7 @@ import { IconLogout } from "@tabler/icons-react";
 import Link from "next/link"; // ✅ added
 import { syncLocalCartToBackend } from "@/lib/local-cart";
 import { toast } from "sonner";
+import { useWishlist } from "@/context/cartContext";
 
 export function LoginForm({
   className,
@@ -37,6 +38,8 @@ export function LoginForm({
   const router = useRouter();
   const [isExecuting, setIsExecuting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const {updateWishlistCount} = useWishlist();
+
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -66,6 +69,7 @@ export function LoginForm({
       } else {
         toast.success("Login successful");
         localStorage.setItem('user', JSON.stringify(result.user));
+        await updateWishlistCount();
         await syncLocalCartToBackend();
         router.replace("/");
       }
