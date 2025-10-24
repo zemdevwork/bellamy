@@ -37,12 +37,6 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="page-wrap">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <button className="hover:text-gray-900">Home</button>
-          <span>/</span>
-          <span className="page-title">My Account</span>
-        </div>
 
         {/* Page Title */}
         <div className="mb-6">
